@@ -29,6 +29,7 @@ import { localCache } from '@/lib/localCache';
 import { printReceiptViaWebBluetooth, printReceiptWithElectronPreference } from '@/lib/receiptElectronPrint';
 import { hasWebBluetooth, webBluetoothUnavailableReason } from '@/lib/webBluetoothSupport';
 import { compressImageFileToJpegBlob } from '@/lib/compressImageClient';
+import { postRxOcrImageJson } from '@/lib/rxOcrClientPayload';
 import { fetchLensTintConfigClient } from '@/lib/fittingbox/lensTintConfigClient';
 import type { LensTintPreset } from '@/lib/fittingbox/lensTintPresets';
 import { StandardLayout } from '@/components/layout/StandardLayout';
@@ -341,33 +342,36 @@ function EyeRxBlock({
   ) => {
     const decimals = options?.decimals ?? 2;
     return (
-      <div className="rounded-xl border border-slate-700/60 bg-slate-900/70 p-2.5">
-        <div className="mb-1 flex items-center justify-between">
-          <label className="text-[11px] font-semibold text-slate-200">{label}</label>
-          <span className="text-[10px] text-slate-400">步进 {step > 0 ? '+' : ''}{step}</span>
+      <div className="min-w-0 flex-1">
+        <div className="mb-1 flex items-end justify-between gap-1">
+          <label className="truncate text-[10px] font-medium tracking-wide text-[#00ffcc]/80">{label}</label>
+          <span className="shrink-0 whitespace-nowrap text-[9px] text-white/25">
+            步进 {step > 0 ? '+' : ''}
+            {step}
+          </span>
         </div>
-        <div className="grid grid-cols-[3.2rem,1fr,3.2rem] gap-2">
+        <div className="flex items-center gap-1.5">
           <button
             type="button"
-            className="h-12 rounded-lg border border-cyan-400/40 bg-cyan-400/10 text-lg font-bold text-cyan-200 hover:bg-cyan-400/20"
+            className="flex h-11 w-9 shrink-0 items-center justify-center rounded-md border border-transparent bg-transparent text-lg font-light text-white/55 transition-colors hover:border-[#00ffcc]/40 hover:text-[#00ffcc]"
             onClick={() =>
               onPatch({
                 [key]: bumpNumericString(eye[key], -Math.abs(step), decimals, options?.min, options?.max),
               } as Partial<RxEye>)
             }
           >
-            -
+            −
           </button>
           <input
             data-rx-field={`${eyeSide}-${String(key)}`}
             value={eye[key]}
             onChange={(e) => onPatch({ [key]: e.target.value } as Partial<RxEye>)}
-            className="h-12 rounded-lg border border-slate-600 bg-slate-950 px-2 text-center font-mono text-base text-amber-300 outline-none focus:border-amber-400"
+            className="h-11 min-w-0 flex-1 rounded-md border border-white/[0.08] bg-black/45 px-1.5 text-center font-mono text-lg font-medium tabular-nums tracking-tight text-white outline-none ring-0 transition-[border-color,box-shadow] focus:border-[#00ffcc]/40 focus:shadow-[0_0_0_1px_rgba(0,255,204,0.12)]"
             placeholder={options?.placeholder || '0.00'}
           />
           <button
             type="button"
-            className="h-12 rounded-lg border border-amber-400/50 bg-amber-500/15 text-lg font-bold text-amber-200 hover:bg-amber-500/25"
+            className="flex h-11 w-9 shrink-0 items-center justify-center rounded-md border border-transparent bg-transparent text-lg font-light text-white/55 transition-colors hover:border-[#00ffcc]/40 hover:text-[#00ffcc]"
             onClick={() =>
               onPatch({
                 [key]: bumpNumericString(eye[key], Math.abs(step), decimals, options?.min, options?.max),
@@ -383,28 +387,33 @@ function EyeRxBlock({
 
   const row = (key: keyof RxEye, label: string, ph: string) => (
     <div className="min-w-0">
-      <label className="mb-1 block text-[10px] text-slate-400 truncate">{label}</label>
+      <label className="mb-1 block truncate text-[10px] font-medium text-[#00ffcc]/70">{label}</label>
       <input
         data-rx-field={`${eyeSide}-${String(key)}`}
         value={eye[key]}
         onChange={(e) => onPatch({ [key]: e.target.value } as Partial<RxEye>)}
-        className="h-10 w-full rounded-lg border border-slate-700 bg-slate-900 px-2 text-sm text-slate-100 outline-none focus:border-cyan-400"
+        className="h-10 w-full rounded-md border border-white/[0.08] bg-black/40 px-2 text-sm text-white/90 outline-none transition-[border-color] focus:border-[#00ffcc]/35"
         placeholder={ph}
       />
     </div>
   );
 
   return (
-    <div className="rounded-xl border border-slate-700 bg-slate-950/85 p-3">
-      <p className="mb-1 text-sm font-bold text-slate-100">{title}</p>
-      <p className="mb-2 text-[11px] leading-snug text-slate-400">
+    <div className="rounded-xl border border-white/[0.07] bg-[#070b10]/95 p-3 shadow-[inset_0_1px_0_0_rgba(0,255,204,0.04)]">
+      <p className="mb-0.5 text-sm font-semibold tracking-tight text-white">{title}</p>
+      <p className="mb-2.5 text-[10px] leading-snug text-white/35">
         球镜、矫正视力、瞳距必填；柱镜可不填；填了柱镜则轴位必填。ADD 选填。
       </p>
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-        {dial('ds', '球镜 (DS) · 必填', 0.25, { decimals: 2, min: -30, max: 30, placeholder: '-6.00' })}
-        {dial('dc', '柱镜 (DC) · 选填', 0.25, { decimals: 2, min: -12, max: 12, placeholder: '-1.25' })}
-        {dial('axis', '轴位 (°)', 1, { decimals: 0, min: 0, max: 180, placeholder: '90' })}
-        {dial('add', '下加 (ADD) · 选填', 0.25, { decimals: 2, min: 0, max: 4, placeholder: '+1.50' })}
+      <div className="rounded-lg border border-white/[0.06] bg-black/35 p-2.5">
+        <p className="mb-2 text-[9px] uppercase tracking-[0.14em] text-white/30">屈光</p>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+          {dial('ds', '球镜 (DS) · 必填', 0.25, { decimals: 2, min: -30, max: 30, placeholder: '-6.00' })}
+          {dial('dc', '柱镜 (DC) · 选填', 0.25, { decimals: 2, min: -12, max: 12, placeholder: '-1.25' })}
+          {dial('axis', '轴位 (°)', 1, { decimals: 0, min: 0, max: 180, placeholder: '90' })}
+        </div>
+      </div>
+      <div className="mt-2 rounded-lg border border-white/[0.06] bg-black/30 p-2.5">
+        <div className="max-w-md">{dial('add', '下加 (ADD) · 选填', 0.25, { decimals: 2, min: 0, max: 4, placeholder: '+1.50' })}</div>
       </div>
       <div className="mt-2 grid grid-cols-2 gap-2">
         {row('va', '矫正视力 · 必填', '如 1.0')}
@@ -1327,22 +1336,15 @@ export default function CashierPage() {
         }, 'image/jpeg', 0.9);
       });
 
-      const form = new FormData();
-      form.append('image', blob, `visual-entry-${Date.now()}.jpg`);
-      const resp = await fetch('/api/vision/visual-entry', { method: 'POST', body: form });
-      const data = (await resp.json().catch(() => ({}))) as {
-        ok?: boolean;
-        error?: string;
-        result?: { right?: Record<string, unknown>; left?: Record<string, unknown> };
-      };
-      if (!resp.ok || !data.ok || !data.result) {
-        throw new Error(data.error || '视觉识别失败');
+      const { httpOk, data } = await postRxOcrImageJson(blob, 'image/jpeg');
+      if (!httpOk || !data.ok || !data.result) {
+        throw new Error(data.error || '识别失败');
       }
       applyRxFromOcr(editingRxItem.lineId, 'right', data.result.right || {});
       applyRxFromOcr(editingRxItem.lineId, 'left', data.result.left || {});
       setVisualEntryPulse(true);
       window.setTimeout(() => setVisualEntryPulse(false), 1200);
-      window.alert('识别成功，已自动回填 OD/OS 的 S/C/A。');
+      window.alert('识别完成，已自动回填右眼/左眼度数。请核对后保存。');
     } catch (err) {
       setVisualEntryError(err instanceof Error ? err.message : '视觉识别失败');
     } finally {
@@ -3773,8 +3775,9 @@ export default function CashierPage() {
             <div className="space-y-3 px-5 py-4 max-h-[70vh] overflow-y-auto">
               <div className="rounded-xl border border-cyan-300/30 bg-slate-950 p-3 text-slate-100">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="text-xs font-mono text-cyan-100/90">
-                    AI 视觉录入（Visual Entry）· 预览 + 扫描光效 + JSON 回填
+                  <p className="min-w-0 max-w-[min(100%,28rem)] text-[11px] leading-snug text-cyan-100/90">
+                    手写验光单：<span className="font-semibold text-cyan-50">先打开摄像头</span>
+                    ，将单子对准预览，再点「抓拍并 AI 识别」。相册已有照片请用右侧「相册选图」。
                   </p>
                   <div className="flex flex-wrap items-center gap-2 shrink-0">
                     <button
@@ -3786,8 +3789,49 @@ export default function CashierPage() {
                           : 'bg-cyan-600 text-white hover:bg-cyan-700'
                       }`}
                     >
-                      {visualEntryOpen ? '关闭视觉录入' : '开启视觉录入'}
+                      {visualEntryOpen ? '关闭摄像头' : '打开摄像头拍手写单'}
                     </button>
+                    <label
+                      title="选用手机里已拍好的验光单照片；电脑上会打开图片选择器"
+                      className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-amber-400/60 bg-amber-600/90 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-600"
+                    >
+                      <Camera className="h-3.5 w-3.5" />
+                      {rxRecognizing ? '识别中…' : '相册选图识别'}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        disabled={rxRecognizing}
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          setRxPhotoFileName(file.name);
+                          setRxRecognizing(true);
+                          try {
+                            const jpegBlob = await compressImageFileToJpegBlob(file, {
+                              maxBytes: 600 * 1024,
+                              maxEdge: 2048,
+                            });
+                            const { httpOk, data } = await postRxOcrImageJson(
+                              jpegBlob,
+                              jpegBlob.type?.startsWith('image/') ? jpegBlob.type : 'image/jpeg',
+                            );
+                            if (!httpOk || !data?.ok || !data.result) {
+                              throw new Error(data?.error || '识别失败');
+                            }
+                            applyRxFromOcr(editingRxItem.lineId, 'right', data.result.right || {});
+                            applyRxFromOcr(editingRxItem.lineId, 'left', data.result.left || {});
+                            window.alert('识别完成，已自动回填右眼/左眼度数。请核对后保存。');
+                          } catch (err) {
+                            const msg = err instanceof Error ? err.message : String(err);
+                            window.alert('识别失败：' + msg);
+                          } finally {
+                            setRxRecognizing(false);
+                            e.currentTarget.value = '';
+                          }
+                        }}
+                      />
+                    </label>
                     <button
                       type="button"
                       disabled={voiceOrderBusy || rxRecognizing}
@@ -3806,52 +3850,6 @@ export default function CashierPage() {
                       <Mic className="h-3.5 w-3.5" />
                       {voiceOrderBusy ? '语音处理中' : voiceOrderRecording ? '松开结束' : '语音填单'}
                     </button>
-                    <label className="inline-flex cursor-pointer items-center gap-1 rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-700">
-                      <Camera className="h-3.5 w-3.5" />
-                      {rxRecognizing ? '识别中...' : '拍照识别'}
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        disabled={rxRecognizing}
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (!file) return;
-                          setRxPhotoFileName(file.name);
-                          setRxRecognizing(true);
-                          try {
-                            const jpegBlob = await compressImageFileToJpegBlob(file, {
-                              maxBytes: 600 * 1024,
-                              maxEdge: 2048,
-                            });
-                            const form = new FormData();
-                            const baseName = file.name.replace(/\.[^/.]+$/, '') || 'rx';
-                            form.append('image', jpegBlob, `${baseName}.jpg`);
-                            const resp = await fetch('/api/vision/rx-ocr', {
-                              method: 'POST',
-                              body: form,
-                            });
-                            const data = (await resp.json()) as {
-                              ok?: boolean;
-                              error?: string;
-                              result?: { right?: Record<string, unknown>; left?: Record<string, unknown> };
-                            };
-                            if (!resp.ok || !data?.ok || !data.result) {
-                              throw new Error(data?.error || '识别失败');
-                            }
-                            applyRxFromOcr(editingRxItem.lineId, 'right', data.result.right || {});
-                            applyRxFromOcr(editingRxItem.lineId, 'left', data.result.left || {});
-                            window.alert('识别完成，已自动回填右眼/左眼度数。请核对后保存。');
-                          } catch (err) {
-                            const msg = err instanceof Error ? err.message : String(err);
-                            window.alert('识别失败：' + msg);
-                          } finally {
-                            setRxRecognizing(false);
-                            e.currentTarget.value = '';
-                          }
-                        }}
-                      />
-                    </label>
                   </div>
                 </div>
 
@@ -3879,11 +3877,9 @@ export default function CashierPage() {
                         onClick={() => void runVisualEntryRecognition()}
                         className="rounded-lg bg-cyan-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-cyan-700 disabled:opacity-60"
                       >
-                        {visualEntryLoading ? '识别中...' : '开始视觉识别'}
+                        {visualEntryLoading ? 'AI 识别中…' : '抓拍当前画面 · AI 识别'}
                       </button>
-                      <span className="font-mono text-[11px] text-slate-300">
-                        API: <code>/api/vision/visual-entry</code>
-                      </span>
+                      <span className="text-[10px] text-slate-400">调用验光图 AI（rx-ocr）</span>
                     </div>
                     {visualEntryError ? <p className="mt-2 text-xs text-red-300">{visualEntryError}</p> : null}
                   </div>
@@ -3892,8 +3888,9 @@ export default function CashierPage() {
                 {rxRecognizing ? <p className="mt-2 text-[11px] text-amber-300">正在识别中，请稍候...</p> : null}
                 {rxPhotoFileName ? <p className="mt-2 text-[11px] text-amber-300">已选择：{rxPhotoFileName}</p> : null}
                 <div className="mt-3 space-y-1.5 border-t border-slate-700 pt-2">
+                  <p className="text-[10px] font-medium text-slate-400">无图 / 口述时</p>
                   <p className="text-[10px] text-slate-300">
-                    公网 HTTP 通常无麦克风权限：可粘贴口述内容，点「文字填单」（与收银文字开单相同）。
+                    公网 HTTP 常无麦克风权限：可把验光师留言粘贴到下方，点「文字填单」。
                   </p>
                   <textarea
                     value={voiceOrderTextDraft}
