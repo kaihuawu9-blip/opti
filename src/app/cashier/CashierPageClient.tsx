@@ -343,17 +343,17 @@ function EyeRxBlock({
     const decimals = options?.decimals ?? 2;
     return (
       <div className="min-w-0 flex-1">
-        <div className="mb-1 flex items-end justify-between gap-1">
-          <label className="truncate text-[10px] font-medium tracking-wide text-[#00ffcc]/80">{label}</label>
-          <span className="shrink-0 whitespace-nowrap text-[9px] text-white/25">
+        <div className="mb-2 flex items-end justify-between gap-2">
+          <label className="truncate text-[10px] font-medium tracking-wide text-gray-400">{label}</label>
+          <span className="shrink-0 whitespace-nowrap text-[9px] text-gray-500">
             步进 {step > 0 ? '+' : ''}
             {step}
           </span>
         </div>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-2">
           <button
             type="button"
-            className="flex h-11 w-9 shrink-0 items-center justify-center rounded-md border border-transparent bg-transparent text-lg font-light text-white/55 transition-colors hover:border-[#00ffcc]/40 hover:text-[#00ffcc]"
+            className="flex h-11 w-9 shrink-0 items-center justify-center rounded-md border border-transparent bg-transparent text-lg font-light text-gray-500 transition-colors hover:border-[#00ffcc]/45 hover:bg-white/[0.04] hover:text-[#00ffcc]"
             onClick={() =>
               onPatch({
                 [key]: bumpNumericString(eye[key], -Math.abs(step), decimals, options?.min, options?.max),
@@ -366,12 +366,12 @@ function EyeRxBlock({
             data-rx-field={`${eyeSide}-${String(key)}`}
             value={eye[key]}
             onChange={(e) => onPatch({ [key]: e.target.value } as Partial<RxEye>)}
-            className="h-11 min-w-0 flex-1 rounded-md border border-white/[0.08] bg-black/45 px-1.5 text-center font-mono text-lg font-medium tabular-nums tracking-tight text-white outline-none ring-0 transition-[border-color,box-shadow] focus:border-[#00ffcc]/40 focus:shadow-[0_0_0_1px_rgba(0,255,204,0.12)]"
+            className="h-11 min-w-0 flex-1 rounded-md border border-white/10 bg-[#2C2C2C] px-2 text-center font-mono text-lg font-bold tabular-nums tracking-tight text-white shadow-sm outline-none ring-0 transition-[border-color,box-shadow,background-color] placeholder:text-gray-600 hover:border-white/25 hover:shadow-[0_0_0_1px_rgba(255,255,255,0.06)] focus:border-[#00ffcc] focus:bg-[#323232] focus:shadow-[0_0_0_1px_rgba(0,255,204,0.35),0_4px_20px_-4px_rgba(0,255,204,0.18)]"
             placeholder={options?.placeholder || '0.00'}
           />
           <button
             type="button"
-            className="flex h-11 w-9 shrink-0 items-center justify-center rounded-md border border-transparent bg-transparent text-lg font-light text-white/55 transition-colors hover:border-[#00ffcc]/40 hover:text-[#00ffcc]"
+            className="flex h-11 w-9 shrink-0 items-center justify-center rounded-md border border-transparent bg-transparent text-lg font-light text-gray-500 transition-colors hover:border-[#00ffcc]/45 hover:bg-white/[0.04] hover:text-[#00ffcc]"
             onClick={() =>
               onPatch({
                 [key]: bumpNumericString(eye[key], Math.abs(step), decimals, options?.min, options?.max),
@@ -387,35 +387,35 @@ function EyeRxBlock({
 
   const row = (key: keyof RxEye, label: string, ph: string) => (
     <div className="min-w-0">
-      <label className="mb-1 block truncate text-[10px] font-medium text-[#00ffcc]/70">{label}</label>
+      <label className="mb-2 block truncate text-[10px] font-medium text-gray-400">{label}</label>
       <input
         data-rx-field={`${eyeSide}-${String(key)}`}
         value={eye[key]}
         onChange={(e) => onPatch({ [key]: e.target.value } as Partial<RxEye>)}
-        className="h-10 w-full rounded-md border border-white/[0.08] bg-black/40 px-2 text-sm text-white/90 outline-none transition-[border-color] focus:border-[#00ffcc]/35"
+        className="h-11 w-full rounded-md border border-white/10 bg-[#2C2C2C] px-3 text-sm font-bold text-white shadow-sm outline-none transition-[border-color,box-shadow,background-color] placeholder:font-normal placeholder:text-gray-600 hover:border-white/25 hover:shadow-[0_0_0_1px_rgba(255,255,255,0.06)] focus:border-[#00ffcc] focus:bg-[#323232] focus:shadow-[0_0_0_1px_rgba(0,255,204,0.35),0_4px_20px_-4px_rgba(0,255,204,0.18)]"
         placeholder={ph}
       />
     </div>
   );
 
   return (
-    <div className="rounded-xl border border-white/[0.07] bg-[#070b10]/95 p-3 shadow-[inset_0_1px_0_0_rgba(0,255,204,0.04)]">
-      <p className="mb-0.5 text-sm font-semibold tracking-tight text-white">{title}</p>
-      <p className="mb-2.5 text-[10px] leading-snug text-white/35">
+    <div className="rounded-xl border border-white/[0.08] bg-[#0A0A0A] p-4 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] sm:p-5">
+      <p className="mb-1 text-sm font-semibold tracking-tight text-white">{title}</p>
+      <p className="mb-4 text-[10px] leading-relaxed text-gray-500">
         球镜、矫正视力、瞳距必填；柱镜可不填；填了柱镜则轴位必填。ADD 选填。
       </p>
-      <div className="rounded-lg border border-white/[0.06] bg-black/35 p-2.5">
-        <p className="mb-2 text-[9px] uppercase tracking-[0.14em] text-white/30">屈光</p>
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+      <div className="rounded-xl border border-white/[0.08] bg-[#1E1E1E] p-4 shadow-inner">
+        <p className="mb-3 text-[9px] font-medium uppercase tracking-[0.16em] text-gray-500">屈光</p>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
           {dial('ds', '球镜 (DS) · 必填', 0.25, { decimals: 2, min: -30, max: 30, placeholder: '-6.00' })}
           {dial('dc', '柱镜 (DC) · 选填', 0.25, { decimals: 2, min: -12, max: 12, placeholder: '-1.25' })}
           {dial('axis', '轴位 (°)', 1, { decimals: 0, min: 0, max: 180, placeholder: '90' })}
         </div>
       </div>
-      <div className="mt-2 rounded-lg border border-white/[0.06] bg-black/30 p-2.5">
+      <div className="mt-3 rounded-xl border border-white/[0.08] bg-[#1A1A1A] p-4 shadow-inner">
         <div className="max-w-md">{dial('add', '下加 (ADD) · 选填', 0.25, { decimals: 2, min: 0, max: 4, placeholder: '+1.50' })}</div>
       </div>
-      <div className="mt-2 grid grid-cols-2 gap-2">
+      <div className="mt-3 grid grid-cols-2 gap-3">
         {row('va', '矫正视力 · 必填', '如 1.0')}
         {row('pd', '瞳距 (mm) · 必填', '如 32')}
       </div>
