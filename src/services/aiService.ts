@@ -1,3 +1,5 @@
+import { getOpenAiCompatibleApiKey } from '@/lib/aiApiCredentials';
+
 type OpenAIMessageRole = 'system' | 'user' | 'assistant';
 
 type OpenAIMessageContentPart =
@@ -116,14 +118,15 @@ function normalizeVoiceOrderResult(value: unknown): StandardVoiceOrderResult {
 function resolveProviderConfig(): AiProviderConfig {
   const provider = (process.env.AI_PROVIDER || 'doubao').trim().toLowerCase();
   const defaultBaseUrl = provider === 'doubao' ? DEFAULT_DOUBAO_BASE_URL : DEFAULT_OPENAI_BASE_URL;
-  const baseUrl = (process.env.AI_BASE_URL || process.env.OPENAI_BASE_URL || defaultBaseUrl).trim().replace(/\/$/, '');
-  const apiKey = (process.env.AI_API_KEY || process.env.OPENAI_API_KEY || '').trim();
+  const fromEnv = (process.env.OPENAI_BASE_URL || process.env.AI_BASE_URL || '').trim().replace(/\/$/, '');
+  const baseUrl = fromEnv || defaultBaseUrl;
+  const apiKey = getOpenAiCompatibleApiKey();
   const chatModel = (process.env.AI_CHAT_MODEL || process.env.OPENAI_MODEL || process.env.DOUBAO_MODEL || 'gpt-4o-mini').trim();
   const visionModel = (process.env.AI_VISION_MODEL || process.env.OPENAI_MODEL_VISION || chatModel).trim();
   const speechModel = (process.env.AI_SPEECH_MODEL || process.env.OPENAI_WHISPER_MODEL || 'whisper-1').trim();
 
   if (!apiKey) {
-    throw new Error('服务端未配置 AI_API_KEY（或 OPENAI_API_KEY）');
+    throw new Error('服务端未配置 OPENAI_API_KEY 或 AI_API_KEY');
   }
 
   return { provider, apiKey, baseUrl, chatModel, visionModel, speechModel };

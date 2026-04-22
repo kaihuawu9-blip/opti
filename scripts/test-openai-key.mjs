@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
- * 验证 OPENAI_API_KEY / OPENAI_BASE_URL 是否可用（请求 /v1/models?limit=1）。
+ * 验证 OPENAI 兼容 Key / Base URL（请求 /v1/models?limit=1）。
+ * Key 优先 `OPENAI_API_KEY`，回退 `AI_API_KEY`；Base 优先 `OPENAI_BASE_URL`，回退 `AI_BASE_URL`。
  * 用法（在项目根目录）：
  *   node scripts/test-openai-key.mjs
  * 不依赖额外 npm 包；会读取项目根 `.env` 覆盖同名环境变量。
@@ -38,11 +39,14 @@ function loadEnvLocal() {
 
 loadEnvLocal();
 
-const key = (process.env.OPENAI_API_KEY || '').trim();
-const base = (process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1').replace(/\/$/, '');
+const key = (process.env.OPENAI_API_KEY || process.env.AI_API_KEY || '').trim();
+const base = (process.env.OPENAI_BASE_URL || process.env.AI_BASE_URL || 'https://api.openai.com/v1').replace(
+  /\/$/,
+  '',
+);
 
 if (!key) {
-  console.error('失败：.env 中未设置 OPENAI_API_KEY');
+  console.error('失败：.env 中未设置 OPENAI_API_KEY 或 AI_API_KEY');
   process.exit(1);
 }
 

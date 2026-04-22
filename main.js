@@ -453,11 +453,18 @@ ipcMain.handle('ai:chat', async (_event, payload) => {
     const mode = body.mode === 'business' ? 'business' : 'free';
     if (!message) return { ok: false, error: 'message 不能为空' };
 
-    const apiKey = String(body.apiKey || process.env.OPENAI_API_KEY || '').trim();
-    const baseUrl = String(body.baseUrl || process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1').trim();
+    const apiKey = String(
+      body.apiKey || process.env.OPENAI_API_KEY || process.env.AI_API_KEY || '',
+    ).trim();
+    const baseUrl = String(
+      body.baseUrl ||
+        process.env.OPENAI_BASE_URL ||
+        process.env.AI_BASE_URL ||
+        'https://api.openai.com/v1',
+    ).trim();
     const model = String(body.model || process.env.OPENAI_MODEL || 'gpt-4o-mini').trim();
     if (!apiKey) {
-      return { ok: false, error: '桌面端未配置 OPENAI_API_KEY' };
+      return { ok: false, error: '桌面端未配置 OPENAI_API_KEY 或 AI_API_KEY' };
     }
 
     const systemPrompt =
@@ -508,11 +515,18 @@ ipcMain.on('ai:chat-stream', async (event, body) => {
       return;
     }
 
-    const apiKey = String(payload.apiKey || process.env.OPENAI_API_KEY || '').trim();
-    const baseUrl = String(payload.baseUrl || process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1').trim();
+    const apiKey = String(
+      payload.apiKey || process.env.OPENAI_API_KEY || process.env.AI_API_KEY || '',
+    ).trim();
+    const baseUrl = String(
+      payload.baseUrl ||
+        process.env.OPENAI_BASE_URL ||
+        process.env.AI_BASE_URL ||
+        'https://api.openai.com/v1',
+    ).trim();
     const model = String(payload.model || process.env.OPENAI_MODEL || 'gpt-4o-mini').trim();
     if (!apiKey) {
-      send({ error: '桌面端未配置 OPENAI_API_KEY', done: true });
+      send({ error: '桌面端未配置 OPENAI_API_KEY 或 AI_API_KEY', done: true });
       return;
     }
 

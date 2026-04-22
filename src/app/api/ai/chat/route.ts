@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { getOpenAiCompatibleApiKey, getOpenAiCompatibleBaseUrl } from '@/lib/aiApiCredentials';
 import { getCloudRestServiceKey, getCloudRestUrl } from '@/lib/cloudRest';
 
 export const runtime = 'nodejs';
@@ -56,11 +57,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: '请求过于频繁，请稍后再试' }, { status: 429 });
     }
 
-    const apiKey = process.env.OPENAI_API_KEY || '';
-    const baseUrl = process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1';
+    const apiKey = getOpenAiCompatibleApiKey();
+    const baseUrl = getOpenAiCompatibleBaseUrl();
     const model = process.env.OPENAI_MODEL || 'gpt-4o-mini';
     if (!apiKey) {
-      return NextResponse.json({ error: '服务端未配置 OPENAI_API_KEY' }, { status: 500 });
+      return NextResponse.json(
+        { error: '服务端未配置 OPENAI_API_KEY 或 AI_API_KEY' },
+        { status: 500 },
+      );
     }
 
     const systemPrompt =

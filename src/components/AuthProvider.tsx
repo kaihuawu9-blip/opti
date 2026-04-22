@@ -57,11 +57,11 @@ export function useAuth() {
 }
 
 export default function AuthProvider({ children }: { children: React.ReactNode }) {
-  /** 仅开发环境可启用免登录（NODE_ENV=development + NEXT_PUBLIC_DISABLE_AUTH=true）。 */
+  /**
+   * 仅开发环境且显式设置 `NEXT_PUBLIC_ENABLE_AUTH` 为 false/0/off/no 时免登录；
+   * 生产构建始终要求鉴权。见 `core/auth`。
+   */
   const disableAuthByEnv = disableAuthInCurrentEnv;
-
-  /** 免登录模式下一开始就为 true（与初始假 session 一致）。 */
-  const [bypassAuthActive] = useState(() => disableAuthByEnv);
 
   /**
    * 需要鉴权时先处于「加载中」，避免已带 Cookie 的用户先看到一帧登录页再跳进主界面
@@ -78,9 +78,9 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
   );
   useLayoutEffect(() => {
     if (!disableAuthByEnv) return;
-    if (process.env.NODE_ENV === 'production') {
+    if (process.env.NODE_ENV === 'development') {
       console.warn(
-        '[AuthProvider] NEXT_PUBLIC_DISABLE_AUTH=true：已跳过登录（任意访问域名）。正式对外前请删除该变量并重新 build。',
+        '[AuthProvider] 开发环境已显式关闭鉴权 (NEXT_PUBLIC_ENABLE_AUTH=false/0/off/no)。生产环境不会进入此模式。',
       );
     }
   }, [disableAuthByEnv]);

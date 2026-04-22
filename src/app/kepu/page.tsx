@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Baby, BookOpen, User, HeartPulse, Cog, Calculator } from 'lucide-react';
+import { Baby, User, HeartPulse, Cog } from 'lucide-react';
 import { useAppNavigate } from '@/lib/useAppNavigate';
 
 type KepuTab = 'child' | 'adult' | 'elder' | 'lab';
@@ -225,7 +225,6 @@ export default function KepuPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-2">
-        <BookOpen className="w-6 h-6 text-emerald-600" />
         <div>
           <h1 className="text-2xl font-bold text-gray-800">科普</h1>
           <p className="text-sm text-gray-500 mt-0.5">视光与加工常识，按人群分类查阅</p>
@@ -406,7 +405,6 @@ export default function KepuPage() {
           <div className="rounded-2xl border border-emerald-200 bg-emerald-50/90 px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="text-sm text-emerald-950">
               <div className="font-semibold text-emerald-900 flex items-center gap-2">
-                <Calculator className="w-5 h-5 shrink-0" />
                 加工后镜片边缘厚度（估算）
               </div>
               <p className="text-xs text-emerald-800/90 mt-1 leading-relaxed">

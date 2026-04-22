@@ -18,6 +18,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // 本地备份的旧版完整目录，勿参与类型检查与 Lint
+    "cashier_old.tsx/**",
   ]),
 ]);
 

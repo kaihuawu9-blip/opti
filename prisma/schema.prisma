@@ -8,12 +8,14 @@ datasource db {
 }
 
 model products {
-  id       String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  store_id String?  @db.Uuid
-  name     String?
-  stock    Int?     @default(0)
-  price    Decimal? @db.Decimal
-  stores   stores?  @relation(fields: [store_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  id         String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  store_id   String? @db.Uuid
+  name       String?
+  stock      Int?    @default(0)
+  price      Decimal? @db.Decimal
+  /// 扩展字段：category/brand/镜片与促销等（与本地 JSON 库存同构，避免只写入 name/stock/price）
+  attributes Json?   @db.JsonB
+  stores     stores? @relation(fields: [store_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model sales {

@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 
 import OSS from 'ali-oss';
 import sharp from 'sharp';
+import { getOpenAiCompatibleApiKey, getOpenAiCompatibleBaseUrl } from '@/lib/aiApiCredentials';
 import { prisma } from '@/lib/prisma';
 
 export type CustomerUploadType = 'rx' | 'frame' | 'pd' | 'other';
@@ -154,9 +155,9 @@ async function requestDoubaoJson(
   messages: Array<{ role: 'system' | 'user'; content: string | Array<{ type: string; text?: string; image_url?: { url: string } }> }>,
   model: string,
 ): Promise<unknown> {
-  const apiKey = (process.env.OPENAI_API_KEY || '').trim();
-  const baseUrl = (process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1').trim().replace(/\/$/, '');
-  if (!apiKey) throw new Error('未配置 OPENAI_API_KEY');
+  const apiKey = getOpenAiCompatibleApiKey();
+  const baseUrl = getOpenAiCompatibleBaseUrl();
+  if (!apiKey) throw new Error('未配置 OPENAI_API_KEY 或 AI_API_KEY');
   const resp = await fetch(`${baseUrl}/chat/completions`, {
     method: 'POST',
     headers: {

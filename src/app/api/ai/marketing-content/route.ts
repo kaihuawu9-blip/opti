@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getOpenAiCompatibleApiKey, getOpenAiCompatibleBaseUrl } from '@/lib/aiApiCredentials';
 import { prisma } from '@/lib/prisma';
 
 export const runtime = 'nodejs';
@@ -180,13 +181,16 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const apiKey = (process.env.OPENAI_API_KEY || '').trim();
-    const baseUrl = (process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1').trim();
+    const apiKey = getOpenAiCompatibleApiKey();
+    const baseUrl = getOpenAiCompatibleBaseUrl();
     const model = (process.env.DOUBAO_MODEL_ID || process.env.OPENAI_MODEL || '').trim();
     const imageModel = (process.env.POSTER_SCENE_IMAGE_MODEL || '').trim();
 
     if (!apiKey) {
-      return NextResponse.json({ ok: false, error: '服务端未配置 OPENAI_API_KEY' }, { status: 500 });
+      return NextResponse.json(
+        { ok: false, error: '服务端未配置 OPENAI_API_KEY 或 AI_API_KEY' },
+        { status: 500 },
+      );
     }
     if (!model) {
       return NextResponse.json(

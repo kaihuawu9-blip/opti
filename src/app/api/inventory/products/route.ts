@@ -1,5 +1,15 @@
 import type { Prisma } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
+import {
+  fileRecordFromCreateBody,
+  loadInventoryFile,
+  mergeFileRecordFromBody,
+  newInventoryId,
+  saveInventoryFile,
+  isLocalInventoryFileEnabled,
+  parseProductExtensionFromBody,
+  PRODUCT_EXTENSION_DEFAULTS,
+} from '@/lib/inventoryFileStore';
 import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
@@ -10,7 +20,29 @@ const PRODUCT_BASE_SELECT = {
   name: true,
   stock: true,
   price: true,
+  attributes: true,
 } as const;
+
+const EXTENSION_FIELD_KEYS = [
+  'category',
+  'brand',
+  'model',
+  'frame_type',
+  'lens_type',
+  'refractive_index',
+  'coating',
+  'low_stock_threshold',
+  'is_hot',
+  'is_promo',
+  'promo_price',
+  'allow_discount',
+  'allow_points',
+  'allow_promo_price',
+] as const;
+
+function hasExtensionKeyInBody(body: Record<string, unknown>): boolean {
+  return (EXTENSION_FIELD_KEYS as readonly string[]).some((k) => k in body);
+}
 
 function dbReady(): boolean {
   return Boolean(process.env.DATABASE_URL?.trim());
@@ -45,7 +77,12 @@ function optionalTrimmedString(v: unknown): string | null {
   }
 }
 
-/** 库表可能没有 category 等扩展列：有则用字符串，否则「其他」。任意一步异常都不向上抛出。 */
+function optionalFiniteNumber(v: unknown): number | null {
+  if (v == null || v === '') return null;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+
 function normalizeCategory(raw: unknown): string {
   try {
     if (raw == null) return '其他';
@@ -56,8 +93,7 @@ function normalizeCategory(raw: unknown): string {
   }
 }
 
-/** 单行映射失败时返回可序列化的兜底对象，避免 GET 整表 map 时一条脏数据拖垮 API。 */
-function fallbackMappedRow(partialId: string): {
+type MappedProduct = {
   id: string;
   name: string;
   price: number;
@@ -67,6 +103,8 @@ function fallbackMappedRow(partialId: string): {
   model: string | null;
   frame_type: string | null;
   lens_type: string | null;
+  refractive_index: number | null;
+  coating: string | null;
   created_at: string;
   allow_discount: boolean;
   allow_points: boolean;
@@ -76,7 +114,9 @@ function fallbackMappedRow(partialId: string): {
   promo_price: number | null;
   low_stock_threshold: number;
   store_id: string | null;
-} {
+};
+
+function fallbackMappedRow(partialId: string): MappedProduct {
   return {
     id: partialId || 'unknown',
     name: '',
@@ -87,6 +127,8 @@ function fallbackMappedRow(partialId: string): {
     model: null,
     frame_type: null,
     lens_type: null,
+    refractive_index: null,
+    coating: null,
     created_at: new Date().toISOString(),
     allow_discount: true,
     allow_points: true,
@@ -100,28 +142,31 @@ function fallbackMappedRow(partialId: string): {
 }
 
 /**
- * 当前 Prisma 模型以 id/store_id/name/stock/price 为主；若库里有 category 等列（未反映在 schema 时也可能经扩展查询传入），在此安全读取。
- * 全程 try-catch + 空值保护，避免 Decimal/异常类型导致整接口 500。
+ * 统一映射：Prisma 行会先把 `attributes` JSON 展平再进入此处，与本地 `FileInventoryRecord` 同形。
  */
-function mapRow(p: {
-  id: string;
-  store_id: string | null;
-  name: string | null;
-  stock: number | null;
-  price: unknown;
-  category?: unknown;
-  brand?: unknown;
-  model?: unknown;
-  frame_type?: unknown;
-  lens_type?: unknown;
-  low_stock_threshold?: unknown;
-  allow_discount?: unknown;
-  allow_points?: unknown;
-  allow_promo_price?: unknown;
-  is_hot?: unknown;
-  is_promo?: unknown;
-  promo_price?: unknown;
-}) {
+function mapRow(
+  p: {
+    id: string;
+    store_id: string | null;
+    name: string | null;
+    stock: number | null;
+    price: unknown;
+    category?: unknown;
+    brand?: unknown;
+    model?: unknown;
+    frame_type?: unknown;
+    lens_type?: unknown;
+    refractive_index?: unknown;
+    coating?: unknown;
+    low_stock_threshold?: unknown;
+    allow_discount?: unknown;
+    allow_points?: unknown;
+    allow_promo_price?: unknown;
+    is_hot?: unknown;
+    is_promo?: unknown;
+    promo_price?: unknown;
+  },
+) {
   try {
     const id = typeof p.id === 'string' && p.id.trim() ? p.id.trim() : '';
     if (!id) {
@@ -142,6 +187,8 @@ function mapRow(p: {
       model: optionalTrimmedString(p.model),
       frame_type: optionalTrimmedString(p.frame_type),
       lens_type: optionalTrimmedString(p.lens_type),
+      refractive_index: optionalFiniteNumber(p.refractive_index),
+      coating: optionalTrimmedString(p.coating),
       created_at: new Date().toISOString(),
       allow_discount: p.allow_discount !== false,
       allow_points: p.allow_points !== false,
@@ -163,7 +210,25 @@ function mapRow(p: {
   }
 }
 
-function prismaPayload(body: Record<string, unknown>) {
+type PrismaProductRow = {
+  id: string;
+  store_id: string | null;
+  name: string | null;
+  stock: number | null;
+  price: unknown;
+  attributes: unknown;
+};
+
+function flattenPrismaRowForMap(r: PrismaProductRow): Parameters<typeof mapRow>[0] {
+  const a = r.attributes;
+  const { attributes: _drop, ...base } = r;
+  if (a && typeof a === 'object' && !Array.isArray(a)) {
+    return { ...base, ...(a as Record<string, unknown>) } as Parameters<typeof mapRow>[0];
+  }
+  return base as Parameters<typeof mapRow>[0];
+}
+
+function prismaBasePayload(body: Record<string, unknown>) {
   const name = body.name != null ? String(body.name).trim() || null : null;
   const stock = body.stock != null ? Number(body.stock) : null;
   const price = body.price != null ? Number(body.price) : null;
@@ -179,6 +244,11 @@ function prismaPayload(body: Record<string, unknown>) {
 
 export async function GET() {
   try {
+    if (isLocalInventoryFileEnabled()) {
+      const rows = await loadInventoryFile();
+      const sorted = [...rows].sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+      return NextResponse.json({ ok: true, data: sorted.map((r) => mapRow(r)) });
+    }
     if (!dbReady()) {
       return NextResponse.json({ ok: false, error: 'DATABASE_URL_NOT_CONFIGURED' }, { status: 500 });
     }
@@ -186,7 +256,7 @@ export async function GET() {
       orderBy: { name: 'asc' },
       select: PRODUCT_BASE_SELECT,
     });
-    return NextResponse.json({ ok: true, data: rows.map(mapRow) });
+    return NextResponse.json({ ok: true, data: rows.map((r) => mapRow(flattenPrismaRowForMap(r))) });
   } catch (e) {
     return NextResponse.json(
       { ok: false, error: e instanceof Error ? e.message : String(e) },
@@ -197,24 +267,38 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
+    const body = (await req.json()) as Record<string, unknown>;
+    if (isLocalInventoryFileEnabled()) {
+      const n = body.name != null ? String(body.name).trim() : '';
+      if (!n) {
+        return NextResponse.json({ ok: false, error: 'MISSING_NAME' }, { status: 400 });
+      }
+      const id = newInventoryId();
+      const row = fileRecordFromCreateBody(body, id);
+      const all = await loadInventoryFile();
+      all.push(row);
+      await saveInventoryFile(all);
+      return NextResponse.json({ ok: true, data: mapRow(row) });
+    }
     if (!dbReady()) {
       return NextResponse.json({ ok: false, error: 'DATABASE_URL_NOT_CONFIGURED' }, { status: 500 });
     }
-    const body = (await req.json()) as Record<string, unknown>;
-    const { name, stock, price, store_id } = prismaPayload(body);
+    const { name, stock, price, store_id } = prismaBasePayload(body);
     if (!name) {
       return NextResponse.json({ ok: false, error: 'MISSING_NAME' }, { status: 400 });
     }
+    const attr = parseProductExtensionFromBody(body, { ...PRODUCT_EXTENSION_DEFAULTS });
     const row = await prisma.products.create({
       data: {
         name,
         stock: stock ?? 0,
         price: price ?? null,
         store_id,
+        attributes: attr as Prisma.InputJsonValue,
       },
       select: PRODUCT_BASE_SELECT,
     });
-    return NextResponse.json({ ok: true, data: mapRow(row) });
+    return NextResponse.json({ ok: true, data: mapRow(flattenPrismaRowForMap(row)) });
   } catch (e) {
     return NextResponse.json(
       { ok: false, error: e instanceof Error ? e.message : String(e) },
@@ -225,12 +309,24 @@ export async function POST(req: NextRequest) {
 
 export async function PUT(req: NextRequest) {
   try {
-    if (!dbReady()) {
-      return NextResponse.json({ ok: false, error: 'DATABASE_URL_NOT_CONFIGURED' }, { status: 500 });
-    }
     const body = (await req.json()) as Record<string, unknown>;
     const id = typeof body.id === 'string' ? body.id.trim() : '';
     if (!id) return NextResponse.json({ ok: false, error: 'MISSING_ID' }, { status: 400 });
+
+    if (isLocalInventoryFileEnabled()) {
+      const all = await loadInventoryFile();
+      const idx = all.findIndex((r) => r.id === id);
+      if (idx < 0) {
+        return NextResponse.json({ ok: false, error: 'NOT_FOUND' }, { status: 404 });
+      }
+      const next = mergeFileRecordFromBody(all[idx], body);
+      all[idx] = next;
+      await saveInventoryFile(all);
+      return NextResponse.json({ ok: true, data: mapRow(next) });
+    }
+    if (!dbReady()) {
+      return NextResponse.json({ ok: false, error: 'DATABASE_URL_NOT_CONFIGURED' }, { status: 500 });
+    }
     const data: Prisma.productsUpdateInput = {};
     if ('name' in body) {
       const n = body.name != null ? String(body.name).trim() : '';
@@ -248,12 +344,28 @@ export async function PUT(req: NextRequest) {
       data.store_id =
         typeof body.store_id === 'string' && body.store_id.trim() ? body.store_id.trim() : null;
     }
-    await prisma.products.update({
+    if (hasExtensionKeyInBody(body)) {
+      const current = await prisma.products.findUnique({
+        where: { id },
+        select: { attributes: true },
+      });
+      const prev = (() => {
+        const a = current?.attributes;
+        if (a && typeof a === 'object' && !Array.isArray(a)) {
+          return a as Record<string, unknown>;
+        }
+        return {};
+      })();
+      const next = parseProductExtensionFromBody(body, prev);
+      data.attributes = next as Prisma.InputJsonValue;
+    }
+
+    const row = await prisma.products.update({
       where: { id },
       data,
-      select: { id: true },
+      select: PRODUCT_BASE_SELECT,
     });
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, data: mapRow(flattenPrismaRowForMap(row)) });
   } catch (e) {
     return NextResponse.json(
       { ok: false, error: e instanceof Error ? e.message : String(e) },
@@ -264,11 +376,21 @@ export async function PUT(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
+    const id = req.nextUrl.searchParams.get('id')?.trim();
+    if (!id) return NextResponse.json({ ok: false, error: 'MISSING_ID' }, { status: 400 });
+
+    if (isLocalInventoryFileEnabled()) {
+      const all = await loadInventoryFile();
+      const next = all.filter((r) => r.id !== id);
+      if (next.length === all.length) {
+        return NextResponse.json({ ok: false, error: 'NOT_FOUND' }, { status: 404 });
+      }
+      await saveInventoryFile(next);
+      return NextResponse.json({ ok: true });
+    }
     if (!dbReady()) {
       return NextResponse.json({ ok: false, error: 'DATABASE_URL_NOT_CONFIGURED' }, { status: 500 });
     }
-    const id = req.nextUrl.searchParams.get('id')?.trim();
-    if (!id) return NextResponse.json({ ok: false, error: 'MISSING_ID' }, { status: 400 });
     await prisma.products.delete({
       where: { id },
       select: { id: true },

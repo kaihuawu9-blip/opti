@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { Bot, Send, Shield } from 'lucide-react';
 import { useAuth } from '@/components/AuthProvider';
 import { toChineseErrorMessage } from '@/lib/userMessages';
+import { getNextPublicOpenAiCompatibleApiKey, getNextPublicOpenAiCompatibleBaseUrl } from '@/lib/aiApiCredentials';
 import { getOptiAiApiOrigin } from '@/lib/optiAiPublic';
 
 type ChatItem = {
@@ -30,8 +31,8 @@ export default function AiEntryPage() {
   async function handleSend() {
     const text = input.trim();
     if (!text || sending) return;
-    const localApiKey = (process.env.NEXT_PUBLIC_OPENAI_API_KEY || '').trim();
-    const localBaseUrl = (process.env.NEXT_PUBLIC_OPENAI_BASE_URL || '').trim();
+    const localApiKey = getNextPublicOpenAiCompatibleApiKey();
+    const localBaseUrl = getNextPublicOpenAiCompatibleBaseUrl();
     const localModel = (process.env.NEXT_PUBLIC_OPENAI_MODEL || '').trim();
 
     const nextMessages = [...messages, { role: 'user' as const, content: text }];

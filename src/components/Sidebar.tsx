@@ -8,12 +8,10 @@ import {
   BarChart3,
   LayoutDashboard,
   Search,
-  Shield,
   Wrench,
   Bot,
   Store,
   Settings,
-  BookOpen,
   Landmark,
   ChevronDown,
   Layers,
@@ -22,9 +20,12 @@ import {
   Menu,
   X,
   PanelLeftClose,
-  Box,
   Wallet,
   Library,
+  Microscope,
+  Shield,
+  BookOpen,
+  Box,
 } from 'lucide-react';
 import { useAuth } from '@/components/AuthProvider';
 import { useDeviceLayout } from '@/contexts/DeviceLayoutContext';
@@ -135,6 +136,8 @@ const Sidebar = ({ onRequestNavCollapse, tabletStaffRail = false, bossTabletRail
       { name: '套餐管理', href: '/packages', icon: Layers, visible: hasPermission('inventory.view') },
       { name: '客户查询', href: '/customers', icon: Search, visible: hasPermission('customers.view') },
       { name: '价格手册', href: '/catalog', icon: Library, visible: hasPermission('cashier.view') },
+      { name: '光学实验室', href: '/lens-physics', icon: Microscope, visible: hasPermission('cashier.view') },
+      { name: '科普', href: '/kepu', icon: BookOpen, visible: hasPermission('cashier.view') },
     ],
     [hasPermission],
   );
@@ -149,21 +152,25 @@ const Sidebar = ({ onRequestNavCollapse, tabletStaffRail = false, bossTabletRail
 
   const otherNavItems = useMemo(
     (): NavItem[] => [
+      {
+        name: '权限管理',
+        href: '/admin',
+        icon: Shield,
+        visible: !isStaff && hasPermission('admin.view'),
+      },
+      {
+        name: '镜架3D上传',
+        href: '/admin/frames/upload',
+        icon: Box,
+        visible: !isStaff && hasPermission('admin.view'),
+      },
       { name: 'AI入口', href: '/ai', icon: Bot, visible: true },
       { name: 'AI试戴', href: '/test/try-on', icon: Sparkles, visible: true },
       { name: '线上运营', href: '/online', icon: Store, visible: true },
       { name: '工具', href: '/tools', icon: Wrench, visible: true },
-      { name: '科普', href: '/kepu', icon: BookOpen, visible: true },
-      { name: '权限管理', href: '/admin', icon: Shield, visible: hasPermission('admin.view') },
-      {
-        name: '镜架 3D 上传',
-        href: '/admin/frames/upload',
-        icon: Box,
-        visible: hasPermission('admin.view'),
-      },
       { name: '关于', href: '/about', icon: Info, visible: true },
     ],
-    [hasPermission],
+    [hasPermission, isStaff],
   );
 
   const navItems = useMemo(
@@ -196,13 +203,10 @@ const Sidebar = ({ onRequestNavCollapse, tabletStaffRail = false, bossTabletRail
     [otherNavItems, menuPrefs],
   );
 
-  /** 店员版平板：不显示「权限管理」（管理版电脑再用） */
+  /** 店员版平板：显示所有其他项 */
   const visibleOtherNavForSidebar = useMemo(() => {
-    if (isStaff) {
-      return visibleOtherNav.filter((x) => x.href !== '/admin' && x.href !== '/admin/frames/upload');
-    }
     return visibleOtherNav;
-  }, [visibleOtherNav, isStaff]);
+  }, [visibleOtherNav]);
 
   const bossDockItems = useMemo(() => {
     if (!isBoss) return [];
@@ -210,7 +214,7 @@ const Sidebar = ({ onRequestNavCollapse, tabletStaffRail = false, bossTabletRail
     return visibleMainNav.filter((x) => dock.has(x.href));
   }, [isBoss, visibleMainNav]);
 
-  /** 老板版「更多」里：非 Dock 的主菜单 + 其它入口（不含财务报表/对账/权限） */
+  /** 老板版「更多」里：非 Dock 的主菜单 + 其它入口（财务报表/对账在上方「财务管理」分组，不在此重复） */
   const bossMoreNavItems = useMemo(() => {
     if (!isBoss) return [];
     const dock = new Set<string>(BOSS_DOCK_HREFS);
@@ -219,7 +223,7 @@ const Sidebar = ({ onRequestNavCollapse, tabletStaffRail = false, bossTabletRail
       if (!dock.has(x.href)) out.push(x);
     }
     for (const x of visibleOtherNav) {
-      if (x.href !== '/admin' && x.href !== '/admin/frames/upload') out.push(x);
+      out.push(x);
     }
     return out;
   }, [isBoss, visibleMainNav, visibleOtherNav]);
@@ -233,13 +237,19 @@ const Sidebar = ({ onRequestNavCollapse, tabletStaffRail = false, bossTabletRail
   const financeHrefSet = useMemo(() => new Set<string>(FINANCE_HREFS), []);
 
   const menuSettingsGroups = useMemo(() => {
-    const store = configurableItems.filter((i) =>
-      ['/dashboard', '/inventory', '/packages', '/customers', '/catalog'].includes(i.href),
-    );
+    const storeCluster = [
+      '/dashboard',
+      '/inventory',
+      '/packages',
+      '/customers',
+      '/catalog',
+      '/lens-physics',
+      '/kepu',
+    ] as const;
+    const store = configurableItems.filter((i) => storeCluster.includes(i.href as (typeof storeCluster)[number]));
     const finance = configurableItems.filter((i) => financeHrefSet.has(i.href));
     const rest = configurableItems.filter(
-      (i) =>
-        !['/dashboard', '/inventory', '/packages', '/customers', '/catalog', ...FINANCE_HREFS].includes(i.href),
+      (i) => !([...storeCluster, ...FINANCE_HREFS] as string[]).includes(i.href),
     );
     return [
       { title: '门店', items: store },

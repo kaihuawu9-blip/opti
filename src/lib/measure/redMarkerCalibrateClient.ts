@@ -1,5 +1,5 @@
 /**
- * 试戴 / 样板标定：红色标定点检测与瞳位结构 — 仅在浏览器执行（与已移除的服务端 sharp 管线一致）。
+ * 试戴 / 样板标定：红色标定点检测与瞳位结构（仅浏览器；标定与 Canvas 强相关）。
  */
 
 import type { PupilFrameCoordinates } from '@/lib/vision/types';

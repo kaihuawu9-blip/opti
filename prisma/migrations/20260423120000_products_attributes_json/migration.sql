@@ -1,0 +1,2 @@
+-- 商品扩展属性 JSONB，与 USE_LOCAL_INVENTORY_FILE 下 JSON 行同构
+ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "attributes" JSONB;

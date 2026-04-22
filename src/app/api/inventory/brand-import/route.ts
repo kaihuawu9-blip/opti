@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getOpenAiCompatibleApiKey, getOpenAiCompatibleBaseUrl } from '@/lib/aiApiCredentials';
 import { extractBrandCatalogChunks } from '@/lib/brandImportExtract';
 import OSS from 'ali-oss';
 import sharp from 'sharp';
@@ -377,12 +378,15 @@ async function uploadToOssIfConfigured(fileName: string, buf: Buffer, mimeType: 
 
 export async function POST(req: NextRequest) {
   try {
-    const apiKey = (process.env.OPENAI_API_KEY || '').trim();
-    const baseUrl = (process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1').trim();
+    const apiKey = getOpenAiCompatibleApiKey();
+    const baseUrl = getOpenAiCompatibleBaseUrl();
     const model = (process.env.OPENAI_MODEL_VISION || process.env.OPENAI_MODEL || 'gpt-4o-mini').trim();
     const modelPro = (process.env.OPENAI_MODEL_PRO || process.env.DOUBAO_PRO_MODEL || process.env.OPENAI_MODEL || '').trim();
     if (!apiKey) {
-      return NextResponse.json({ ok: false, error: '服务端未配置 OPENAI_API_KEY' }, { status: 500 });
+      return NextResponse.json(
+        { ok: false, error: '服务端未配置 OPENAI_API_KEY 或 AI_API_KEY' },
+        { status: 500 },
+      );
     }
 
     const form = await req.formData();
