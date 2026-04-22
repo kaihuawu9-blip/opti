@@ -3,7 +3,7 @@
 import type { Dispatch, SetStateAction } from 'react';
 import { Plus, Minus } from 'lucide-react';
 import type { CartItem } from '@/components/cashier/cashierCartTypes';
-import { isLensProduct, isRxComplete } from '@/components/cashier/cashierCartTypes';
+import { isCustomComboLine, isLensProduct, isRxComplete } from '@/components/cashier/cashierCartTypes';
 import type { LensTintPreset } from '@/lib/fittingbox/lensTintPresets';
 
 export type CartLineOperationsProps = {
@@ -132,9 +132,9 @@ export function CartLineOperations({
               </div>
             )}
           </div>
-          {isLensProduct(item) ? (
+          {isLensProduct(item) || isCustomComboLine(item) ? (
             <div className="mt-2 space-y-1.5">
-              <p className="text-[10px] font-semibold text-gray-600">镜片</p>
+              <p className="text-[10px] font-semibold text-gray-600">{isCustomComboLine(item) ? '镜片 / 自主配镜' : '镜片'}</p>
               <div className="rounded-md border border-emerald-100 bg-emerald-50/50 p-2">
                 <div className="flex flex-wrap items-center gap-1.5">
                   <label className="shrink-0 text-[10px] font-semibold text-emerald-900">染色</label>

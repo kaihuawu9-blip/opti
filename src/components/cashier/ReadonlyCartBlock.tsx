@@ -45,13 +45,20 @@ export type ReadonlyCartBlockProps = {
   getBaseUnitPrice: (item: CartItem) => number;
   /** 逗号分隔 lineId，用于结算前验光缺失红框（空串表示无） */
   highlightLineIdsKey?: string;
+  /** 点击该行打开验光编辑（镜片 / 自主配镜等需处方行） */
+  onEditRx?: (lineId: string) => void;
 };
+
+function lineSupportsRxEditor(item: CartItem): boolean {
+  return isLensProduct(item) || isCustomComboLine(item);
+}
 
 function ReadonlyCartBlockInner({
   cart,
   getFinalUnitPrice,
   getBaseUnitPrice,
   highlightLineIdsKey = '',
+  onEditRx,
 }: ReadonlyCartBlockProps) {
   const highlightIds =
     highlightLineIdsKey.length > 0 ? new Set(highlightLineIdsKey.split(',').filter(Boolean)) : null;
@@ -80,14 +87,12 @@ function ReadonlyCartBlockInner({
           isLensProduct(item) || isCustomComboLine(item) ? formatBothEyesRxOneLine(item.rx) : null;
         const showRxDegreeBlock = isLensProduct(item) || isCustomComboLine(item);
         const rxWarn = highlightIds?.has(item.lineId) ?? false;
-        return (
-          <div
-            key={item.lineId}
-            id={`cashier-readonly-line-${item.lineId}`}
-            className={`rounded-md border bg-white px-2 py-1 leading-tight text-stone-700 shadow-sm ${
-              rxWarn ? 'border-red-500 ring-2 ring-red-500/90' : 'border-stone-200/90'
-            }`}
-          >
+        const rxEditable = Boolean(onEditRx) && lineSupportsRxEditor(item);
+        const shellClass = `rounded-md border bg-white px-2 py-1 leading-tight text-stone-700 shadow-sm ${
+          rxWarn ? 'border-red-500 ring-2 ring-red-500/90' : 'border-stone-200/90'
+        } ${rxEditable ? 'cursor-pointer transition hover:bg-stone-50/90 hover:shadow-md active:scale-[0.99]' : ''}`;
+        const inner = (
+          <>
             <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0 border-b border-stone-100 pb-1 text-[11px]">
               <span className="min-w-0 flex-1 font-semibold text-stone-900">{item.name}</span>
               <span className="shrink-0 text-[10px] text-stone-300">|</span>
@@ -140,6 +145,25 @@ function ReadonlyCartBlockInner({
                     : '零售商品'}
               </span>
             </p>
+          </>
+        );
+        if (rxEditable && onEditRx) {
+          return (
+            <button
+              key={item.lineId}
+              type="button"
+              id={`cashier-readonly-line-${item.lineId}`}
+              className={`${shellClass} block w-full text-left`}
+              onClick={() => onEditRx(item.lineId)}
+              aria-label={`编辑验光：${item.name}`}
+            >
+              {inner}
+            </button>
+          );
+        }
+        return (
+          <div key={item.lineId} id={`cashier-readonly-line-${item.lineId}`} className={shellClass}>
+            {inner}
           </div>
         );
       })}
@@ -152,6 +176,7 @@ function propsEqual(prev: ReadonlyCartBlockProps, next: ReadonlyCartBlockProps):
   if (prev.getFinalUnitPrice !== next.getFinalUnitPrice) return false;
   if (prev.getBaseUnitPrice !== next.getBaseUnitPrice) return false;
   if ((prev.highlightLineIdsKey ?? '') !== (next.highlightLineIdsKey ?? '')) return false;
+  if (prev.onEditRx !== next.onEditRx) return false;
   return true;
 }
 

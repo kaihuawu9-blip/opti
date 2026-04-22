@@ -2738,7 +2738,9 @@ export default function CashierPage() {
           <div className="flex min-h-0 flex-col rounded-xl border border-gray-200 bg-white p-2 xl:p-3">
             <div className="mb-1.5 flex shrink-0 items-center justify-between">
               <h3 className="text-sm font-bold text-gray-800">已选明细</h3>
-              <span className="text-[11px] text-gray-500">{cart.length} 项 · 只读核对</span>
+              <span className="text-[11px] text-gray-500">
+                {cart.length} 项 · 核对摘要 · 镜片行可点击填验光
+              </span>
             </div>
             <div
               ref={readonlyCartScrollRef}
@@ -2749,11 +2751,12 @@ export default function CashierPage() {
                 getFinalUnitPrice={getFinalUnitPrice}
                 getBaseUnitPrice={getBaseUnitPrice}
                 highlightLineIdsKey={rxReadonlyHighlightKey}
+                onEditRx={openRxEditor}
               />
             </div>
           </div>
 
-          <div className="min-h-0 hidden flex-col rounded-xl border border-gray-200 bg-white p-2 xl:flex xl:flex-col xl:p-3">
+          <div className="flex min-h-0 flex-col rounded-xl border border-gray-200 bg-white p-2 xl:p-3">
             <div className="mb-1.5 flex shrink-0 items-center justify-between">
               <h3 className="text-sm font-bold text-gray-800">行内操作</h3>
               <span className="text-[11px] text-gray-500">数量 · 折扣 · 改价 · 染色 · 验光</span>
