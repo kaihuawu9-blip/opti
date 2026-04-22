@@ -1,0 +1,60 @@
+<view class="page order-page">
+  <view wx:if="{{loading}}" class="card muted">正在加载订单详情...</view>
+
+  <view wx:elif="{{error}}" class="card error-card">
+    <view class="title">加载失败</view>
+    <view class="subtitle">{{error}}</view>
+  </view>
+
+  <view wx:elif="{{order}}" class="content-wrap">
+    <view class="card">
+      <view class="title">订单信息</view>
+      <view class="row"><text>订单号</text><text>{{order.orderNo || '--'}}</text></view>
+      <view class="row"><text>状态</text><text>{{order.status || '--'}}</text></view>
+      <view class="row"><text>总价</text><text>¥{{order.totalPrice || '--'}}</text></view>
+      <view class="row"><text>镜片类型</text><text>{{order.lensType || '--'}}</text></view>
+      <view class="row"><text>染色名称</text><text>{{order.tint_info ? order.tint_info.name : '--'}}</text></view>
+      <view class="row"><text>染色色值</text><text>{{order.tint_info ? order.tint_info.hex : '--'}}</text></view>
+      <view class="row"><text>染色加价</text><text>¥{{order.tintSurchargeYuan || 0}}</text></view>
+      <view class="row"><text>镜片厚度建议</text><text>{{order.lensThicknessText}}</text></view>
+      <button type="primary" size="mini" bindtap="openLensTintPage" style="margin-top:16rpx;">
+        选择/修改染色
+      </button>
+    </view>
+
+    <view class="card">
+      <view class="title">验光数据</view>
+      <view class="subtitle">顾客：{{order.prescription.customerName || '--'}}</view>
+      <view class="eye-box">
+        <view class="eye-title">右眼 OD</view>
+        <view class="row"><text>球镜 DS</text><text>{{order.prescription.right.ds}}</text></view>
+        <view class="row"><text>柱镜 DC</text><text>{{order.prescription.right.dc}}</text></view>
+        <view class="row"><text>轴位 AXIS</text><text>{{order.prescription.right.axis}}</text></view>
+      </view>
+      <view class="eye-box">
+        <view class="eye-title">左眼 OS</view>
+        <view class="row"><text>球镜 DS</text><text>{{order.prescription.left.ds}}</text></view>
+        <view class="row"><text>柱镜 DC</text><text>{{order.prescription.left.dc}}</text></view>
+        <view class="row"><text>轴位 AXIS</text><text>{{order.prescription.left.axis}}</text></view>
+      </view>
+      <view class="row"><text>瞳距 PD</text><text>{{order.prescription.pd}}</text></view>
+    </view>
+
+    <view class="card">
+      <view class="title">所选镜框</view>
+      <view wx:if="{{order.frame}}">
+        <image
+          wx:if="{{order.frame.imageUrl}}"
+          class="frame-image"
+          src="{{order.frame.imageUrl}}"
+          mode="aspectFill"
+        />
+        <view class="row"><text>品牌</text><text>{{order.frame.brand || '--'}}</text></view>
+        <view class="row"><text>型号</text><text>{{order.frame.model || '--'}}</text></view>
+        <view class="row"><text>尺寸</text><text>{{order.frame.size || '--'}}</text></view>
+        <view class="row"><text>材质</text><text>{{order.frame.material || '--'}}</text></view>
+      </view>
+      <view wx:else class="subtitle">该订单未选择镜框</view>
+    </view>
+  </view>
+</view>

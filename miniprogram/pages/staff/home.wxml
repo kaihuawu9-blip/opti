@@ -1,0 +1,18 @@
+<view class="page">
+  <view class="card">
+    <view class="title">店员端</view>
+    <view class="subtitle">仅负责发出设备指令，复杂任务走后端。</view>
+  </view>
+
+  <view class="card">
+    <button type="primary" bindtap="sendSyncCommand" loading="{{loading}}">
+      下发镜片同步指令
+    </button>
+    <button style="margin-top: 16rpx;" bindtap="goScanEntry">扫码查单</button>
+    <button style="margin-top: 16rpx;" bindtap="goLensTintPage">查看镜片染色列表</button>
+    <button wx:if="{{canDebugRoleSwitch}}" style="margin-top: 16rpx;" bindtap="switchToCustomerRole">
+      调试：切到顾客端
+    </button>
+    <view wx:if="{{resultText}}" class="subtitle">{{resultText}}</view>
+  </view>
+</view>

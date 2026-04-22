@@ -1,0 +1,5 @@
+{
+  "title": "蔡司数字化价格手册",
+  "pageAspect": { "w": 3, "h": 4 },
+  "_note": "pages 与 sections 已废弃：由 GET /api/catalog/zeiss-manifest 扫描 public/catalog/zeiss-handbook 下 .jpg/.jpeg 自动生成。可选保留 title、pageAspect。"
+}

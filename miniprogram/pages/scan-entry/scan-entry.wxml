@@ -1,0 +1,13 @@
+<view class="page">
+  <view class="card">
+    <view class="title">扫码入口</view>
+    <view class="subtitle">支持顾客/店员一键扫码查看订单与验光详情。</view>
+  </view>
+
+  <view class="card">
+    <button type="primary" bindtap="scanOrder" loading="{{scanning}}">
+      立即扫码查单
+    </button>
+    <view wx:if="{{lastResult}}" class="subtitle">最近扫码结果：{{lastResult}}</view>
+  </view>
+</view>

@@ -1,0 +1,20 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/customer/home",
+    "pages/staff/home",
+    "pages/lens-tint/index",
+    "pages/lens-tint-preview/index",
+    "pages/report-detail/report-detail",
+    "pages/scan-entry/scan-entry",
+    "pages/view-order/view-order"
+  ],
+  "window": {
+    "navigationBarTitleText": "Opti AI 眼镜 SaaS",
+    "navigationBarBackgroundColor": "#ffffff",
+    "navigationBarTextStyle": "black",
+    "backgroundTextStyle": "light"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

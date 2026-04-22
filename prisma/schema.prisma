@@ -1,0 +1,93 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model products {
+  id       String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  store_id String?  @db.Uuid
+  name     String?
+  stock    Int?     @default(0)
+  price    Decimal? @db.Decimal
+  stores   stores?  @relation(fields: [store_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model sales {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  store_id     String?   @db.Uuid
+  prescription Json?
+  total_amount Decimal?  @db.Decimal
+  created_at   DateTime? @default(now()) @db.Timestamptz(6)
+  stores       stores?   @relation(fields: [store_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model store_config {
+  id                         Int       @id @default(1)
+  app_name                   String?   @default("镜售 (Opti-AI)")
+  default_store_display_name String?   @default("镜售管理系统")
+  agent_custom_name          String?
+  support_url                String?   @default("https://opti-ai.cn")
+  domain                     String?   @default("opti-ai.cn")
+  updated_at                 DateTime? @default(now()) @db.Timestamptz(6)
+}
+
+model stores {
+  id       String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name     String?
+  address  String?
+  products products[]
+  sales    sales[]
+}
+
+model user_profiles {
+  id   String  @id @db.Uuid
+  role String? @default("staff")
+}
+
+model User {
+  id           String        @id @default(cuid())
+  openid       String        @unique
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  role         String        @default("customer")
+  status       String        @default("ACTIVE")
+  phone        String?       @unique
+  email        String?
+  passwordHash String?       @map("password_hash")
+  sessions     UserSession[]
+
+  @@map("users")
+}
+
+model UserSession {
+  id        String    @id
+  userId    String    @map("user_id")
+  tokenHash String    @map("token_hash")
+  expiresAt DateTime  @map("expires_at") @db.Timestamptz(6)
+  userAgent String?   @map("user_agent")
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  revokedAt DateTime? @map("revoked_at") @db.Timestamptz(6)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([userId], map: "idx_user_sessions_user_id")
+  @@map("user_sessions")
+}
+
+model user_devices {
+  id                 String    @id
+  user_id            String
+  device_secret_hash String
+  device_label       String?
+  user_agent         String?
+  ip_address         String?
+  last_seen_at       DateTime  @default(now()) @db.Timestamptz(6)
+  created_at         DateTime  @default(now()) @db.Timestamptz(6)
+  revoked_at         DateTime? @db.Timestamptz(6)
+
+  @@index([user_id], map: "idx_user_devices_user_id")
+}

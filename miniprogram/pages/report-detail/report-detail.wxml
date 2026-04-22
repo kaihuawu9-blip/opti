@@ -1,0 +1,38 @@
+<view class="report-page">
+  <view class="hero-card">
+    <view class="hero-title">智能验光报告</view>
+    <view class="hero-subtitle">{{reportDateText}}</view>
+    <view class="hero-meta">瞳距 PD：{{report.pd || '--'}} mm</view>
+  </view>
+
+  <view class="eye-grid">
+    <view class="eye-card">
+      <view class="eye-title">右眼 OD</view>
+      <view class="metric-row"><text>球镜 DS</text><text>{{report.right.sphere || '--'}}</text></view>
+      <view class="metric-row"><text>柱镜 DC</text><text>{{report.right.cylinder || '--'}}</text></view>
+      <view class="metric-row"><text>轴位 AXIS</text><text>{{report.right.axis || '--'}}</text></view>
+    </view>
+
+    <view class="eye-card">
+      <view class="eye-title">左眼 OS</view>
+      <view class="metric-row"><text>球镜 DS</text><text>{{report.left.sphere || '--'}}</text></view>
+      <view class="metric-row"><text>柱镜 DC</text><text>{{report.left.cylinder || '--'}}</text></view>
+      <view class="metric-row"><text>轴位 AXIS</text><text>{{report.left.axis || '--'}}</text></view>
+    </view>
+  </view>
+
+  <view class="ai-card">
+    <view class="section-title">AI 镜片厚度建议</view>
+    <view class="metric-row"><text>建议折射率</text><text>{{report.aiThickness.refractiveIndex || '--'}}</text></view>
+    <view class="metric-row"><text>预估边缘厚度</text><text>{{report.aiThickness.estimatedEdge || '--'}}</text></view>
+    <view class="metric-row"><text>建议级别</text><text>{{report.aiThickness.level || '--'}}</text></view>
+    <view class="ai-note">{{report.aiThickness.advice || '请到店进行最终镜片加工确认。'}}</view>
+  </view>
+
+  <view class="action-area">
+    <button class="consult-btn" type="primary" bindtap="contactOptician">
+      咨询配镜师
+    </button>
+    <view class="action-hint">支持在线客服或拨打门店电话</view>
+  </view>
+</view>

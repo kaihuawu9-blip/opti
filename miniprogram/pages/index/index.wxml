@@ -1,0 +1,11 @@
+<view class="page">
+  <view class="card">
+    <view class="title">Opti AI 眼镜 SaaS</view>
+    <view class="subtitle">请选择当前使用身份</view>
+  </view>
+
+  <view class="card">
+    <button type="primary" bindtap="goCustomer">我是顾客</button>
+    <button style="margin-top: 16rpx;" bindtap="goStaff">我是店员</button>
+  </view>
+</view>

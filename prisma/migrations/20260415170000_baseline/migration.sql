@@ -1,0 +1,2 @@
+-- Baseline migration for existing non-empty database.
+-- Intentionally empty; marked as applied via prisma migrate resolve.

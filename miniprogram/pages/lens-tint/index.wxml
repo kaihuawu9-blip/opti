@@ -1,0 +1,58 @@
+<view class="page">
+  <view class="card">
+    <view class="title">镜片染色列表</view>
+    <view class="subtitle">数据来自云端 API：/api/lens/tint-colors/</view>
+  </view>
+
+  <view class="card">
+    <view class="title">实时预览</view>
+    <view class="subtitle">点击下方颜色卡后，这里会立即渲染预览效果</view>
+    <canvas
+      canvas-id="tintPreviewCanvas"
+      style="width:100%;height:280rpx;border-radius:16rpx;background:#f8fafc;margin-top:16rpx;"
+    />
+    <view class="subtitle" style="margin-top:12rpx;">
+      当前：{{selectedTintName || '未选择'}} · {{selectedTintHex || '--'}} · 加价 ¥{{selectedTintSurchargeYuan || 0}}
+    </view>
+  </view>
+
+  <view class="card" wx:if="{{loading}}">
+    <view class="subtitle">加载中...</view>
+  </view>
+
+  <view class="card" wx:if="{{errorText}}">
+    <view class="subtitle" style="color:#dc2626;">{{errorText}}</view>
+  </view>
+
+  <view class="card" wx:if="{{!loading && !errorText && tintColors.length === 0}}">
+    <view class="subtitle">暂无颜色数据</view>
+  </view>
+
+  <view
+    class="card"
+    wx:for="{{tintColors}}"
+    wx:key="id"
+    wx:for-item="color"
+    data-id="{{color.id}}"
+    data-name="{{color.name}}"
+    data-hex="{{color.hex}}"
+    data-opacity="{{color.opacity}}"
+    data-material-sku="{{color.materialSku}}"
+    data-surcharge-yuan="{{color.surchargeYuan}}"
+    bindtap="pickTint"
+    style="{{selectedTintId === color.id ? 'border:2rpx solid #2563eb;' : ''}}"
+  >
+    <view style="display:flex;align-items:center;gap:20rpx;">
+      <view style="width:44rpx;height:44rpx;border-radius:50%;border:1rpx solid #d1d5db;background-color:{{color.hex}};"></view>
+      <view>
+        <view class="title" style="font-size:30rpx;">{{color.name}}</view>
+        <view class="subtitle">{{color.id}}</view>
+      </view>
+    </view>
+    <view class="subtitle">色值：{{color.hex}} · 透明度：{{color.opacity}}</view>
+    <view class="subtitle">加价：¥{{color.surchargeYuan || 0}}</view>
+    <view class="subtitle">SKU：{{color.materialSku || '未配置'}}</view>
+    <view class="subtitle">点击可回填至配镜详情页</view>
+  </view>
+</view>
+

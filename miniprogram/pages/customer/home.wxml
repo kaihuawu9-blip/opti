@@ -1,0 +1,18 @@
+<view class="page">
+  <view class="card">
+    <view class="title">顾客端</view>
+    <view class="subtitle">{{greeting}}</view>
+  </view>
+
+  <view class="card">
+    <button type="primary" bindtap="loadProfile" loading="{{loading}}">
+      获取顾客资料
+    </button>
+    <button style="margin-top: 16rpx;" bindtap="goScanEntry">扫码查单</button>
+    <button style="margin-top: 16rpx;" bindtap="goLensTintPage">查看镜片染色列表</button>
+    <button wx:if="{{canDebugRoleSwitch}}" style="margin-top: 16rpx;" bindtap="switchToStaffRole">
+      调试：切到店员端
+    </button>
+    <view wx:if="{{profileText}}" class="subtitle">{{profileText}}</view>
+  </view>
+</view>

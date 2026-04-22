@@ -1,0 +1,51 @@
+---
+description: 镜售/Opti-AI 生产部署必须用 Node 服务 + PM2，禁止 out 静态站
+alwaysApply: true
+---
+
+# 生产部署（镜售 sale-system / Opti-AI）
+
+## 必须坚持
+
+- 使用 **`npm run build`**，再用 **`next start`** 或由 **PM2** 托管的等价 Node 进程。
+- 本系统是**活服务**：瞳距等计算、大模型 API 等必须在 **Node.js 服务端**运行，不能退化成纯静态站。
+
+## 彻底放弃
+
+- **不要**再使用 **`out` 目录 + Nginx 纯静态转发** 的方式部署本应用。
+- **不要**与 **`/srv`** 等旧静态发布路径混用；后续部署以项目根为准。
+
+## 标准命令（复制即用）
+
+在服务器上固定使用 **`/root/sale-system`**：
+
+```bash
+cd /root/sale-system
+npm run build
+pm2 restart opti-ai --update-env
+pm2 logs opti-ai --lines 40 --nostream
+```
+
+- PM2 应用名为 **`opti-ai`**；重启时带 **`--update-env`** 以便加载最新环境变量。
+- **不要**在同一端口上重复执行裸 `npm start`（若 PM2 已占用端口，应先 `pm2 restart` 而非再启一个进程）。
+
+## 云 → 本机同步（无 Git 时）
+
+1. **在服务器**执行打包（排除 `node_modules`、`.next` 等）：
+
+   ```bash
+   bash /root/sale-system/scripts/pack-for-local-sync.sh
+   ```
+
+   生成 **`/tmp/sale-system-latest-sync.tgz`**。
+
+2. **在 Windows** 进入 `sale-system`，用脚本拉取并解压（默认 `J:\sale`，可改参数）：
+
+   ```powershell
+   cd J:\sale\sale-system
+   .\scripts\pull-from-server.ps1 -ParentDir "J:\sale"
+   ```
+
+   环境变量会以 **`.env.production.from-cloud`** / **`.env.local.from-cloud`** 落在 `J:\sale`，请自行合并进本机 `.env.local`。
+
+3. 本机项目目录执行 **`npm install`** 后 **`npm run dev`**（或 `build` + `start`）。

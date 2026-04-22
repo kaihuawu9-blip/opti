@@ -1,0 +1,124 @@
+{
+  "name": "sale-system",
+  "version": "1.0.3",
+  "private": true,
+  "description": "镜售 · 眼镜门店销售与库存",
+  "author": "Opti-AI",
+  "main": "main.js",
+  "scripts": {
+    "dev": "next dev -H 0.0.0.0 -p 8080",
+    "dev:heal": "node scripts/dev-self-heal.mjs",
+    "health:local": "curl.exe -I --max-time 8 http://127.0.0.1:8080/ && curl.exe -I --max-time 8 http://127.0.0.1:8080/cashier/",
+    "build": "next build --webpack",
+    "start": "next start -H 0.0.0.0 -p 1018",
+    "start:3018": "next start -H 0.0.0.0 -p 3018",
+    "lint": "eslint .",
+    "electron-dev": "electron .",
+    "obfuscate": "node scripts/obfuscate.js",
+    "dist:export": "node scripts/obfuscate.js",
+    "dist": "node scripts/dist.mjs",
+    "dist:win-cmd": "next build --webpack && node scripts/obfuscate.js && chcp 65001 >nul && set CSC_IDENTITY_AUTO_DISCOVERY=false&& electron-builder --win dir",
+    "dist:portable": "next build --webpack && node scripts/obfuscate.js && chcp 65001 >nul && set CSC_IDENTITY_AUTO_DISCOVERY=false&& electron-builder --win portable",
+    "shortcut": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/create-desktop-shortcut.ps1",
+    "icon:sync": "node scripts/copy-icon.js",
+    "icon:build": "node scripts/build-icon.js",
+    "migrate:prescription": "node scripts/run-prescription-migration.mjs",
+    "migrate:auth": "node scripts/run-supabase-sql.mjs supabase/migration_auth_rbac.sql",
+    "migrate:cashier-rls": "node scripts/run-supabase-sql.mjs supabase/migration_cashier_rls_fix.sql",
+    "migrate:retail": "node scripts/run-supabase-sql.mjs supabase/migration_products_retail_cashier.sql",
+    "env:which": "node scripts/which-env-wins.mjs",
+    "migrate:sales-line": "node scripts/run-supabase-sql.mjs supabase/migration_sales_line_detail.sql",
+    "migrate:sale-no": "node scripts/run-supabase-sql.mjs supabase/migration_sales_sale_no.sql",
+    "migrate:sales-checkout": "node scripts/run-supabase-sql.mjs supabase/migration_sales_checkout_columns.sql",
+    "migrate:payment-channel": "node scripts/run-supabase-sql.mjs supabase/migration_payment_channel_meituan_douyin.sql",
+    "staff:create": "node scripts/create-staff-user.mjs",
+    "seed:optical": "node scripts/seed-optical.mjs",
+    "test:tencent-3d": "tsx scripts/test-tencent-3d.ts",
+    "catalog:normalize-handbook": "node scripts/normalize-zeiss-handbook.mjs"
+  },
+  "build": {
+    "appId": "cn.optiai.sale",
+    "productName": "镜售",
+    "icon": "electron-assets/icon.ico",
+    "extraMetadata": {
+      "main": "main.js"
+    },
+    "files": [
+      "out/**/*",
+      "main.js",
+      "preload.js",
+      "package.json"
+    ],
+    "directories": {
+      "output": "dist",
+      "buildResources": "electron-assets"
+    },
+    "extraResources": [
+      {
+        "from": "electron-assets/icon.png",
+        "to": "icon.png"
+      },
+      {
+        "from": "electron-assets/icon.ico",
+        "to": "icon.ico"
+      }
+    ],
+    "win": {
+      "target": "dir",
+      "signAndEditExecutable": false
+    }
+  },
+  "dependencies": {
+    "@mediapipe/tasks-vision": "^0.10.34",
+    "@prisma/client": "^5.22.0",
+    "@react-three/fiber": "^9.6.0",
+    "@supabase/supabase-js": "^2.100.1",
+    "@tanstack/react-virtual": "^3.13.23",
+    "@types/ws": "^8.18.1",
+    "ali-oss": "^6.23.0",
+    "alipay-sdk": "^4.14.0",
+    "axios": "^1.14.0",
+    "exceljs": "^4.4.0",
+    "framer-motion": "^11.18.2",
+    "html-to-image": "^1.11.13",
+    "jsbarcode": "^3.12.3",
+    "jszip": "^3.10.1",
+    "lucide-react": "^1.7.0",
+    "next": "16.2.1",
+    "node-thermal-printer": "^4.5.0",
+    "pdf-parse": "^2.4.5",
+    "pdf-to-printer": "^5.7.0",
+    "pouchdb": "^9.0.0",
+    "pouchdb-adapter-leveldb": "^9.0.0",
+    "proxy-agent": "^5.0.0",
+    "qrcode.react": "^4.2.0",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "react-pageflip": "^2.0.3",
+    "server-only": "^0.0.1",
+    "sharp": "^0.34.5",
+    "sqlite3": "^6.0.1",
+    "tencentcloud-sdk-nodejs-hunyuan": "^4.1.188",
+    "three": "^0.184.0",
+    "wechatpay-node-v3": "^2.2.1",
+    "ws": "^8.20.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/pdf-parse": "^1.1.5",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@types/three": "^0.183.1",
+    "electron": "^41.1.0",
+    "electron-builder": "^26.8.1",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.1",
+    "pg": "^8.16.0",
+    "prisma": "^5.22.0",
+    "tailwindcss": "^4",
+    "to-ico": "^1.1.5",
+    "tsx": "^4.21.0",
+    "typescript": "^5"
+  }
+}

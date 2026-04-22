@@ -1,0 +1,454 @@
+/**
+ * Electron / 浏览器打印：80mm 热敏小票与加工单
+ * #receipt-print-area、#workorder-print-area
+ */
+
+/* -------------------------------------------------------------------------- */
+/* 通用票宽 80mm、黑体、防溢出 */
+/* -------------------------------------------------------------------------- */
+
+#receipt-print-area,
+#workorder-print-area {
+  box-sizing: border-box;
+  width: 80mm;
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  font-family:
+    'SimHei',
+    'Heiti SC',
+    'STHeiti',
+    'Microsoft YaHei',
+    'PingFang SC',
+    'Noto Sans SC',
+    sans-serif;
+  font-weight: 700;
+  font-size: 10px;
+  line-height: 1.35;
+  -webkit-font-smoothing: antialiased;
+  color: #111;
+  background: #fff;
+}
+
+#receipt-print-area table,
+#workorder-print-area table {
+  table-layout: fixed;
+  width: 100%;
+  border-collapse: collapse;
+}
+
+#receipt-print-area.font-mono,
+#workorder-print-area.font-mono {
+  font-family:
+    'SimHei',
+    'Heiti SC',
+    'STHeiti',
+    'Microsoft YaHei',
+    'PingFang SC',
+    sans-serif !important;
+}
+
+/* -------------------------------------------------------------------------- */
+/* 小票：店名 + 抬头 */
+/* -------------------------------------------------------------------------- */
+
+#receipt-print-area .receipt-header {
+  text-align: center;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 2px solid #111;
+}
+
+#receipt-print-area .receipt-store-name {
+  margin: 0 0 4px;
+  font-size: 19px;
+  line-height: 1.15;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  color: #000;
+}
+
+#receipt-print-area .receipt-doc-title {
+  margin: 0 0 6px;
+  font-size: 11px;
+  font-weight: 900;
+  color: #333;
+  letter-spacing: 0.2em;
+}
+
+#receipt-print-area .receipt-meta-label {
+  margin: 0 0 2px;
+  font-size: 9px;
+  font-weight: 800;
+  color: #444;
+}
+
+#receipt-print-area .receipt-meta-line {
+  margin: 4px 0 0;
+  font-size: 9px;
+  font-weight: 700;
+  color: #333;
+  line-height: 1.3;
+}
+
+#receipt-print-area .receipt-meta-time {
+  margin: 2px 0 0;
+  font-size: 8px;
+  font-weight: 600;
+  color: #666;
+}
+
+/* -------------------------------------------------------------------------- */
+/* 商品明细表 */
+/* -------------------------------------------------------------------------- */
+
+#receipt-print-area .receipt-items-section {
+  margin: 6px 0;
+  border-top: 1px dashed #999;
+  border-bottom: 1px dashed #999;
+  padding: 4px 0;
+}
+
+#receipt-print-area .receipt-items-table {
+  font-size: 9px;
+}
+
+#receipt-print-area .receipt-items-table thead th {
+  padding: 3px 2px;
+  font-size: 9px;
+  font-weight: 900;
+  text-align: left;
+  border-bottom: 1px solid #ccc;
+}
+
+#receipt-print-area .receipt-items-table thead th.receipt-col-amt {
+  text-align: right;
+  width: 26%;
+}
+
+#receipt-print-area .receipt-items-table tbody td {
+  padding: 5px 2px;
+  vertical-align: top;
+  border-bottom: 1px solid #eee;
+}
+
+#receipt-print-area .receipt-items-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+#receipt-print-area .receipt-item-name {
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 1.25;
+}
+
+#receipt-print-area .receipt-item-sub {
+  margin-top: 2px;
+  font-size: 7.5px;
+  font-weight: 600;
+  color: #555;
+  line-height: 1.2;
+}
+
+#receipt-print-area .receipt-item-rx {
+  margin-top: 4px;
+}
+
+#receipt-print-area .receipt-amt-cell {
+  text-align: right;
+  font-weight: 900;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+/* -------------------------------------------------------------------------- */
+/* 合计 */
+/* -------------------------------------------------------------------------- */
+
+#receipt-print-area .receipt-total-section {
+  margin: 8px 0 6px;
+}
+
+#receipt-print-area .receipt-total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+#receipt-print-area .receipt-total-num {
+  font-size: 13px;
+  letter-spacing: 0.02em;
+}
+
+#receipt-print-area .receipt-pay-row {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+  font-size: 8px;
+  font-weight: 700;
+  color: #444;
+}
+
+/* -------------------------------------------------------------------------- */
+/* 验光度数表（镜片行内）：黑线表格，与常见眼镜店小票一致 */
+/* -------------------------------------------------------------------------- */
+
+.rx-print-block {
+  margin-top: 2px;
+}
+
+.rx-print-meta {
+  margin: 0 0 3px;
+  font-size: 7.5px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #333;
+}
+
+.rx-print-rxgrid {
+  width: 100%;
+  margin: 0;
+  border-collapse: collapse;
+  border: 1px solid #000;
+  font-size: 7px;
+  line-height: 1.25;
+  table-layout: fixed;
+}
+
+.rx-print-rxgrid th,
+.rx-print-rxgrid td {
+  padding: 2px 2px;
+  border: 1px solid #000;
+  text-align: center;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+}
+
+.rx-print-rxgrid thead th {
+  font-weight: 900;
+  font-size: 7px;
+}
+
+.rx-print-rxgrid tbody th[scope='row'] {
+  font-weight: 900;
+  width: 18%;
+}
+
+.rx-print-va-pd {
+  margin: 3px 0 0;
+  font-size: 7px;
+  line-height: 1.3;
+  font-weight: 600;
+  color: #222;
+}
+
+/* -------------------------------------------------------------------------- */
+/* 条码 / 二维码 */
+/* -------------------------------------------------------------------------- */
+
+.sale-no-codes {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  margin: 4px 0 6px;
+}
+
+.sale-no-codes svg.sale-no-barcode {
+  max-width: 100%;
+  height: auto;
+  shape-rendering: crispEdges;
+}
+
+.sale-no-qr-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 2px 0;
+}
+
+.sale-no-qr-wrap svg {
+  display: block;
+  max-width: 100%;
+}
+
+.receipt-order-qr {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid #ccc;
+}
+
+#receipt-print-area .receipt-qr-caption {
+  margin: 0 0 4px;
+  font-size: 8px;
+  font-weight: 900;
+  color: #222;
+}
+
+#receipt-print-area .receipt-qr-svg {
+  display: flex;
+  justify-content: center;
+}
+
+#receipt-print-area .receipt-qr-svg svg {
+  width: 72px !important;
+  height: 72px !important;
+  max-width: 18mm !important;
+  max-height: 18mm !important;
+}
+
+#receipt-print-area .receipt-qr-id {
+  margin: 4px 0 0;
+  font-size: 6px;
+  font-weight: 600;
+  color: #666;
+  line-height: 1.25;
+  word-break: break-all;
+}
+
+#receipt-print-area .receipt-meituan-line {
+  margin: 6px 0 0;
+  padding-top: 5px;
+  border-top: 1px dashed #999;
+  font-size: 8px;
+  font-weight: 900;
+  text-align: center;
+  line-height: 1.35;
+  color: #111;
+}
+
+/* -------------------------------------------------------------------------- */
+/* 底部温馨提示 */
+/* -------------------------------------------------------------------------- */
+
+#receipt-print-area .receipt-footer {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 2px solid #111;
+  text-align: center;
+}
+
+#receipt-print-area .receipt-pickup-hint {
+  margin: 0 0 6px;
+  padding: 5px 4px;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  color: #000;
+  border: 2px solid #000;
+  background: #fafafa;
+}
+
+#receipt-print-area .receipt-thanks {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+}
+
+#receipt-print-area .receipt-foot-note {
+  margin: 4px 0 0;
+  font-size: 7.5px;
+  font-weight: 600;
+  color: #777;
+}
+
+/* -------------------------------------------------------------------------- */
+/* 加工单（沿用票宽，度数表同上） */
+/* -------------------------------------------------------------------------- */
+
+#workorder-print-area h2 {
+  font-weight: 900;
+  letter-spacing: 0.02em;
+}
+
+/* -------------------------------------------------------------------------- */
+/* @media print */
+/* -------------------------------------------------------------------------- */
+
+@media print {
+  @page {
+    size: 80mm auto;
+    margin: 0;
+  }
+
+  body * {
+    visibility: hidden !important;
+  }
+
+  #receipt-print-area,
+  #receipt-print-area *,
+  #workorder-print-area,
+  #workorder-print-area * {
+    visibility: visible !important;
+  }
+
+  #receipt-print-area,
+  #workorder-print-area {
+    position: fixed !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 80mm !important;
+    max-width: 80mm !important;
+    margin: 0 !important;
+    padding: 2mm 2.5mm !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: #fff !important;
+    color: #000 !important;
+    font-size: 9.5px !important;
+    overflow: hidden !important;
+  }
+
+  #receipt-print-area {
+    page-break-after: always !important;
+  }
+
+  #workorder-print-area {
+    page-break-before: always !important;
+  }
+
+  #receipt-print-area .receipt-store-name {
+    font-size: 17px !important;
+  }
+
+  #receipt-print-area .receipt-qr-svg svg {
+    width: 17mm !important;
+    height: 17mm !important;
+  }
+
+  #receipt-print-area button,
+  #receipt-print-area input,
+  #receipt-print-area select,
+  #receipt-print-area textarea,
+  #workorder-print-area button,
+  #workorder-print-area input,
+  #workorder-print-area select,
+  #workorder-print-area textarea {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  header,
+  footer,
+  nav,
+  aside {
+    display: none !important;
+  }
+
+  .sale-no-codes {
+    margin: 2mm 0 2.5mm;
+  }
+
+  .receipt-order-qr {
+    page-break-inside: avoid;
+  }
+
+  #receipt-print-area .receipt-pickup-hint {
+    page-break-inside: avoid;
+  }
+}
