@@ -116,16 +116,32 @@ describe('Matrix Protocol V1.3 — HOYA 豪雅专项', () => {
   it('页表 + 价目矩阵 + 插件 B（空蔡司 gaps）', () => {
     expect(getHandbookPageCount('hoya')).toBe(hoyaHandbookMeta.pages);
     const p2 = getPageData(2, 'hoya');
-    expect(p2?.dataAnchor).toBe('新乐学');
-    expect(p2?.product?.productName).toBe('新乐学');
+    expect(p2?.dataAnchor).toBeNull();
+    expect(p2?.title).toMatch(/简介/);
     expect(p2?.imageUrl).toBe('/catalog/hoya/p2.jpg');
+    const p8 = getPageData(8, 'hoya');
+    expect(p8?.dataAnchor).toBe('新乐学');
+    expect(p8?.product?.productName).toBe('新乐学');
+    expect(p8?.imageUrl).toBe('/catalog/hoya/p8.jpg');
+    const flat = p8?.product?.series?.flatMap((s) => s.rows) ?? [];
+    expect(flat.some((r) => Number(r.retailYuan) === 3980)).toBe(true);
+    expect(flat.some((r) => Number(r.retailYuan) === 4980)).toBe(true);
     expect(HOYA_PRICE_MATRIX.some((p) => p.productName === '新乐学')).toBe(true);
     const nav = buildHandbookSeriesNavItemsForBrand('hoya');
-    const state = resolveActiveHandbookNavState(nav, 1, [], {
+    for (const it of nav) {
+      expect(it.label).not.toMatch(/智锐|睐光|蔡司镜架|智锐系列|单光延伸|内页 p/);
+    }
+    expect(nav.some((it) => it.id === 'p:豪雅智御中近')).toBe(true);
+    const state = resolveActiveHandbookNavState(nav, 7, [], {
       matrixProducts: HOYA_PRICE_MATRIX,
     });
     expect(state.anchorId).toBe('p:新乐学');
     expect(state.dataStatus).toBe('validated');
+    const stZ = resolveActiveHandbookNavState(nav, 26, [], {
+      matrixProducts: HOYA_PRICE_MATRIX,
+    });
+    expect(stZ.anchorId).toBe('p:豪雅智御中近');
+    expect(stZ.dataStatus).toBe('validated');
   });
 
   it('数据海关 strict 命中豪雅价目矩阵 SKU', () => {

@@ -26,18 +26,23 @@ if (n === 0) {
 }
 console.log('[HOYA] handbook page count:', n);
 
-const pd = getPageData(2, 'hoya');
-if (!pd || pd.product?.productName !== '新乐学' || pd.imageUrl !== '/catalog/hoya/p2.jpg') {
-  console.error('FAIL: getPageData(2, hoya) expected 新乐学 + imageUrl', pd);
+const pd = getPageData(8, 'hoya');
+if (!pd || pd.product?.productName !== '新乐学' || pd.imageUrl !== '/catalog/hoya/p8.jpg') {
+  console.error('FAIL: getPageData(8, hoya) expected 新乐学 + p8 imageUrl', pd);
+  process.exit(1);
+}
+const rows3980 = pd.product?.series?.flatMap((s) => s.rows) ?? [];
+if (!rows3980.some((r) => Number(r.retailYuan) === 3980) || !rows3980.some((r) => Number(r.retailYuan) === 4980)) {
+  console.error('FAIL: 新乐学价目矩阵应同时含 3980 与 4980（兰御 1.6）', pd?.product);
   process.exit(1);
 }
 
 const nav = buildHandbookSeriesNavItemsForBrand('hoya');
-const state = resolveActiveHandbookNavState(nav, 1, [], {
+const state = resolveActiveHandbookNavState(nav, 7, [], {
   matrixProducts: HOYA_PRICE_MATRIX,
 });
 if (state.dataStatus !== 'validated' || state.anchorId !== 'p:新乐学') {
-  console.error('FAIL: activeNav on pdf page 2 (0-based index 1)', state);
+  console.error('FAIL: activeNav on pdf page 8 (0-based index 7)', state);
   process.exit(1);
 }
 

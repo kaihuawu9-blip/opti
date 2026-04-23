@@ -75,6 +75,7 @@ def main() -> int:
             json.dumps(
                 {
                     "pages": n,
+                    "total": n,
                     "dir": rel,
                     "pdf": pdf_path.name,
                     "generatedAt": datetime.now(timezone.utc)

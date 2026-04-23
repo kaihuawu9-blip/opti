@@ -27,6 +27,7 @@ import {
   HOYA_HANDBOOK_PAGE_IMAGE_DATA,
   findHoyaProductMatrix,
 } from '@/data/hoyaPriceMatrix';
+import { buildHoyaSeriesNavigationItems } from '@/data/hoyaSeriesNav';
 
 export type HandbookSection =
   | 'cover-brand'
@@ -272,6 +273,9 @@ export function buildHandbookSeriesNavItemsForBrand(
 ): HandbookSeriesNavItem[] {
   const adapter = getBrandAdapter(brand);
   if (!adapter) return [];
+  if (typeof adapter.buildSeriesNavigation === 'function') {
+    return adapter.buildSeriesNavigation();
+  }
   const seen = new Set<string>();
   const out: HandbookSeriesNavItem[] = [];
   for (const e of adapter.pages) {
@@ -411,6 +415,11 @@ export interface HandbookBrandAdapter {
   resolveProduct: (productName: string) => ZeissProductMatrix | undefined;
   /** 图片清单 API 路径（可选，用于 UI 预读；为空则回退到 public 扫描） */
   manifestApi?: string;
+  /**
+   * 若设置：侧栏系列导航**仅**走本函数，禁止与其它品牌共用 `buildHandbookSeriesNavItems` 派生逻辑
+   *（避免蔡司 `HANDBOOK_SECTION_NAV_LABEL` 污染豪雅等 UI）。
+   */
+  buildSeriesNavigation?: () => HandbookSeriesNavItem[];
 }
 
 const ZEISS_ADAPTER: HandbookBrandAdapter = {
@@ -449,6 +458,7 @@ const HOYA_ADAPTER: HandbookBrandAdapter = {
   pages: HOYA_HANDBOOK_PAGE_ENTRIES,
   resolveProduct: (name) => findHoyaProductMatrix(name),
   manifestApi: '/api/catalog/hoya-manifest/',
+  buildSeriesNavigation: buildHoyaSeriesNavigationItems,
 };
 
 /** 多品牌注册表：新增 Essilor/HOYA 时在此追加条目 */
@@ -482,7 +492,17 @@ export function getPageData(
   const entry = adapter.pages.find((p) => p.pdfPage === pdfIndex);
   if (!entry) return null;
   const anchor = entry.productName?.trim() || null;
-  const product = anchor ? adapter.resolveProduct(anchor) ?? null : null;
+  let product = anchor ? adapter.resolveProduct(anchor) ?? null : null;
+  const pb = product?.brand ? String(product.brand).toUpperCase() : '';
+  if (product && brand === 'hoya' && pb && pb !== 'HOYA') {
+    product = null;
+  }
+  if (product && brand === 'essilor' && pb && pb !== 'ESSILOR') {
+    product = null;
+  }
+  if (product && brand === 'zeiss' && pb && pb !== 'ZEISS') {
+    product = null;
+  }
   const pageKey = String(entry.pdfPage);
   const pageImageMap =
     brand === 'essilor'
@@ -500,7 +520,10 @@ export function getPageData(
     printedLabel: toPrintedLabel(entry.printedPage),
     dataAnchor: anchor,
     section: entry.section,
-    title: entry.title ?? HANDBOOK_SECTION_NAV_LABEL[entry.section] ?? '',
+    title:
+      brand === 'hoya'
+        ? (entry.title ?? '豪雅价目册')
+        : entry.title ?? HANDBOOK_SECTION_NAV_LABEL[entry.section] ?? '',
     product,
     ocrRequired: Boolean(entry.ocrRequired),
     imageData: embedded,

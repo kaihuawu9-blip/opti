@@ -63,7 +63,7 @@ async function main() {
   await fs.writeFile(
     metaPath,
     `${JSON.stringify(
-      { pages: i, dir: rel, pdf: pdfName, generatedAt: new Date().toISOString() },
+      { pages: i, total: i, dir: rel, pdf: pdfName, generatedAt: new Date().toISOString() },
       null,
       2,
     )}\n`,

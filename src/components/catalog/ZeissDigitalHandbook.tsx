@@ -18,7 +18,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Maximize2, ShoppingCart, X } from 'lucide-react';
 import '@/styles/page-flip.css';
 import { ZeissHandbookPage } from '@/components/catalog/ZeissHandbookPage';
-import { ZeissSeriesNavList } from '@/components/catalog/ZeissSeriesNavList';
+import { HandbookSidebar } from '@/components/catalog/HandbookSidebar';
 import type { ReactPageFlipProps, ReactPageFlipRef } from '@/components/catalog/reactPageFlipTypes';
 import { playHandbookPaperRustle } from '@/lib/catalog/handbookPaperSound';
 import {
@@ -158,7 +158,9 @@ function BrandSwitcher({
                 ? 'cursor-not-allowed text-white/25 opacity-50'
                 : active && b.primary
                   ? 'bg-gradient-to-b from-[#0d4a8c] to-[#083056] text-white shadow-md ring-1 ring-[#2a7fd0]/50'
-                  : 'text-white/55 hover:bg-white/5 hover:text-white/80',
+                  : active
+                    ? 'bg-gradient-to-b from-teal-900/45 to-slate-950/55 text-white shadow-md ring-1 ring-teal-400/40'
+                    : 'text-white/55 hover:bg-white/5 hover:text-white/80',
             ].join(' ')}
           >
             <span className="text-[12px] leading-tight sm:text-[13px]">{b.name}</span>
@@ -716,7 +718,7 @@ export function ZeissDigitalHandbook() {
     >
       <p className="mb-1 shrink-0 px-1 text-[9px] font-semibold uppercase tracking-[0.2em] text-white/38">系列</p>
       <div className="min-h-0 flex-1 overflow-hidden">
-        <ZeissSeriesNavList
+        <HandbookSidebar
           items={seriesNav}
           activeId={activeNav.anchorId}
           activeNav={activeNav}

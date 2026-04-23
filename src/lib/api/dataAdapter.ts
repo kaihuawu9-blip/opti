@@ -26,7 +26,7 @@ import { findHoyaMatrixRow, findHoyaProductMatrix } from '@/data/hoyaPriceMatrix
 export type LensBrandKey = 'ZEISS' | 'ESSILOR' | 'HOYA' | 'NIKON' | 'CHEMI' | 'OTHER';
 
 /** 标准折射率档位（与 `ZeissRefractiveIndex` 一致，供多品牌矩阵共享列） */
-export type RefractiveIndex = 1.5 | 1.56 | 1.59 | 1.6 | 1.67 | 1.74;
+export type RefractiveIndex = 1.5 | 1.55 | 1.56 | 1.59 | 1.6 | 1.67 | 1.74;
 
 /** 膜层代号或展示名（与蔡司 `ZeissCoatingCode` 兼容；多品牌扩展时原样透传） */
 export type CoatingIdentifier = string;
@@ -270,7 +270,7 @@ function parsePdMm(raw: OcrFieldValue, field: string): number {
   return Math.round(n * 2) / 2;
 }
 
-const SUPPORTED_INDEX: readonly RefractiveIndex[] = [1.5, 1.56, 1.59, 1.6, 1.67, 1.74];
+const SUPPORTED_INDEX: readonly RefractiveIndex[] = [1.5, 1.55, 1.56, 1.59, 1.6, 1.67, 1.74];
 
 function parseIndex(raw: OcrFieldValue): RefractiveIndex {
   const n = parseNumber(raw, 'INDEX');
