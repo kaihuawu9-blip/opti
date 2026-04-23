@@ -73,9 +73,8 @@ export function isCustomComboLine(item: CartItem): boolean {
 
 function isEyeRxComplete(eye: RxEye): boolean {
   const ds = String(eye.ds).trim();
-  const va = String(eye.va).trim();
   const pd = String(eye.pd).trim();
-  if (!ds || !va || !pd) return false;
+  if (!ds || !pd) return false;
   const dc = String(eye.dc).trim();
   const axis = String(eye.axis).trim();
   if (dc !== '' && !axis) return false;

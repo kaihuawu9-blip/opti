@@ -9,6 +9,7 @@
     "dev": "next dev -H 0.0.0.0 -p 8080",
     "dev:heal": "node scripts/dev-self-heal.mjs",
     "health:local": "curl.exe -I --max-time 8 http://127.0.0.1:8080/ && curl.exe -I --max-time 8 http://127.0.0.1:8080/cashier/",
+    "test:ocr-pipeline": "node scripts/ocr-pipeline-smoke.mjs",
     "build": "next build --webpack",
     "start": "next start -H 0.0.0.0 -p 1018",
     "start:3018": "next start -H 0.0.0.0 -p 3018",

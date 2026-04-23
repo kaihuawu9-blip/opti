@@ -77,23 +77,85 @@ function extractJsonObject(content: string): string {
   return source;
 }
 
+/** 表头常见「轴线」「轴向」与 axis 同义 */
+function pickAxisFromEyePayload(x: Record<string, unknown>): unknown {
+  return x.axis ?? x['轴线'] ?? x['轴向'] ?? x['轴位'];
+}
+
 function normalizeEye(value: unknown): StandardEye {
   const x = (value && typeof value === 'object' ? value : {}) as Record<string, unknown>;
   return {
     ds: asString(x.ds),
     dc: asString(x.dc),
-    axis: parseMaybeNumber(x.axis),
+    axis: parseMaybeNumber(pickAxisFromEyePayload(x)),
     va: asString(x.va),
     pd: parseMaybeNumber(x.pd),
     add: asString(x.add),
   };
 }
 
+/** 双眼总瞳距（如 65.5）均分到左右眼各一半，单位 mm，保留两位小数 */
+function halveBinocularPdMm(n: number): number {
+  return Number((n / 2).toFixed(2));
+}
+
+/** 双眼总瞳距常见范围（mm）：仅在此区间内对「单格总距」做自动均分 */
+const PD_BINOCULAR_SPLIT_MIN_MM = 45;
+const PD_BINOCULAR_SPLIT_MAX_MM = 85;
+
+/**
+ * 手写单常见：仅一行总瞳距。若顶层 pd 在常见区间内且左右单眼 pd 皆空 → 各填一半；
+ * 若顶层无值但仅一眼格内有区间内疑似总瞳距、另一眼空 → 按总瞳距均分。
+ * 超出区间的不在此自动拆分，交由前端确认后再填。
+ */
+function applyBinocularPdSplit(result: StandardRxOcrResult): StandardRxOcrResult {
+  const top = result.pd;
+  const r = result.right.pd;
+  const l = result.left.pd;
+  const rEmpty = r == null;
+  const lEmpty = l == null;
+
+  if (
+    typeof top === 'number' &&
+    Number.isFinite(top) &&
+    top >= PD_BINOCULAR_SPLIT_MIN_MM &&
+    top <= PD_BINOCULAR_SPLIT_MAX_MM &&
+    rEmpty &&
+    lEmpty
+  ) {
+    const half = halveBinocularPdMm(top);
+    return {
+      ...result,
+      right: { ...result.right, pd: half },
+      left: { ...result.left, pd: half },
+    };
+  }
+
+  if (top == null && rEmpty !== lEmpty) {
+    const single = rEmpty ? l : r;
+    if (
+      typeof single === 'number' &&
+      Number.isFinite(single) &&
+      single >= PD_BINOCULAR_SPLIT_MIN_MM &&
+      single <= PD_BINOCULAR_SPLIT_MAX_MM
+    ) {
+      const half = halveBinocularPdMm(single);
+      return {
+        ...result,
+        right: { ...result.right, pd: half },
+        left: { ...result.left, pd: half },
+      };
+    }
+  }
+
+  return result;
+}
+
 function normalizeRxOcrResult(value: unknown): StandardRxOcrResult {
   const x = (value && typeof value === 'object' ? value : {}) as Record<string, unknown>;
   const right = normalizeEye(x.right);
   const left = normalizeEye(x.left);
-  return {
+  const base: StandardRxOcrResult = {
     right,
     left,
     customerName: asString(x.customerName),
@@ -102,6 +164,7 @@ function normalizeRxOcrResult(value: unknown): StandardRxOcrResult {
     notes: asString(x.notes),
     pd: parseMaybeNumber(x.pd) ?? right.pd ?? left.pd,
   };
+  return applyBinocularPdSplit(base);
 }
 
 function normalizeVoiceOrderResult(value: unknown): StandardVoiceOrderResult {
@@ -238,8 +301,9 @@ export class AIService {
 规则：
 1) 读不到就填空字符串或 null。
 2) 不要推测不存在的值。
-3) axis 只保留数字，不带 °。
-4) pd 保留数字（可含小数点），不要带 mm。`;
+3) 散光轴向：表头可能是「轴线」「轴位」「轴向」或英文 AXIS，含义相同，一律填入对应眼的 JSON 字段 "axis"（纯数字，不带 °）。
+4) 瞳距 pd：数字可含小数点，不要带 mm。若表格只有一行「双眼共用总瞳距」（常见约 45–85 mm，如 65.5），将该数填入顶层 "pd"，且 "right"."pd" 与 "left"."pd" 均填 null；若已分列填写左右单眼瞳距，则分别写入 right.pd、left.pd，顶层 "pd" 可填 null。
+5) 矫正视力等按格抄写，读不到留空。`;
 
     const parsed = await openAIChatCompletionJson(
       this.config,
@@ -257,6 +321,75 @@ export class AIService {
     );
 
     return normalizeRxOcrResult(parsed);
+  }
+
+  /**
+   * 从 Paddle 等产出的纯 OCR 文本中，用对话模型抽取双眼球镜 / 柱镜 / 轴位（供 /api/ocr 等链路）。
+   */
+  async extractRxSphCylAxisFromOcrText(rawText: string): Promise<{ right: StandardEye; left: StandardEye }> {
+    const trimmed = rawText.trim();
+    if (!trimmed) {
+      throw new Error('OCR 文本为空');
+    }
+    const safe = trimmed.replace(/"""/g, '"');
+    const systemPrompt = '你只输出一个 JSON 对象，不要 Markdown、不要解释。';
+    const userPrompt = `你是一个配镜专家，请从这段 OCR 文本中提取球镜、柱镜、轴位，轴位直接返回 JSON 格式，不要废话。
+
+严格使用下列键名（读不到用空字符串或 null；axis 为纯数字或 null，不要带 °）：
+{
+  "right": { "ds": "", "dc": "", "axis": null },
+  "left": { "ds": "", "dc": "", "axis": null }
+}
+
+OCR 文本：
+"""${safe}"""`;
+
+    const parsed = await openAIChatCompletionJson(
+      this.config,
+      [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ],
+      this.config.chatModel,
+    );
+
+    const x = (parsed && typeof parsed === 'object' ? parsed : {}) as Record<string, unknown>;
+    return {
+      right: normalizeEye(x.right),
+      left: normalizeEye(x.left),
+    };
+  }
+
+  /**
+   * 极简 Prompt：纯文本 OCR → 验光 JSON（供浏览器直连 Paddle 后的「秒回」蒸馏）。
+   */
+  async extractRxJsonFromOcrTextLite(rawText: string): Promise<{ right: StandardEye; left: StandardEye }> {
+    const trimmed = rawText.trim();
+    if (!trimmed) {
+      throw new Error('OCR 文本为空');
+    }
+    const safe = trimmed.replace(/"""/g, '"');
+    const systemPrompt = '只输出一个 JSON 对象，不要 Markdown、不要解释。';
+    const userPrompt = `从这段文字中提取验光 JSON（右眼 right、左眼 left；每眼 ds 球镜、dc 柱镜、axis 轴位；读不到填空字符串或 null；axis 为数字或 null）：
+{"right":{"ds":"","dc":"","axis":null},"left":{"ds":"","dc":"","axis":null}}
+
+文字：
+"""${safe}"""`;
+
+    const parsed = await openAIChatCompletionJson(
+      this.config,
+      [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ],
+      this.config.chatModel,
+    );
+
+    const x = (parsed && typeof parsed === 'object' ? parsed : {}) as Record<string, unknown>;
+    return {
+      right: normalizeEye(x.right),
+      left: normalizeEye(x.left),
+    };
   }
 
   async extractVoiceOrderFromText(text: string): Promise<StandardVoiceOrderResult> {

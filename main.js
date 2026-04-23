@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
-const { app, BrowserWindow, protocol, Menu, ipcMain, shell } = require('electron');
+const { app, BrowserWindow, protocol, Menu, ipcMain, shell, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const net = require('net');
@@ -923,79 +923,108 @@ function getWindowIconPath() {
   return undefined;
 }
 
- function createWindow() { 
+function createWindow() {
   Menu.setApplicationMenu(null);
-   const win = new BrowserWindow({ 
-     width: 1200, 
-     height: 800, 
-     title: '镜售',
-     icon: getWindowIconPath(),
-     webPreferences: { 
-       nodeIntegration: false, // 现代 Next.js 建议关闭，防止变量名冲突
-       contextIsolation: true,  // 开启隔离，让 Web 环境更纯粹
-       webSecurity: false,      // 允许跨域（Supabase 需要）
-       preload: path.join(__dirname, 'preload.js'),
-     } 
-   }); 
 
-  protocol.handle('app', async (request) => {
-    const url = new URL(request.url);
-    let relativePath = `${url.host}${url.pathname}`.replace(/^\/+/, '');
-    relativePath = decodeURIComponent(relativePath);
-    relativePath = relativePath.replace(/\\/g, '/');
-    if (relativePath.startsWith('index.html/')) {
-      relativePath = relativePath.slice('index.html/'.length);
-    }
+  const outIndex = path.join(__dirname, 'out', 'index.html');
+  const hasStaticOut = fs.existsSync(outIndex);
 
-    if (!relativePath || relativePath === '.') {
-      relativePath = 'index.html';
-    }
+  if (app.isPackaged && !hasStaticOut) {
+    dialog.showErrorBox(
+      '镜售',
+      '缺少静态资源 out/index.html。\n请重新执行打包（npm run dist），或联系技术支持。',
+    );
+    app.quit();
+    return;
+  }
 
-    const nextIndex = relativePath.indexOf('_next/');
-    if (nextIndex >= 0) {
-      relativePath = relativePath.slice(nextIndex);
-    } else if (relativePath.endsWith('/')) {
-      relativePath += 'index.html';
-    } else if (!relativePath.includes('.')) {
-      relativePath += '/index.html';
-    }
-
-    let fullPath = path.join(__dirname, 'out', relativePath);
-    if (!fs.existsSync(fullPath) || !fs.statSync(fullPath).isFile()) {
-      // 页面路径兜底：不存在时回退首页，避免出现 Not found 空白页
-      if (!relativePath.includes('_next/')) {
-        fullPath = path.join(__dirname, 'out', 'index.html');
-      } else {
-        console.warn(`[App Protocol] 404 ${request.url} -> ${fullPath}`);
-        return new Response('未找到资源', { status: 404 });
-      }
-    }
-
-    const ext = path.extname(fullPath).toLowerCase();
-    const mimeTypes = {
-      '.js': 'text/javascript',
-      '.css': 'text/css',
-      '.html': 'text/html',
-      '.json': 'application/json',
-      '.png': 'image/png',
-      '.jpg': 'image/jpeg',
-      '.svg': 'image/svg+xml',
-      '.woff2': 'font/woff2',
-    };
-
-    const data = fs.readFileSync(fullPath);
-    console.log(`[App Protocol] ${request.url} -> ${fullPath}`);
-    return new Response(data, {
-      headers: { 'Content-Type': mimeTypes[ext] || 'application/octet-stream' },
-    });
+  const win = new BrowserWindow({
+    width: 1200,
+    height: 800,
+    title: '镜售',
+    icon: getWindowIconPath(),
+    webPreferences: {
+      nodeIntegration: false, // 现代 Next.js 建议关闭，防止变量名冲突
+      contextIsolation: true, // 开启隔离，让 Web 环境更纯粹
+      webSecurity: false, // 允许跨域（Supabase 需要）
+      preload: path.join(__dirname, 'preload.js'),
+    },
   });
 
-  win.loadURL('app://index.html/cashier/');
- 
+  if (hasStaticOut) {
+    protocol.handle('app', async (request) => {
+      const url = new URL(request.url);
+      let relativePath = `${url.host}${url.pathname}`.replace(/^\/+/, '');
+      relativePath = decodeURIComponent(relativePath);
+      relativePath = relativePath.replace(/\\/g, '/');
+      if (relativePath.startsWith('index.html/')) {
+        relativePath = relativePath.slice('index.html/'.length);
+      }
+
+      if (!relativePath || relativePath === '.') {
+        relativePath = 'index.html';
+      }
+
+      const nextIndex = relativePath.indexOf('_next/');
+      if (nextIndex >= 0) {
+        relativePath = relativePath.slice(nextIndex);
+      } else if (relativePath.endsWith('/')) {
+        relativePath += 'index.html';
+      } else if (!relativePath.includes('.')) {
+        relativePath += '/index.html';
+      }
+
+      let fullPath = path.join(__dirname, 'out', relativePath);
+      if (!fs.existsSync(fullPath) || !fs.statSync(fullPath).isFile()) {
+        // 页面路径兜底：不存在时回退首页，避免出现 Not found 空白页
+        if (!relativePath.includes('_next/')) {
+          fullPath = path.join(__dirname, 'out', 'index.html');
+        } else {
+          console.warn(`[App Protocol] 404 ${request.url} -> ${fullPath}`);
+          return new Response('未找到资源', { status: 404 });
+        }
+      }
+
+      const ext = path.extname(fullPath).toLowerCase();
+      const mimeTypes = {
+        '.js': 'text/javascript',
+        '.css': 'text/css',
+        '.html': 'text/html',
+        '.json': 'application/json',
+        '.png': 'image/png',
+        '.jpg': 'image/jpeg',
+        '.svg': 'image/svg+xml',
+        '.woff2': 'font/woff2',
+      };
+
+      const data = fs.readFileSync(fullPath);
+      console.log(`[App Protocol] ${request.url} -> ${fullPath}`);
+      return new Response(data, {
+        headers: { 'Content-Type': mimeTypes[ext] || 'application/octet-stream' },
+      });
+    });
+
+    win.loadURL('app://index.html/cashier/');
+  } else {
+    const devUrl = (process.env.ELECTRON_DEV_URL || 'http://127.0.0.1:8080/cashier/').trim();
+    console.warn('[Electron] 未找到 out/index.html，改为加载开发服务器（请先 npm run dev）：', devUrl);
+    win.webContents.once('did-fail-load', (_e, code, desc, failedUrl) => {
+      if (String(failedUrl || '').startsWith('http') && code !== -3) {
+        dialog.showMessageBoxSync(win, {
+          type: 'warning',
+          title: '镜售',
+          message: '无法打开界面',
+          detail: `未找到打包目录 out/，且无法连接开发服务。\n\n请先在本机终端执行：\n  npm run dev\n再重新启动本程序；或执行静态导出：\n  node scripts/obfuscate.js\n\n当前地址：${devUrl}\n错误：${desc}（${code}）`,
+        });
+      }
+    });
+    win.loadURL(devUrl);
+  }
+
   // 生产环境默认不打开开发者工具
- } 
- 
- app.whenReady().then(createWindow); 
+}
+
+app.whenReady().then(createWindow); 
 
 // ===== GlassOrderPrinter 测试：眼镜店验光单专用打印 =====
 ipcMain.handle('glass-order-print-test', async (_event, order) => {

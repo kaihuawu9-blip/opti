@@ -16,6 +16,7 @@ import {
   Mic,
   PanelRight,
   Library,
+  Loader2,
 } from 'lucide-react';
 import { useAuth } from '@/components/AuthProvider';
 import { useAppNavigate } from '@/lib/useAppNavigate';
@@ -29,11 +30,12 @@ import { localCache } from '@/lib/localCache';
 import { printReceiptViaWebBluetooth, printReceiptWithElectronPreference } from '@/lib/receiptElectronPrint';
 import { hasWebBluetooth, webBluetoothUnavailableReason } from '@/lib/webBluetoothSupport';
 import { compressImageFileToJpegBlob } from '@/lib/compressImageClient';
-import { postRxOcrImageJson } from '@/lib/rxOcrClientPayload';
+import { runLocalPaddleThenAiDistill } from '@/lib/ocr-client';
 import { fetchLensTintConfigClient } from '@/lib/fittingbox/lensTintConfigClient';
 import type { LensTintPreset } from '@/lib/fittingbox/lensTintPresets';
 import { StandardLayout } from '@/components/layout/StandardLayout';
 import AppModal from '@/components/layout/AppModal';
+import { DraggableRxEditorModal } from '@/components/cashier/DraggableRxEditorModal';
 import type { CartItem, Product, RxEye } from '@/components/cashier/cashierCartTypes';
 import { CUSTOM_COMBO_CATEGORY, isCustomComboLine, isLensProduct, isRxComplete } from '@/components/cashier/cashierCartTypes';
 import { ReadonlyCartBlock } from '@/components/cashier/ReadonlyCartBlock';
@@ -185,6 +187,66 @@ function mergeRxEye(partial: Partial<RxEye> | undefined): RxEye {
   return { ...emptyEye(), ...partial };
 }
 
+function ocrScalarToRxString(v: unknown): string {
+  if (v === null || v === undefined) return '';
+  if (typeof v === 'number' && Number.isFinite(v)) return String(v);
+  if (typeof v === 'string') return v.trim();
+  return '';
+}
+
+/** 与 rx-ocr 服务端均分启发一致：常见双眼总瞳距（mm），超出则提示用户确认 */
+const PD_BINOCULAR_HUMANE_MIN_MM = 45;
+const PD_BINOCULAR_HUMANE_MAX_MM = 85;
+
+function parsePdMmFromOcrField(v: unknown): number | null {
+  if (typeof v === 'number' && Number.isFinite(v)) return v;
+  if (typeof v === 'string') {
+    const n = Number(String(v).replace(/[^\d.+-]/g, ''));
+    return Number.isFinite(n) ? n : null;
+  }
+  return null;
+}
+
+function inferBinocularPdTotalMm(result: Record<string, unknown>): number | null {
+  const top = parsePdMmFromOcrField(result.pd);
+  const right = (result.right && typeof result.right === 'object' ? result.right : {}) as Record<string, unknown>;
+  const left = (result.left && typeof result.left === 'object' ? result.left : {}) as Record<string, unknown>;
+  const rr = parsePdMmFromOcrField(right.pd);
+  const ll = parsePdMmFromOcrField(left.pd);
+  if (top != null) return top;
+  if (rr != null && ll != null) return rr + ll;
+  if (rr != null && ll == null) return rr;
+  if (ll != null && rr == null) return ll;
+  return null;
+}
+
+/**
+ * 总瞳距若超出常见区间：确认后才回填；确认且左右 pd 仍空时按总距对半写入（与单格总瞳距一致）。
+ * 在区间内：直接返回左右载荷，不弹窗。
+ */
+function prepareRxOcrEyesOrAbandon(result: unknown): { right: Record<string, unknown>; left: Record<string, unknown> } | null {
+  if (!result || typeof result !== 'object') return null;
+  const r = result as Record<string, unknown>;
+  const right = { ...(typeof r.right === 'object' && r.right ? (r.right as Record<string, unknown>) : {}) };
+  const left = { ...(typeof r.left === 'object' && r.left ? (r.left as Record<string, unknown>) : {}) };
+  const t = inferBinocularPdTotalMm(r);
+  if (t != null && (t < PD_BINOCULAR_HUMANE_MIN_MM || t > PD_BINOCULAR_HUMANE_MAX_MM)) {
+    const label = t < PD_BINOCULAR_HUMANE_MIN_MM ? '偏窄' : '偏宽';
+    const ok = window.confirm(
+      `识别到的瞳距总距约 ${t} mm，相对常见范围 ${PD_BINOCULAR_HUMANE_MIN_MM}–${PD_BINOCULAR_HUMANE_MAX_MM} mm ${label}。\n\n点「确定」仍按识别结果填入（单格总瞳距将拆成左右各一半）；点「取消」放弃本次度数回填。`,
+    );
+    if (!ok) return null;
+    const rr = parsePdMmFromOcrField(right.pd);
+    const ll = parsePdMmFromOcrField(left.pd);
+    if (rr == null && ll == null && Number.isFinite(t)) {
+      const half = Number((t / 2).toFixed(2));
+      right.pd = half;
+      left.pd = half;
+    }
+  }
+  return { right, left };
+}
+
 /** 仅覆盖 AI 返回的非空字符串字段，避免空结果冲掉已有输入 */
 function patchRxEyeFromAiPayload(base: RxEye, src: Record<string, unknown> | undefined): RxEye {
   if (!src || typeof src !== 'object') return base;
@@ -192,6 +254,7 @@ function patchRxEyeFromAiPayload(base: RxEye, src: Record<string, unknown> | und
   (['ds', 'dc', 'axis', 'va', 'pd', 'add'] as const).forEach((k) => {
     const v = src[k];
     if (typeof v === 'string' && v.trim() !== '') next[k] = v.trim();
+    else if (typeof v === 'number' && Number.isFinite(v)) next[k] = String(v);
   });
   return next;
 }
@@ -305,7 +368,6 @@ function firstIncompleteRxField(rx: CartItem['rx']): { side: 'right' | 'left'; f
   for (const side of ['right', 'left'] as const) {
     const eye = rx[side];
     if (!String(eye.ds).trim()) return { side, field: 'ds' };
-    if (!String(eye.va).trim()) return { side, field: 'va' };
     if (!String(eye.pd).trim()) return { side, field: 'pd' };
     const dc = String(eye.dc).trim();
     if (dc !== '' && !String(eye.axis).trim()) return { side, field: 'axis' };
@@ -343,17 +405,17 @@ function EyeRxBlock({
     const decimals = options?.decimals ?? 2;
     return (
       <div className="min-w-0 flex-1">
-        <div className="mb-2 flex items-end justify-between gap-2">
-          <label className="truncate text-[10px] font-medium tracking-wide text-gray-400">{label}</label>
-          <span className="shrink-0 whitespace-nowrap text-[9px] text-gray-500">
+        <div className="mb-1.5 flex items-end justify-between gap-1.5">
+          <label className="truncate text-[10px] font-medium text-gray-500">{label}</label>
+          <span className="shrink-0 whitespace-nowrap text-[9px] text-gray-400">
             步进 {step > 0 ? '+' : ''}
             {step}
           </span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           <button
             type="button"
-            className="flex h-11 w-9 shrink-0 items-center justify-center rounded-md border border-transparent bg-transparent text-lg font-light text-gray-500 transition-colors hover:border-[#00ffcc]/45 hover:bg-white/[0.04] hover:text-[#00ffcc]"
+            className="flex h-10 w-8 shrink-0 items-center justify-center rounded border border-transparent bg-white text-base font-light text-gray-500 transition-colors hover:border-gray-300 hover:text-gray-900"
             onClick={() =>
               onPatch({
                 [key]: bumpNumericString(eye[key], -Math.abs(step), decimals, options?.min, options?.max),
@@ -366,12 +428,12 @@ function EyeRxBlock({
             data-rx-field={`${eyeSide}-${String(key)}`}
             value={eye[key]}
             onChange={(e) => onPatch({ [key]: e.target.value } as Partial<RxEye>)}
-            className="h-11 min-w-0 flex-1 rounded-md border border-white/10 bg-[#2C2C2C] px-2 text-center font-mono text-lg font-bold tabular-nums tracking-tight text-white shadow-sm outline-none ring-0 transition-[border-color,box-shadow,background-color] placeholder:text-gray-600 hover:border-white/25 hover:shadow-[0_0_0_1px_rgba(255,255,255,0.06)] focus:border-[#00ffcc] focus:bg-[#323232] focus:shadow-[0_0_0_1px_rgba(0,255,204,0.35),0_4px_20px_-4px_rgba(0,255,204,0.18)]"
+            className="h-10 min-w-0 flex-1 rounded border border-gray-300 bg-white px-1.5 text-center font-mono text-base font-bold tabular-nums tracking-tight text-black shadow-sm outline-none transition-[border-color,box-shadow] placeholder:font-normal placeholder:text-gray-400 hover:border-gray-400 focus:border-sky-600 focus:shadow-[0_0_0_1px_rgba(2,132,199,0.35),0_2px_8px_rgba(15,23,42,0.08)]"
             placeholder={options?.placeholder || '0.00'}
           />
           <button
             type="button"
-            className="flex h-11 w-9 shrink-0 items-center justify-center rounded-md border border-transparent bg-transparent text-lg font-light text-gray-500 transition-colors hover:border-[#00ffcc]/45 hover:bg-white/[0.04] hover:text-[#00ffcc]"
+            className="flex h-10 w-8 shrink-0 items-center justify-center rounded border border-transparent bg-white text-base font-light text-gray-500 transition-colors hover:border-gray-300 hover:text-gray-900"
             onClick={() =>
               onPatch({
                 [key]: bumpNumericString(eye[key], Math.abs(step), decimals, options?.min, options?.max),
@@ -385,39 +447,39 @@ function EyeRxBlock({
     );
   };
 
-  const row = (key: keyof RxEye, label: string, ph: string) => (
+  const row = (key: keyof RxEye, label: string, ph: string, valueClass: string) => (
     <div className="min-w-0">
-      <label className="mb-2 block truncate text-[10px] font-medium text-gray-400">{label}</label>
+      <label className="mb-1.5 block truncate text-[10px] font-medium text-gray-500">{label}</label>
       <input
         data-rx-field={`${eyeSide}-${String(key)}`}
         value={eye[key]}
         onChange={(e) => onPatch({ [key]: e.target.value } as Partial<RxEye>)}
-        className="h-11 w-full rounded-md border border-white/10 bg-[#2C2C2C] px-3 text-sm font-bold text-white shadow-sm outline-none transition-[border-color,box-shadow,background-color] placeholder:font-normal placeholder:text-gray-600 hover:border-white/25 hover:shadow-[0_0_0_1px_rgba(255,255,255,0.06)] focus:border-[#00ffcc] focus:bg-[#323232] focus:shadow-[0_0_0_1px_rgba(0,255,204,0.35),0_4px_20px_-4px_rgba(0,255,204,0.18)]"
+        className={`h-10 w-full rounded border border-gray-300 bg-white px-2.5 text-sm shadow-sm outline-none transition-[border-color,box-shadow] placeholder:text-gray-400 hover:border-gray-400 focus:border-sky-600 focus:shadow-[0_0_0_1px_rgba(2,132,199,0.35),0_2px_8px_rgba(15,23,42,0.08)] ${valueClass}`}
         placeholder={ph}
       />
     </div>
   );
 
   return (
-    <div className="rounded-xl border border-white/[0.08] bg-[#0A0A0A] p-4 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] sm:p-5">
-      <p className="mb-1 text-sm font-semibold tracking-tight text-white">{title}</p>
-      <p className="mb-4 text-[10px] leading-relaxed text-gray-500">
-        球镜、矫正视力、瞳距必填；柱镜可不填；填了柱镜则轴位必填。ADD 选填。
+    <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm sm:p-3.5">
+      <p className="mb-0.5 text-sm font-bold tracking-tight text-gray-900">{title}</p>
+      <p className="mb-2.5 text-[10px] leading-snug text-gray-500">
+        球镜、瞳距必填；矫正视力选填；柱镜可不填；填了柱镜则轴位必填。ADD 选填。
       </p>
-      <div className="rounded-xl border border-white/[0.08] bg-[#1E1E1E] p-4 shadow-inner">
-        <p className="mb-3 text-[9px] font-medium uppercase tracking-[0.16em] text-gray-500">屈光</p>
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
+      <div className="rounded-lg border border-gray-200 bg-[#F9FAFB] p-2.5">
+        <p className="mb-2 text-[9px] font-semibold uppercase tracking-[0.12em] text-gray-400">屈光</p>
+        <div className="flex flex-col gap-2.5 sm:flex-row sm:items-end">
           {dial('ds', '球镜 (DS) · 必填', 0.25, { decimals: 2, min: -30, max: 30, placeholder: '-6.00' })}
           {dial('dc', '柱镜 (DC) · 选填', 0.25, { decimals: 2, min: -12, max: 12, placeholder: '-1.25' })}
           {dial('axis', '轴位 (°)', 1, { decimals: 0, min: 0, max: 180, placeholder: '90' })}
         </div>
       </div>
-      <div className="mt-3 rounded-xl border border-white/[0.08] bg-[#1A1A1A] p-4 shadow-inner">
+      <div className="mt-2 rounded-lg border border-gray-200 bg-[#F9FAFB] p-2.5">
         <div className="max-w-md">{dial('add', '下加 (ADD) · 选填', 0.25, { decimals: 2, min: 0, max: 4, placeholder: '+1.50' })}</div>
       </div>
-      <div className="mt-3 grid grid-cols-2 gap-3">
-        {row('va', '矫正视力 · 必填', '如 1.0')}
-        {row('pd', '瞳距 (mm) · 必填', '如 32')}
+      <div className="mt-2 grid grid-cols-2 gap-2">
+        {row('va', '矫正视力 · 选填', '可选，如 1.0', 'font-medium text-gray-800')}
+        {row('pd', '瞳距 (mm) · 必填', '如 32', 'font-bold text-black')}
       </div>
     </div>
   );
@@ -445,6 +507,8 @@ export default function CashierPage() {
   const [paying, setPaying] = useState(false);
   const [checkoutSubmitting, setCheckoutSubmitting] = useState(false);
   const [rxEditorLineId, setRxEditorLineId] = useState<string | null>(null);
+  /** 收起后验光单窗口以右侧条形式保留，便于平板继续操作主界面 */
+  const [rxEditorMinimized, setRxEditorMinimized] = useState(false);
   const [rxFocusTarget, setRxFocusTarget] = useState<{
     lineId: string;
     side: 'right' | 'left';
@@ -501,7 +565,6 @@ export default function CashierPage() {
   const [voiceOrderRecording, setVoiceOrderRecording] = useState(false);
   const [voiceOrderBusy, setVoiceOrderBusy] = useState(false);
   /** 无麦克风/非 HTTPS 时：粘贴口述文字走同一套 AI 填单 */
-  const [voiceOrderTextDraft, setVoiceOrderTextDraft] = useState('');
   const [visualEntryOpen, setVisualEntryOpen] = useState(false);
   const [visualEntryLoading, setVisualEntryLoading] = useState(false);
   const [visualEntryPulse, setVisualEntryPulse] = useState(false);
@@ -532,6 +595,10 @@ export default function CashierPage() {
   const visualEntryStreamRef = useRef<MediaStream | null>(null);
   const rxEditorLineIdRef = useRef<string | null>(null);
   rxEditorLineIdRef.current = rxEditorLineId;
+
+  useEffect(() => {
+    if (!rxEditorLineId) setRxEditorMinimized(false);
+  }, [rxEditorLineId]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -1039,6 +1106,7 @@ export default function CashierPage() {
     ]);
     if (isLensProduct(product)) {
       setRxEditorLineId(lineId);
+      setRxEditorMinimized(false);
       setRxFocusTarget(null);
       setRxPhotoFileName('');
       setRxRecognizing(false);
@@ -1091,12 +1159,14 @@ export default function CashierPage() {
   const applyRxFromOcr = useCallback(
     (lineId: string, side: 'right' | 'left', payload: Record<string, unknown>) => {
       patchRx(lineId, side, {
-        ds: typeof payload.ds === 'string' ? payload.ds : '',
-        dc: typeof payload.dc === 'string' ? payload.dc : '',
-        axis: typeof payload.axis === 'string' ? payload.axis : '',
-        va: typeof payload.va === 'string' ? payload.va : '',
-        pd: typeof payload.pd === 'string' ? payload.pd : '',
-        add: typeof payload.add === 'string' ? payload.add : '',
+        ds: ocrScalarToRxString(payload.ds),
+        dc: ocrScalarToRxString(payload.dc),
+        axis: ocrScalarToRxString(
+          payload.axis ?? (payload as Record<string, unknown>)['轴线'] ?? (payload as Record<string, unknown>)['轴向'],
+        ),
+        va: ocrScalarToRxString(payload.va),
+        pd: ocrScalarToRxString(payload.pd),
+        add: ocrScalarToRxString(payload.add),
       });
     },
     [],
@@ -1181,7 +1251,7 @@ export default function CashierPage() {
         applyVoiceOrderResult(data.result);
         const t = data.transcript?.trim();
         window.alert(
-          `${t ? `识别原文：「${t}」\n\n` : ''}已尝试填充客人信息与购物车中镜片行的价格、验光字段。可继续口述补全或打开「填写验光单」后重试。请核对后再结算。`,
+          `${t ? `识别原文：「${t}」\n\n` : ''}已尝试填充客人信息与购物车中镜片行的价格、验光字段。可继续口述补全或打开「填写验光单」核对。请核对后再结算。`,
         );
       } catch (e) {
         window.alert(e instanceof Error ? e.message : String(e));
@@ -1192,46 +1262,11 @@ export default function CashierPage() {
     [applyVoiceOrderResult],
   );
 
-  const submitVoiceOrderFromText = useCallback(async () => {
-    const text = voiceOrderTextDraft.trim();
-    if (!text) {
-      window.alert('请先输入或粘贴口述内容（姓名、电话、价格、度数等）。');
-      return;
-    }
-    setVoiceOrderBusy(true);
-    try {
-      const resp = await fetch('/api/voice/order-fill', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text }),
-      });
-      const data = (await resp.json()) as {
-        ok?: boolean;
-        error?: string;
-        transcript?: string;
-        result?: VoiceOrderFillResult;
-      };
-      if (!resp.ok || !data.ok || !data.result) {
-        throw new Error(data.error || '文字开单失败');
-      }
-      applyVoiceOrderResult(data.result);
-      const t = data.transcript?.trim();
-      window.alert(
-        `${t ? `已提交：「${t}」\n\n` : ''}已尝试填充客人信息与镜片行。请核对后再结算。`,
-      );
-      setVoiceOrderTextDraft('');
-    } catch (e) {
-      window.alert(e instanceof Error ? e.message : String(e));
-    } finally {
-      setVoiceOrderBusy(false);
-    }
-  }, [voiceOrderTextDraft, applyVoiceOrderResult]);
-
   const startVoiceOrderRecording = useCallback(async () => {
     if (voiceOrderBusy || voiceOrderRecording) return;
     if (typeof window === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
       window.alert(
-        '当前页面无法使用麦克风：用「http://IP 或域名」访问时，浏览器会禁用录音；需使用 HTTPS，或在本机用 http://localhost 调试。\n\n请改用下方「文字开单」：粘贴口述内容即可，同样由 AI 填表。',
+        '当前页面无法使用麦克风：用「http://IP 或域名」访问时，浏览器会禁用录音；请使用 HTTPS，或在本机用 http://localhost 调试后再试「语音填单」。',
       );
       return;
     }
@@ -1336,12 +1371,11 @@ export default function CashierPage() {
         }, 'image/jpeg', 0.9);
       });
 
-      const { httpOk, data } = await postRxOcrImageJson(blob, 'image/jpeg');
-      if (!httpOk || !data.ok || !data.result) {
-        throw new Error(data.error || '识别失败');
-      }
-      applyRxFromOcr(editingRxItem.lineId, 'right', data.result.right || {});
-      applyRxFromOcr(editingRxItem.lineId, 'left', data.result.left || {});
+      const { result } = await runLocalPaddleThenAiDistill(blob, 'frame.jpg');
+      const eyes = prepareRxOcrEyesOrAbandon(result);
+      if (!eyes) return;
+      applyRxFromOcr(editingRxItem.lineId, 'right', eyes.right);
+      applyRxFromOcr(editingRxItem.lineId, 'left', eyes.left);
       setVisualEntryPulse(true);
       window.setTimeout(() => setVisualEntryPulse(false), 1200);
       window.alert('识别完成，已自动回填右眼/左眼度数。请核对后保存。');
@@ -1529,6 +1563,7 @@ export default function CashierPage() {
     setCart((prev) => [...prev, line]);
     if (isLensProduct(line)) {
       setRxEditorLineId(line.lineId);
+      setRxEditorMinimized(false);
       setRxFocusTarget(null);
       setRxPhotoFileName('');
       setRxRecognizing(false);
@@ -1636,6 +1671,7 @@ export default function CashierPage() {
 
   const openRxEditor = useCallback((lineId: string) => {
     setRxEditorLineId(lineId);
+    setRxEditorMinimized(false);
     setRxPhotoFileName('');
     setRxRecognizing(false);
     setRxCheckoutHighlightIds((prev) => {
@@ -1645,6 +1681,38 @@ export default function CashierPage() {
       return next;
     });
   }, []);
+
+  const closeRxEditorFull = useCallback(() => {
+    setRxEditorLineId(null);
+    setRxFocusTarget(null);
+    setRxPhotoFileName('');
+    setRxRecognizing(false);
+    setVisualEntryOpen(false);
+    setVisualEntryLoading(false);
+    setVisualEntryError(null);
+    setVisualEntryPulse(false);
+    setRxEditorMinimized(false);
+  }, []);
+
+  const minimizeRxEditor = useCallback(() => {
+    setRxEditorMinimized(true);
+    setVisualEntryOpen(false);
+    setVisualEntryLoading(false);
+    setVisualEntryError(null);
+    setVisualEntryPulse(false);
+  }, []);
+
+  /** 收起后入口放在「快捷结算」右侧栏 / 平板侧滑结算轨内，避免贴屏边的 fixed 浮条 */
+  const renderRxMinimizedInCheckoutRail = () =>
+    editingRxItem && rxEditorMinimized ? (
+      <button
+        type="button"
+        onClick={() => setRxEditorMinimized(false)}
+        className="w-full rounded-md border border-sky-300 bg-sky-50 px-2 py-1.5 text-center text-[11px] font-semibold leading-snug text-sky-950 hover:bg-sky-100 touch-manipulation"
+      >
+        验光单已收起 · 点击展开填写
+      </button>
+    ) : null;
 
   const getBaseUnitPrice = useCallback((item: CartItem) => {
     return (
@@ -1806,6 +1874,7 @@ export default function CashierPage() {
       const miss = firstIncompleteRxField(rx);
       if (!miss) return;
       setRxEditorLineId(lineId);
+      setRxEditorMinimized(false);
       setRxFocusTarget({ lineId, side: miss.side, field: miss.field });
     }, 0);
   }, []);
@@ -1879,7 +1948,7 @@ export default function CashierPage() {
       const incomplete = cart.find((item) => isLensProduct(item) && !isRxComplete(item.rx));
       if (incomplete) {
         window.alert(
-          `商品「${incomplete.name}」的屈光度数未按规则填完整。\n每只眼须填：球镜(DS)、矫正视力、瞳距(mm)。\n柱镜(DC)可不填；若填写了柱镜，则必须填写轴位。\n下加(ADD)选填。`,
+          `商品「${incomplete.name}」的屈光度数未按规则填完整。\n每只眼须填：球镜(DS)、瞳距(mm)；矫正视力选填。\n柱镜(DC)可不填；若填写了柱镜，则必须填写轴位。\n下加(ADD)选填。`,
         );
         focusAfterIncompleteRxAlert(incomplete.lineId, incomplete.rx);
         return false;
@@ -2836,6 +2905,7 @@ export default function CashierPage() {
                   placeholder="联系电话（选填）"
                 />
               </div>
+              {renderRxMinimizedInCheckoutRail()}
             </div>
             <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-2 pb-0.5 [content-visibility:auto] sm:px-2.5 xl:[scrollbar-gutter:stable]">
               <QuickCheckoutList
@@ -2958,6 +3028,7 @@ export default function CashierPage() {
                   placeholder="联系电话（选填）"
                 />
               </div>
+              {renderRxMinimizedInCheckoutRail()}
             </div>
             <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-2 pb-0.5 [content-visibility:auto] [scrollbar-gutter:stable]">
               <QuickCheckoutList
@@ -3729,71 +3800,50 @@ export default function CashierPage() {
           </div>
       </DraggableCashierModal>
 
-      <AppModal
-        open={Boolean(editingRxItem)}
-        onClose={() => {
-          setRxEditorLineId(null);
-          setRxFocusTarget(null);
-          setRxPhotoFileName('');
-          setRxRecognizing(false);
-          setVisualEntryOpen(false);
-          setVisualEntryLoading(false);
-          setVisualEntryError(null);
-          setVisualEntryPulse(false);
-        }}
+      <DraggableRxEditorModal
+        open={Boolean(editingRxItem) && !rxEditorMinimized}
+        onClose={closeRxEditorFull}
+        onMinimize={minimizeRxEditor}
         title="验光单填写窗口"
         maxWidthClassName="max-w-2xl"
-        zIndexClassName="z-[65]"
-        bodyClassName="p-0"
       >
         {editingRxItem ? (
-          <div className="w-full rounded-2xl border border-gray-200 bg-white shadow-2xl">
-            <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
-              <div>
-                <h3 className="text-base font-bold text-gray-900">验光单填写窗口</h3>
-                <p className="text-xs text-gray-500 mt-0.5">商品：{editingRxItem.name}</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setRxEditorLineId(null);
-                  setRxFocusTarget(null);
-                  setRxPhotoFileName('');
-                  setRxRecognizing(false);
-                  setVisualEntryOpen(false);
-                  setVisualEntryLoading(false);
-                  setVisualEntryError(null);
-                  setVisualEntryPulse(false);
-                }}
-                className="rounded-full p-1.5 text-gray-500 hover:bg-gray-100"
-                aria-label="关闭"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            <div className="space-y-3 px-5 py-4 max-h-[70vh] overflow-y-auto">
-              <div className="rounded-xl border border-cyan-300/30 bg-slate-950 p-3 text-slate-100">
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-white">
+            <div className="min-h-0 flex-1 space-y-2 overflow-y-auto overflow-x-hidden overscroll-y-contain bg-[#F9FAFB] px-4 py-3 sm:px-5 sm:py-3.5">
+              <div className="relative rounded-lg border border-gray-200 bg-white p-2.5 text-gray-800 shadow-sm">
+                {rxRecognizing || visualEntryLoading ? (
+                  <div
+                    className="absolute inset-0 z-[5] flex flex-col items-center justify-center gap-2 rounded-lg bg-white/85 px-4 text-center backdrop-blur-[1px]"
+                    role="status"
+                    aria-live="polite"
+                  >
+                    <Loader2 className="h-8 w-8 shrink-0 animate-spin text-sky-600" aria-hidden />
+                    <p className="text-xs font-semibold text-gray-800">验光图识别中</p>
+                    <p className="text-[10px] leading-snug text-gray-500">
+                      直连本机 Paddle（8866）取字后，由服务端 AI 解析球镜 / 柱镜 / 轴位并填入下方表单，请稍候…
+                    </p>
+                  </div>
+                ) : null}
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="min-w-0 max-w-[min(100%,28rem)] text-[11px] leading-snug text-cyan-100/90">
-                    手写验光单：<span className="font-semibold text-cyan-50">先打开摄像头</span>
-                    ，将单子对准预览，再点「抓拍并 AI 识别」。相册已有照片请用右侧「相册选图」。
+                  <p className="min-w-0 max-w-[min(100%,28rem)] text-[11px] leading-snug text-gray-600">
+                    手写验光单：<span className="font-semibold text-gray-900">先打开摄像头</span>
+                    ，对准预览后点「抓拍并 AI 识别」；或「相册选图」上传已拍照片。
                   </p>
                   <div className="flex flex-wrap items-center gap-2 shrink-0">
                     <button
                       type="button"
                       onClick={() => setVisualEntryOpen((v) => !v)}
-                      className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${
+                      className={`rounded-md border px-3 py-1.5 text-xs font-semibold transition-colors ${
                         visualEntryOpen
-                          ? 'bg-emerald-600 text-white hover:bg-emerald-700'
-                          : 'bg-cyan-600 text-white hover:bg-cyan-700'
+                          ? 'border-gray-300 bg-gray-100 text-gray-900 hover:bg-gray-200'
+                          : 'border-gray-300 bg-white text-gray-900 hover:border-sky-500 hover:bg-sky-50'
                       }`}
                     >
                       {visualEntryOpen ? '关闭摄像头' : '打开摄像头拍手写单'}
                     </button>
                     <label
                       title="选用手机里已拍好的验光单照片；电脑上会打开图片选择器"
-                      className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-amber-400/60 bg-amber-600/90 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-600"
+                      className="inline-flex cursor-pointer items-center gap-1 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-900 hover:border-sky-500 hover:bg-sky-50"
                     >
                       <Camera className="h-3.5 w-3.5" />
                       {rxRecognizing ? '识别中…' : '相册选图识别'}
@@ -3812,15 +3862,11 @@ export default function CashierPage() {
                               maxBytes: 600 * 1024,
                               maxEdge: 2048,
                             });
-                            const { httpOk, data } = await postRxOcrImageJson(
-                              jpegBlob,
-                              jpegBlob.type?.startsWith('image/') ? jpegBlob.type : 'image/jpeg',
-                            );
-                            if (!httpOk || !data?.ok || !data.result) {
-                              throw new Error(data?.error || '识别失败');
-                            }
-                            applyRxFromOcr(editingRxItem.lineId, 'right', data.result.right || {});
-                            applyRxFromOcr(editingRxItem.lineId, 'left', data.result.left || {});
+                            const { result } = await runLocalPaddleThenAiDistill(jpegBlob, 'rx.jpg');
+                            const eyes = prepareRxOcrEyesOrAbandon(result);
+                            if (!eyes) return;
+                            applyRxFromOcr(editingRxItem.lineId, 'right', eyes.right);
+                            applyRxFromOcr(editingRxItem.lineId, 'left', eyes.left);
                             window.alert('识别完成，已自动回填右眼/左眼度数。请核对后保存。');
                           } catch (err) {
                             const msg = err instanceof Error ? err.message : String(err);
@@ -3843,8 +3889,10 @@ export default function CashierPage() {
                       onPointerLeave={() => {
                         if (voiceOrderRecording) stopVoiceOrderRecording();
                       }}
-                      className={`inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-semibold text-white ${
-                        voiceOrderRecording ? 'bg-red-600 hover:bg-red-700' : 'bg-emerald-600 hover:bg-emerald-700'
+                      className={`inline-flex items-center gap-1 rounded-md border px-3 py-1.5 text-xs font-semibold ${
+                        voiceOrderRecording
+                          ? 'border-red-300 bg-red-600 text-white hover:bg-red-700'
+                          : 'border-gray-300 bg-white text-gray-900 hover:border-sky-500 hover:bg-sky-50'
                       } disabled:opacity-50`}
                     >
                       <Mic className="h-3.5 w-3.5" />
@@ -3854,17 +3902,17 @@ export default function CashierPage() {
                 </div>
 
                 {visualEntryOpen ? (
-                  <div className="mt-3 rounded-xl border border-cyan-400/30 bg-slate-900/70 p-3">
-                    <div className="relative overflow-hidden rounded-lg border border-cyan-300/35 bg-black">
+                  <div className="mt-2 rounded-lg border border-gray-200 bg-[#F9FAFB] p-2">
+                    <div className="relative overflow-hidden rounded-md border border-gray-300 bg-black">
                       <video ref={visualEntryVideoRef} className="h-44 w-full object-cover" autoPlay muted playsInline />
                       <div
-                        className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-300 to-transparent shadow-[0_0_18px_rgba(56,189,248,0.8)]"
+                        className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-sky-400 to-transparent opacity-80"
                         style={{ animation: 'scanline 2s linear infinite' }}
                       />
                       {visualEntryPulse ? (
                         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
                           <div className="h-20 w-20 rounded-full bg-emerald-400/35 animate-ping" />
-                          <div className="absolute rounded-full border border-emerald-300 px-2 py-1 text-xs font-bold text-emerald-200">
+                          <div className="absolute rounded-full border border-emerald-600 bg-white/90 px-2 py-1 text-xs font-bold text-emerald-800">
                             识别成功
                           </div>
                         </div>
@@ -3875,39 +3923,17 @@ export default function CashierPage() {
                         type="button"
                         disabled={visualEntryLoading}
                         onClick={() => void runVisualEntryRecognition()}
-                        className="rounded-lg bg-cyan-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-cyan-700 disabled:opacity-60"
+                        className="rounded-md border border-sky-700 bg-sky-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-sky-800 disabled:opacity-60"
                       >
                         {visualEntryLoading ? 'AI 识别中…' : '抓拍当前画面 · AI 识别'}
                       </button>
-                      <span className="text-[10px] text-slate-400">调用验光图 AI（rx-ocr）</span>
+                      <span className="text-[10px] text-gray-500">验光图（8866 Paddle + AI 蒸馏）</span>
                     </div>
-                    {visualEntryError ? <p className="mt-2 text-xs text-red-300">{visualEntryError}</p> : null}
+                    {visualEntryError ? <p className="mt-2 text-xs text-red-600">{visualEntryError}</p> : null}
                   </div>
                 ) : null}
 
-                {rxRecognizing ? <p className="mt-2 text-[11px] text-amber-300">正在识别中，请稍候...</p> : null}
-                {rxPhotoFileName ? <p className="mt-2 text-[11px] text-amber-300">已选择：{rxPhotoFileName}</p> : null}
-                <div className="mt-3 space-y-1.5 border-t border-slate-700 pt-2">
-                  <p className="text-[10px] font-medium text-slate-400">无图 / 口述时</p>
-                  <p className="text-[10px] text-slate-300">
-                    公网 HTTP 常无麦克风权限：可把验光师留言粘贴到下方，点「文字填单」。
-                  </p>
-                  <textarea
-                    value={voiceOrderTextDraft}
-                    onChange={(e) => setVoiceOrderTextDraft(e.target.value)}
-                    rows={2}
-                    className="w-full rounded-lg border border-slate-700 bg-slate-900 px-2 py-1.5 text-xs text-slate-100"
-                    placeholder="例如：右眼球镜负6.00，左眼负5.50，瞳距31…"
-                  />
-                  <button
-                    type="button"
-                    disabled={voiceOrderBusy || rxRecognizing}
-                    onClick={() => void submitVoiceOrderFromText()}
-                    className="rounded-lg bg-slate-700 px-3 py-1 text-xs font-semibold text-white hover:bg-slate-600 disabled:opacity-50"
-                  >
-                    {voiceOrderBusy ? '处理中…' : '文字填单'}
-                  </button>
-                </div>
+                {rxPhotoFileName ? <p className="mt-2 text-[11px] text-gray-600">已选择：{rxPhotoFileName}</p> : null}
               </div>
 
               <div className="space-y-2" data-rx-editor={editingRxItem.lineId}>
@@ -3926,19 +3952,10 @@ export default function CashierPage() {
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 border-t border-gray-100 bg-gray-50 px-5 py-3">
+            <div className="flex shrink-0 justify-end gap-2 border-t border-gray-100 bg-gray-50 px-5 py-3">
               <button
                 type="button"
-                onClick={() => {
-                  setRxEditorLineId(null);
-                  setRxFocusTarget(null);
-                  setRxPhotoFileName('');
-                  setRxRecognizing(false);
-                  setVisualEntryOpen(false);
-                  setVisualEntryLoading(false);
-                  setVisualEntryError(null);
-                  setVisualEntryPulse(false);
-                }}
+                onClick={closeRxEditorFull}
                 className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
               >
                 稍后填写
@@ -3948,6 +3965,7 @@ export default function CashierPage() {
                 onClick={() => {
                   setRxEditorLineId(null);
                   setRxFocusTarget(null);
+                  setRxEditorMinimized(false);
                 }}
                 className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
               >
@@ -3956,7 +3974,7 @@ export default function CashierPage() {
             </div>
           </div>
         ) : null}
-      </AppModal>
+      </DraggableRxEditorModal>
 
       {showReceipt && lastOrder && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end justify-center z-50 p-2 sm:items-center sm:p-4 print:p-0 print:bg-white print:static print:inset-auto">
