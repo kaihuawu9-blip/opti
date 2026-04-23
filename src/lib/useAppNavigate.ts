@@ -3,11 +3,18 @@
 import { useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 
-/** 与 next.config trailingSlash 一致 */
+/** 与 next.config trailingSlash 一致；保留 ?query 与 #hash */
 export function normalizeAppPath(href: string): string {
-  const trimmed = href.replace(/^\/+/, '').replace(/\/+$/, '');
-  if (!trimmed) return '/';
-  return `/${trimmed}/`;
+  const raw = href.trim();
+  const hashIdx = raw.indexOf('#');
+  const hash = hashIdx >= 0 ? raw.slice(hashIdx) : '';
+  const beforeHash = hashIdx >= 0 ? raw.slice(0, hashIdx) : raw;
+  const qIdx = beforeHash.indexOf('?');
+  const search = qIdx >= 0 ? beforeHash.slice(qIdx) : '';
+  const pathOnly = qIdx >= 0 ? beforeHash.slice(0, qIdx) : beforeHash;
+  const trimmed = pathOnly.replace(/^\/+/, '').replace(/\/+$/, '');
+  if (!trimmed) return `/${search}${hash}`;
+  return `/${trimmed}/${search}${hash}`;
 }
 
 /**

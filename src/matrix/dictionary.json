@@ -1,0 +1,71 @@
+{
+  "meta": {
+    "version": "1.0.0",
+    "locale": "zh-CN"
+  },
+  "entries": [
+    {
+      "id": "msrp",
+      "canonicalZh": "建议零售价",
+      "canonicalEn": "MSRP",
+      "synonyms": ["MSRP", "msrp", "厂商指导价", "标价", "牌价", "零售指导价", "list price"],
+      "category": "pricing"
+    },
+    {
+      "id": "map",
+      "canonicalZh": "最低广告价",
+      "canonicalEn": "MAP",
+      "synonyms": ["MAP", "map", "最低广告价格", "广告限价"],
+      "category": "pricing"
+    },
+    {
+      "id": "od",
+      "canonicalZh": "右眼",
+      "canonicalEn": "OD",
+      "synonyms": ["OD", "od", "右眼", "R", "right"],
+      "category": "rx_eye"
+    },
+    {
+      "id": "os",
+      "canonicalZh": "左眼",
+      "canonicalEn": "OS",
+      "synonyms": ["OS", "os", "左眼", "L", "left"],
+      "category": "rx_eye"
+    },
+    {
+      "id": "pd",
+      "canonicalZh": "瞳距",
+      "canonicalEn": "PD",
+      "synonyms": ["PD", "pd", "瞳距", "远用瞳距", "FPD"],
+      "category": "rx_measure"
+    },
+    {
+      "id": "mono_pd",
+      "canonicalZh": "单眼瞳距",
+      "canonicalEn": "Monocular PD",
+      "synonyms": ["单眼瞳距", "MONO PD", "半瞳距"],
+      "category": "rx_measure"
+    },
+    {
+      "id": "add",
+      "canonicalZh": "近附加",
+      "canonicalEn": "ADD",
+      "synonyms": ["ADD", "add", "近附加", "下加光", "阅读加光"],
+      "category": "rx_power"
+    },
+    {
+      "id": "pal",
+      "canonicalZh": "渐进多焦点镜片",
+      "canonicalEn": "PAL",
+      "synonyms": ["PAL", "渐进", "渐进片", "多焦点渐进", "progressive"],
+      "category": "product"
+    },
+    {
+      "id": "abbe",
+      "canonicalZh": "阿贝数",
+      "canonicalEn": "Abbe number",
+      "synonyms": ["阿贝数", "V值", "色散系数", "Abbe", "Vd"],
+      "category": "material"
+    }
+  ]
+}

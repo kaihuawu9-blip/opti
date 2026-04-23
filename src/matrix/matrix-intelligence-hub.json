@@ -1,0 +1,454 @@
+{
+  "meta": {
+    "@description": "视光矩阵·智能中枢：门店/云端 AI 可直接消费的视光百科全书。来源冲突时优先级：Zeiss（光学精度）> Essilor（临床应用）> Bausch+Lomb（角膜接触镜）> 其他教科书与国家/国际标准。",
+    "schema_id": "opti-matrix-intelligence-hub",
+    "schema_version": "1.0.1",
+    "locale": "zh-CN",
+    "authority_priority": ["zeiss_vision_care", "essilor_luxottica", "bausch_lomb", "iso_ansi_gb", "clinical_textbooks"],
+    "layers": ["validate", "suggest", "predict"],
+    "dimensions": [
+      "clinical_decision",
+      "geometric_optics",
+      "associated_sales",
+      "compliance_standards",
+      "evolving_algorithms"
+    ],
+    "architecture_highlights": {
+      "@description": "架构亮点摘要：供产品文档与云端 AI 快速理解本中枢的设计哲学。",
+      "dual_lock_physics_and_medicine": {
+        "@description": "「双重枷锁」：validate 层同时锁死物理常数包络（折射率×阿贝数、边缘最小厚度、顶点距离可测区间）与医学/合规逻辑（处方完整性、禁忌、参差耐受、ISO/ANSI/GB 容差）。二者同时通过方可落单，缺一即拒。",
+        "physics_lock_keys": ["material_envelopes", "geometric_optics_hard_limits", "lens_edge_min_thickness_mm_by_material"],
+        "medicine_compliance_lock_keys": ["clinical_decision", "compliance_standards", "contraindication_examples"]
+      },
+      "vertex_distance_as_system_anchor": {
+        "@description": "顶点距离补偿是「高光度验光准、戴镜不准」的核心解法：将蔡司约定的 12 mm 作为全系统 d_ref 基准写入 JSON，使不同镜架（面弯、镜眼距）下的屈光力换算在门店、加工单与云端推理间保持一致。",
+        "vertex_distance_reference_mm_zeiss": 12,
+        "vertex_distance_alternate_clinical_range_mm": [12, 14]
+      },
+      "edge_thickness_presales_signal": {
+        "@description": "矢高（sagitta）+ 散光子午线 ET 合成，在成交前给出可解释的厚度预判，降低「嫌厚」类售后与换片成本。",
+        "primary_formulas": ["sagitta_formula", "astigmatic_extension.blend_formula"]
+      },
+      "ai_schema_handshake": {
+        "@description": "通过 HTTP 头 X-Matrix-Schema 声明 schema_id@version；云端 AI 在解析 JSON 前必须先握手比对，禁止盲答；最终用户可见输出须经过 response_envelope 过滤。",
+        "header_name": "X-Matrix-Schema",
+        "example_value": "opti-matrix-intelligence-hub@1.0.0"
+      }
+    }
+  },
+
+  "validate": {
+    "@description": "校验层（绝对禁区）：门店系统录入、处方转换、加工单生成前的硬约束。违反任一条即应拒绝落单。",
+
+    "clinical_decision": {
+      "@description": "以 Essilor 配镜临床逻辑 + 国家配镜作业规程为底座：处方有效期、用途声明与身份信息必须可追溯。",
+      "prescription_integrity": {
+        "@description": "处方完整性：缺任一关键字段不得进入加工单。",
+        "required_fields_when_sphere_or_cylinder_present": ["od_sphere", "os_sphere", "pd_total_mm_or_mono_pd", "signed_refractionist", "exam_date"],
+        "max_prescription_age_months_default": 24,
+        "max_prescription_age_months_children_under_18": 12
+      },
+      "binocular_balance": {
+        "@description": "双眼屈光差（不等像耐受）：高度参差者须给出专业提示，并与医师复核。",
+        "anisometropia_sphere_delta_warn_d": 1.50,
+        "anisometropia_sphere_delta_block_d_without_doctor_note": 3.00
+      },
+      "contraindication_examples": {
+        "@description": "临床禁忌（示例）：急性眼表疾病、未矫正屈光介质混浊、术后早期等情形下禁止直接配镜。",
+        "block_if_any_true": [
+          "acute_keratitis_or_uveitis",
+          "unstable_post_refractive_surgery_within_3_months",
+          "uncorrected_strabismus_without_specialist_note"
+        ]
+      }
+    },
+
+    "geometric_optics": {
+      "@description": "几何光学硬限：超出以下边界的处方/加工单属明显异常或不可制造。阈值以 Zeiss 技术手册为准，局部放宽以兼容常见中国门店 SKU。",
+      "vertex_distance_reference_mm_zeiss": {
+        "@description": "与 geometric_optics_formulas.vertex_distance_compensation 一致：全系统验光→成镜换算的顶点距离基准（蔡司常用 12 mm），与 validate 中可测区间共同构成「物理枷锁」的一环。",
+        "value_mm": 12
+      },
+      "sphere_diopter_range": { "min": -20.00, "max": 12.00, "step": 0.25 },
+      "cylinder_diopter_range_negative_form": { "min": -6.00, "max": 0.00, "step": 0.25 },
+      "axis_degrees": { "min": 1, "max": 180, "integer_only": true, "required_when_abs_cyl_ge_d": 0.25 },
+      "pd_total_mm": {
+        "@description": "合计远用瞳距（mm）录入边界；与单眼瞳距二选一或并存校验由业务层决定。",
+        "min": 48,
+        "max": 78
+      },
+      "mono_pd_mm": {
+        "@description": "单眼瞳距（mm）边界；用于加工移心与诱导棱镜评估。",
+        "min": 22,
+        "max": 40
+      },
+      "add_diopter_range": { "min": 0.75, "max": 3.50, "step": 0.25, "applies_to": "presbyopia_or_progressive" },
+      "vertex_distance_mm_measurement_range": { "min": 8, "max": 18, "typical": 12 },
+      "pantoscopic_tilt_deg": { "min": 0, "max": 15, "typical": 8 },
+      "wrap_angle_deg": { "min": 0, "max": 15, "typical": 5 },
+      "lens_edge_min_thickness_mm_by_material": {
+        "@description": "边缘最小可加工厚度（兼顾镜架受力与抛光）。",
+        "cr39_1_50": 1.2,
+        "n_1_56": 1.0,
+        "n_1_60": 0.9,
+        "n_1_67": 0.8,
+        "n_1_74": 0.8
+      }
+    },
+
+    "compliance_standards": {
+      "@description": "合规与标识：ISO/ANSI/GB 对出厂成品眼镜的刚性要求；门店不得绕过。",
+      "sphere_power_tolerance_d": { "abs_power_le_6_00": 0.12, "abs_power_gt_6_00": 0.18 },
+      "cylinder_power_tolerance_d": { "abs_cyl_le_2_00": 0.09, "abs_cyl_2_00_to_4_00": 0.12, "abs_cyl_gt_4_00": 0.18 },
+      "axis_tolerance_deg_by_cyl": { "abs_cyl_le_0_50": 7, "abs_cyl_0_75_to_1_50": 5, "abs_cyl_gt_1_50": 3 },
+      "prism_tolerance_prism_diopter": 0.33,
+      "impact_resistance_required": true,
+      "uv_protection_required_for_sun_lenses": "UV400",
+      "reference_documents": ["ISO 21987", "ANSI Z80.1", "GB 10810.1", "GB 10810.2", "GB 10810.3"]
+    },
+
+    "material_envelopes": {
+      "@description": "材料合理区：折射率 n_d 与阿贝数 V_d 的已知商用包络；落区外即视为录入错误或非光学级材料。",
+      "envelopes": [
+        { "symbol": "CR-39_1_50", "n_min": 1.498, "n_max": 1.502, "abbe_min": 57, "abbe_max": 59 },
+        { "symbol": "1_56",        "n_min": 1.540, "n_max": 1.570, "abbe_min": 32, "abbe_max": 38 },
+        { "symbol": "1_60",        "n_min": 1.590, "n_max": 1.610, "abbe_min": 32, "abbe_max": 42 },
+        { "symbol": "1_67",        "n_min": 1.660, "n_max": 1.680, "abbe_min": 28, "abbe_max": 36 },
+        { "symbol": "1_71",        "n_min": 1.705, "n_max": 1.715, "abbe_min": 26, "abbe_max": 34 },
+        { "symbol": "1_74",        "n_min": 1.730, "n_max": 1.750, "abbe_min": 24, "abbe_max": 34 }
+      ],
+      "global_sanity": { "n_min": 1.48, "n_max": 1.90, "abbe_min": 20, "abbe_max": 65 }
+    }
+  },
+
+  "suggest": {
+    "@description": "建议层：以 Essilor 临床应用逻辑为主、Zeiss 光学精度为校核的导购与方案推荐；输出为面向终端顾客的合理选择，而非医疗诊断。",
+
+    "clinical_decision": {
+      "@description": "基于主诉 + 生活方式的方案分流。输出需始终保留“请到医生处复核”的安全出口。",
+      "use_case_routing": {
+        "@description": "按主诉将顾客路由到合适的镜片设计族。",
+        "rules": [
+          {
+            "@description": "屏幕工作 > 6h/天且有视疲劳：推荐数字镜片（例如 Zeiss Digital、Essilor Eyezen 等）。",
+            "when": { "screen_hours_per_day_gte": 6, "symptom_any": ["asthenopia", "dry_eye"] },
+            "then": { "design_family": "digital_single_vision", "addon": "blue_light_filter_optional" }
+          },
+          {
+            "@description": "40 岁以上出现视近困难：按渐进优先评估；不耐受者考虑双光或办公型渐进。",
+            "when": { "age_years_gte": 40, "near_task_difficulty": true },
+            "then": { "design_family": "progressive_addition_lens", "fallback": ["office_progressive", "bifocal"] }
+          },
+          {
+            "@description": "儿童/青少年近视进展：遵循近视管理循证路径（离焦设计 / OK 镜 / 低浓度阿托品需眼科处方）。",
+            "when": { "age_years_between": [6, 17], "myopia_progression_per_year_d_abs_gte": 0.50 },
+            "then": { "design_family": "myopia_management_defocus", "require_doctor_note": true }
+          },
+          {
+            "@description": "驾驶为主要场景：Zeiss DriveSafe 类设计 + 偏光/抗眩光方案优先。",
+            "when": { "primary_scene": "driving" },
+            "then": { "design_family": "drive_optimized", "addon": ["anti_glare_premium", "polarized_for_sun"] }
+          }
+        ]
+      },
+      "binocular_vision_flags": {
+        "@description": "双眼视问题的转介阈值（非诊断，仅导购与复核提示）。",
+        "refer_if_any": [
+          "near_esophoria_gt_6_prism",
+          "convergence_insufficiency_symptoms",
+          "vertical_phoria_any"
+        ]
+      }
+    },
+
+    "geometric_optics": {
+      "@description": "光学方案建议：材料、折射率、边缘厚度、棱镜效应评估；以 Zeiss 精度公式为基准。",
+      "material_recommendation": {
+        "@description": "按绝对度数与镜架几何推荐最低折射率档位；低度数避免盲目升档造成色散损失。",
+        "by_abs_sph_equivalent_d": [
+          { "lt": 2.00, "recommend_index": "1.56", "rationale": "V≈35–38，性价比与透光均衡" },
+          { "lt": 4.00, "recommend_index": "1.60", "rationale": "厚度收敛显著，色散可接受" },
+          { "lt": 6.00, "recommend_index": "1.67", "rationale": "边缘明显变薄，外观优先" },
+          { "gte": 6.00, "recommend_index": "1.74", "rationale": "极薄设计；需提醒阿贝数下降带来的边缘色散" }
+        ],
+        "override_if_large_frame_or_high_cyl": { "bump_index_step": 1 },
+        "sell_side_edge_thickness_warn_mm": {
+          "@description": "售前沟通用边缘厚度警戒值（mm），非加工允差；与矢高估算模型联动。",
+          "value_mm": 5
+        },
+        "sell_side_hint_zh_template": {
+          "@description": "收银台录入球柱后即时话术模板；占位符由程序替换。",
+          "value": "该度数（|SE|≈{se_abs}D）建议首选折射率 {index}，{rationale}；注意控制边缘厚度不宜持续超过约 {edge_mm} mm（随镜圈直径与移心变化）。"
+        }
+      },
+      "pd_and_centration": {
+        "@description": "以单眼瞳距（MONO PD）+ 瞳高驱动光学中心落位，减少诱导棱镜。",
+        "prefer_mono_pd": true,
+        "fitting_height_required_for_pal": true
+      },
+      "prism_awareness": {
+        "@description": "高度数 + 大移心时务必用 Prentice 公式核算诱导棱镜，避免隐性不适。",
+        "check_when_any": [
+          "abs_mean_sphere_power_d_gte_3_00",
+          "decentration_mm_gte_2_0"
+        ]
+      }
+    },
+
+    "inventory_presbyopia_consistency": {
+      "@description": "入库老花/渐进类镜片：从品名与镜片类型推断 ADD 与年龄逻辑；偏离则「存疑入库」提示，不拦截落库。",
+      "trigger_keywords_any": ["老花", "渐进", "PAL", "下加", "ADD", "多焦点", "近附加", "阅读镜", "渐进片"],
+      "add_parse_regex": "(?:ADD|下加|近附加)[:：\\s]*([+]?\\d+\\.?\\d*)",
+      "age_add_rules": [
+        {
+          "@description": "低龄高 ADD 组合在库存 SKU 中少见，易与近视离焦片混淆。",
+          "if_age_lt": 40,
+          "if_add_gte_d": 2.0,
+          "reason": "低龄与高 ADD 组合少见，请核对 SKU 标签、系列与处方口径"
+        },
+        {
+          "@description": "高龄渐进常见较高 ADD；标注过低可能为录入错误或淘汰规格。",
+          "if_age_gt": 72,
+          "if_add_lte_d": 1.0,
+          "reason": "高龄渐进常见 ADD 升高，当前标注 ADD 偏低，请核对"
+        }
+      ]
+    },
+
+    "associated_sales": {
+      "@description": "关联销售：以功能需求驱动，不得虚假宣传医疗功效；依 Essilor 视觉方案矩阵组织套餐。",
+      "bundles": [
+        {
+          "@description": "数字办公套餐：支持长时间屏幕工作。",
+          "name": "digital_office",
+          "includes": ["digital_single_vision_lens", "blue_light_filter", "premium_anti_reflection"],
+          "ideal_profile": { "screen_hours_per_day_gte": 6, "age_years_between": [22, 50] }
+        },
+        {
+          "@description": "驾驶夜视套餐：低光对比与防眩。",
+          "name": "drive_night",
+          "includes": ["drive_optimized_design", "premium_anti_reflection_night", "optional_polarized_clip"],
+          "ideal_profile": { "primary_scene": "driving", "night_glare_sensitivity": true }
+        },
+        {
+          "@description": "儿童近视管理套餐：需医师处方同步。",
+          "name": "myopia_management_kids",
+          "includes": ["defocus_design_lens", "protective_coating", "impact_resistant_frame"],
+          "ideal_profile": { "age_years_between": [6, 17], "myopia_progression_per_year_d_abs_gte": 0.50 },
+          "requires_medical_prescription": true
+        }
+      ],
+      "cross_sell_triggers": {
+        "@description": "触发后端联想推荐的信号。",
+        "add_sun_clip_when": { "outdoor_hours_per_week_gte": 8 },
+        "add_spare_pair_when": { "profession_any": ["driver", "medical_staff", "teacher"] }
+      }
+    },
+
+    "compliance_standards": {
+      "@description": "合规导购：仅承诺标准可证明的功能，回避‘治疗/治愈’等表述。",
+      "claim_whitelist": [
+        "filters_blue_light_at_specified_wavelength_range",
+        "uv400_protection_for_sun_lenses",
+        "improves_contrast_in_low_light_per_lab_report"
+      ],
+      "claim_blacklist": [
+        "cures_myopia",
+        "restores_vision",
+        "medical_grade_unverified"
+      ]
+    }
+  },
+
+  "predict": {
+    "@description": "预测层：基于门店历史销售 + 医学文献长期趋势的定向预测框架。实际权重由后端模型学习更新。",
+
+    "myopia_progression_model": {
+      "@description": "儿童近视年进展预测（粗粒度，供话术与复诊节奏使用；非诊断）。",
+      "features": ["age_years", "parental_myopia_d", "near_work_hours_per_day", "outdoor_hours_per_week", "current_sph_d"],
+      "default_baseline_d_per_year": {
+        "age_6_9": -0.75,
+        "age_10_12": -0.60,
+        "age_13_17": -0.40
+      },
+      "mitigation_factor_estimates": {
+        "defocus_lens_or_ortho_k_relative_reduction": 0.40,
+        "low_dose_atropine_relative_reduction": 0.50,
+        "two_plus_hours_daily_outdoor_relative_reduction": 0.20
+      },
+      "recheck_interval_months_default": 6
+    },
+
+    "lens_replacement_window_model": {
+      "@description": "镜片更换窗口预测：用于 CRM 召回提示与库存预测。",
+      "base_window_months_by_segment": {
+        "student_high_progression": 9,
+        "adult_stable_rx": 24,
+        "presbyopia_early_adaptation": 12
+      },
+      "feature_signals": ["last_purchase_date", "delta_sph_since_last_exam_d", "coating_wear_age_months", "frame_breakage_flag"]
+    },
+
+    "inventory_forecast_hooks": {
+      "@description": "库存侧钩子：结合门店历史订单与季节系数驱动补货。",
+      "seasonality_keys": ["spring_school_start", "summer_uv_peak", "winter_indoor_screen_peak"],
+      "co_occurrence_candidates": [
+        ["progressive_lens", "premium_anti_reflection"],
+        ["myopia_defocus_lens", "impact_resistant_frame_kids"],
+        ["polarized_sun_lens", "outdoor_brand_frames"]
+      ]
+    }
+  },
+
+  "geometric_optics_formulas": {
+    "@description": "几何光学核心公式（Zeiss 精度为准）。所有公式以 SI 单位推导后再转工程单位；pseudo-code 仅为工程参考实现。",
+
+    "vertex_distance_compensation": {
+      "@description": "顶点距离补偿：当实际配戴距离 d_new 与验光时距离 d_ref 不同，屈光力需重算，避免高度数顾客主观增减度数。",
+      "units": { "F": "diopter", "d": "meter" },
+      "formula": "F_new = F_ref / (1 - (d_new - d_ref) * F_ref)",
+      "vertex_distance_reference_mm_zeiss": 12,
+      "vertex_distance_reference_authority": "zeiss_vision_care",
+      "notes": [
+        "正度数：配戴距离变近（d 减小），有效屈光力增大。",
+        "负度数：配戴距离变近，有效屈光力减小（符号同样遵循上式）。",
+        "d_ref 固定取 12 mm（蔡司约定基准，写入 JSON 以保证跨镜架、跨门店计算一致）；临床若记录为 12–14 mm，仅在医师备注存在时覆盖 d_ref。",
+        "d_new 取成镜实测顶点距离（mm/1000），须与镜架面弯、前倾角修正（effective_power_with_tilt）串联使用。"
+      ],
+      "pseudo_code": [
+        "function compensateVertex(F_ref, d_ref_mm, d_new_mm):",
+        "    dd = (d_new_mm - d_ref_mm) / 1000.0",
+        "    denom = 1.0 - dd * F_ref",
+        "    if abs(denom) < 1e-9: raise 'degenerate_vertex_compensation'",
+        "    return F_ref / denom"
+      ],
+      "typical_threshold_for_required_compensation_abs_d": 4.00
+    },
+
+    "prentice_prism_rule": {
+      "@description": "Prentice 棱镜公式：当光学中心偏离视线穿过点时产生诱导棱镜；加工/验光单必须按该公式评估舒适度。",
+      "units": { "P": "prism_diopter", "c": "centimeter", "F": "diopter" },
+      "formula": "P = c * F",
+      "conventions": {
+        "@description": "正度数镜片光学中心位于视线之上：产生 Base-Down 棱镜；其余按 Prentice 方向规则。",
+        "vertical_sign": "positive_lens_above_visual_axis => base_down; negative_lens_above => base_up"
+      },
+      "pseudo_code": [
+        "function prenticePrismDiopter(decentration_mm, lens_power_d):",
+        "    c_cm = decentration_mm / 10.0",
+        "    return c_cm * lens_power_d"
+      ],
+      "comfort_thresholds_prism_diopter": {
+        "horizontal_allowable_without_prescription": 0.50,
+        "vertical_allowable_without_prescription": 0.25
+      }
+    },
+
+    "lens_edge_thickness_model": {
+      "@description": "镜片边缘厚度估算（以薄透镜 + 球面矢高近似；与 Zeiss 精算引擎相比在 D ≤ 70 mm 范围内误差通常小于 5%）。用于营业端售前厚度沟通，降低「嫌厚」售后；非替代厂商精算与焦度计。",
+      "units": { "CT": "mm", "ET": "mm", "D": "mm", "F": "diopter", "n": "unitless" },
+      "inputs": ["central_thickness_mm", "lens_diameter_mm", "refractive_index_n", "sphere_power_d"],
+      "sagitta_formula": "s = R - sqrt(R^2 - (D/2)^2)    (R in mm)",
+      "thin_lens_radius_approx": "R_single_surface ≈ (n - 1) / F    (F in diopter, R in meter; convert to mm)",
+      "edge_thickness_pseudo_code": [
+        "function estimateEdgeThickness(CT_mm, D_mm, n, F_d, F_back_d = 0.0):",
+        "    # 正度数：边缘更薄（ET < CT）；负度数：边缘更厚（ET > CT）",
+        "    half_D = D_mm / 2.0",
+        "    # 用薄透镜近似把总屈光力分到前后面；若仅有总 F_d，可令 F_back_d = 0",
+        "    F_front_d = F_d - F_back_d",
+        "    R_front_mm = (n - 1.0) / F_front_d * 1000.0 if F_front_d != 0 else Infinity",
+        "    R_back_mm  = (n - 1.0) / F_back_d  * 1000.0 if F_back_d  != 0 else Infinity",
+        "    s_front = R_front_mm - sqrt(R_front_mm^2 - half_D^2) if isFinite(R_front_mm) else 0",
+        "    s_back  = R_back_mm  - sqrt(R_back_mm^2  - half_D^2) if isFinite(R_back_mm)  else 0",
+        "    ET = CT_mm + s_back - s_front    # 以 Zeiss 符号约定：前表面凸为正、后表面凹为负",
+        "    return max(ET, MIN_MANUFACTURABLE_EDGE_MM)"
+      ],
+      "astigmatic_extension": {
+        "@description": "含散光时需按两主子午线分别计算 ET，再按角度做 cos²/sin² 合成；薄镜架/大直径时误差放大，必须以厂商精算为准。",
+        "meridional_edges": ["ET_along_axis", "ET_perpendicular_axis"],
+        "blend_formula": "ET(theta) = ET_along * cos(theta)^2 + ET_perp * sin(theta)^2"
+      },
+      "minimum_manufacturable_edge_mm_reference": {
+        "cr39_1_50": 1.2,
+        "n_1_56": 1.0,
+        "n_1_60": 0.9,
+        "n_1_67": 0.8,
+        "n_1_74": 0.8
+      }
+    },
+
+    "effective_power_with_tilt": {
+      "@description": "Zeiss 前倾/面弯等效屈光力修正（Martin 法近似），用于成镜后实际屈光力预判。",
+      "formula_sphere": "F_eff_sphere = F * (1 + (sin(alpha)^2) / (2 * n))",
+      "formula_cylinder_added": "F_eff_cyl_added = F * tan(alpha)^2",
+      "variables": { "alpha": "pantoscopic_or_wrap_angle_radian", "n": "refractive_index" }
+    }
+  },
+
+  "evolving_algorithms": {
+    "@description": "演变算法：允许后端在不改 schema 的前提下，用远端参数与模型持续升级推理质量。",
+    "inference_pipeline": {
+      "@description": "云端 AI 在处理验光单/主诉时的推荐管线。",
+      "steps": [
+        "fetch_matrix_context_via_api",
+        "merge_store_local_overrides_if_any",
+        "run_validate_layer_hard_constraints",
+        "run_suggest_layer_case_routing",
+        "run_predict_layer_personalization",
+        "emit_explanation_with_authority_references"
+      ]
+    },
+    "model_registry": {
+      "@description": "支持的后端模型占位；实际可由环境变量与 DB 覆盖。",
+      "text_reasoning": ["qwen_max", "gpt_4o", "gpt_5_future"],
+      "ocr_primary": ["paddle_ocr_v4", "qwen_vl", "gpt_4o_vision"],
+      "lens_physics_engine": ["opti_os_edge_thickness_v1", "zeiss_clearview_adapter_placeholder"]
+    },
+    "feedback_loop": {
+      "@description": "学习闭环：门店加工/退件/主观满意度回流到参数更新。",
+      "signals": [
+        "order_remake_reason_codes",
+        "customer_comfort_survey_score",
+        "chair_time_minutes",
+        "upsell_conversion_rate"
+      ],
+      "update_cadence_days": 30
+    }
+  },
+
+  "ai_consumption_hints": {
+    "@description": "给云端 AI 的消费提示：拿到本文件后如何分层推理与回答，降低幻觉。",
+    "reasoning_contract": [
+      "先读 meta.authority_priority，冲突时按序采用。",
+      "任何数值建议必须落在 validate 区间内，否则输出需标记 'out_of_policy' 并拒绝。",
+      "suggest 层产出必须给出引用的维度与 @description。",
+      "predict 层只给区间/概率，不替代医生诊断。"
+    ],
+    "x_matrix_schema_handshake": {
+      "@description": "与 GET /api/matrix/context 响应头 X-Matrix-Schema 配套的握手协议：云端 AI 在解析 JSON 或向用户输出结论前，必须先比对 schema；若与本地缓存的 schema_id@version 不一致，须重新拉取上下文，禁止沿用旧规则盲答。",
+      "response_header_name": "X-Matrix-Schema",
+      "expected_pattern": "{schema_id}@{schema_version}",
+      "client_must": [
+        "read_response_header_x_matrix_schema",
+        "compare_with_locally_cached_schema_string",
+        "if_mismatch_then_refetch_context_and_abort_in_flight_reasoning"
+      ],
+      "model_output_gate": {
+        "@description": "「信封」过滤：模型自由文本仅允许作为 envelope 内字段的摘要；不得绕过 violations / citations 结构直接给顾客下结论。",
+        "forbidden_if_validate_non_empty": ["bare_numeric_rx_without_citations", "medical_diagnosis_language", "contradicting_validate_layer"],
+        "required_top_level_keys_before_user_visible": ["violations", "recommendations", "predictions", "citations", "matrix_schema_ack"]
+      }
+    },
+    "response_envelope_example": {
+      "@description": "建议 AI 以统一信封回传结果，便于前端展示与审计。",
+      "shape": {
+        "matrix_schema_ack": "string_equal_to_response_header_x_matrix_schema",
+        "decision_path": "array_of_rule_ids",
+        "violations": "array_of_validate_codes",
+        "recommendations": "array_of_suggest_items",
+        "predictions": "array_of_predict_items",
+        "citations": "array_of_authority_keys"
+      }
+    }
+  }
+}

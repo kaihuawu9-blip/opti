@@ -953,6 +953,11 @@ export default function InventoryPage() {
       });
       const apiJson = await apiResp.json().catch(() => ({}));
       if (apiResp.ok && apiJson?.ok) {
+        const guard = (apiJson as { matrix_inventory_guard?: { status?: string; reasons?: string[] } })
+          .matrix_inventory_guard;
+        if (guard?.status === 'suggest_review' && Array.isArray(guard.reasons) && guard.reasons.length > 0) {
+          window.alert(`存疑入库提示（已保存）：\n${guard.reasons.join('\n')}`);
+        }
         resetForm();
         void fetchProducts();
         return;
@@ -982,6 +987,11 @@ export default function InventoryPage() {
           }
           window.alert('保存失败：' + toChineseErrorMessage(json?.error || msg));
         } else {
+          const guard = (json as { matrix_inventory_guard?: { status?: string; reasons?: string[] } })
+            .matrix_inventory_guard;
+          if (guard?.status === 'suggest_review' && Array.isArray(guard.reasons) && guard.reasons.length > 0) {
+            window.alert(`存疑入库提示（已保存）：\n${guard.reasons.join('\n')}`);
+          }
           resetForm();
           void fetchProducts();
         }

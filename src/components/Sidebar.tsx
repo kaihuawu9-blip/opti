@@ -22,6 +22,7 @@ import {
   Wallet,
   Library,
   Microscope,
+  LayoutGrid,
 } from 'lucide-react';
 import { useAuth } from '@/components/AuthProvider';
 import { useDeviceLayout } from '@/contexts/DeviceLayoutContext';
@@ -118,10 +119,13 @@ const Sidebar = ({ onRequestNavCollapse, tabletStaffRail = false, bossTabletRail
   };
 
   useEffect(() => {
+    /* 进入对应路由时自动展开分组（与财务管理一致）；同步 setState 为刻意行为 */
+    /* eslint-disable react-hooks/set-state-in-effect */
     const p = pathname.replace(/\/+$/, '') || '/';
     if (p.startsWith('/reports') || p.startsWith('/reconciliation')) {
       setFinanceExpanded(true);
     }
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [pathname]);
 
   const mainNavItems = useMemo(
@@ -132,6 +136,7 @@ const Sidebar = ({ onRequestNavCollapse, tabletStaffRail = false, bossTabletRail
       { name: '套餐管理', href: '/packages', icon: Layers, visible: hasPermission('inventory.view') },
       { name: '客户查询', href: '/customers', icon: Search, visible: hasPermission('customers.view') },
       { name: '价格手册', href: '/catalog', icon: Library, visible: hasPermission('cashier.view') },
+      { name: '视光矩阵', href: '/optometry-matrix', icon: LayoutGrid, visible: hasPermission('cashier.view') },
       { name: '光学实验室', href: '/lens-physics', icon: Microscope, visible: hasPermission('cashier.view') },
     ],
     [hasPermission],
@@ -225,6 +230,7 @@ const Sidebar = ({ onRequestNavCollapse, tabletStaffRail = false, bossTabletRail
       '/packages',
       '/customers',
       '/catalog',
+      '/optometry-matrix',
       '/lens-physics',
     ] as const;
     const store = configurableItems.filter((i) => storeCluster.includes(i.href as (typeof storeCluster)[number]));

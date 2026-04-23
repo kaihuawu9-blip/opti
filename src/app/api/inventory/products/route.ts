@@ -11,6 +11,7 @@ import {
   PRODUCT_EXTENSION_DEFAULTS,
 } from '@/lib/inventoryFileStore';
 import { prisma } from '@/lib/prisma';
+import { evaluateInventoryPresbyopia } from '@/matrix/suggest-runtime';
 
 export const dynamic = 'force-dynamic';
 
@@ -83,6 +84,16 @@ function optionalFiniteNumber(v: unknown): number | null {
   if (v == null || v === '') return null;
   const n = Number(v);
   return Number.isFinite(n) ? n : null;
+}
+
+function matrixInventoryGuardFromBody(body: Record<string, unknown>) {
+  const name = body.name != null ? String(body.name).trim() : '';
+  const lens_type = optionalTrimmedString(body.lens_type);
+  const category = normalizeCategory(body.category);
+  const ageRaw = body.matrix_guard_customer_age_years ?? body.guard_customer_age_years;
+  const age_years =
+    ageRaw != null && ageRaw !== '' && Number.isFinite(Number(ageRaw)) ? Number(ageRaw) : null;
+  return evaluateInventoryPresbyopia({ name, lens_type, category, age_years });
 }
 
 function normalizeCategory(raw: unknown): string {
@@ -288,7 +299,8 @@ export async function POST(req: NextRequest) {
       const all = await loadInventoryFile();
       all.push(row);
       await saveInventoryFile(all);
-      return NextResponse.json({ ok: true, data: mapRow(row) });
+      const matrix_inventory_guard = matrixInventoryGuardFromBody(body);
+      return NextResponse.json({ ok: true, data: mapRow(row), matrix_inventory_guard });
     }
     if (!dbReady()) {
       return NextResponse.json({ ok: false, error: 'DATABASE_URL_NOT_CONFIGURED' }, { status: 500 });
@@ -308,7 +320,8 @@ export async function POST(req: NextRequest) {
       },
       select: PRODUCT_BASE_SELECT,
     });
-    return NextResponse.json({ ok: true, data: mapRow(flattenPrismaRowForMap(row)) });
+    const matrix_inventory_guard = matrixInventoryGuardFromBody(body);
+    return NextResponse.json({ ok: true, data: mapRow(flattenPrismaRowForMap(row)), matrix_inventory_guard });
   } catch (e) {
     return NextResponse.json(
       { ok: false, error: e instanceof Error ? e.message : String(e) },
@@ -332,7 +345,8 @@ export async function PUT(req: NextRequest) {
       const next = mergeFileRecordFromBody(all[idx], body);
       all[idx] = next;
       await saveInventoryFile(all);
-      return NextResponse.json({ ok: true, data: mapRow(next) });
+      const matrix_inventory_guard = matrixInventoryGuardFromBody(next as Record<string, unknown>);
+      return NextResponse.json({ ok: true, data: mapRow(next), matrix_inventory_guard });
     }
     if (!dbReady()) {
       return NextResponse.json({ ok: false, error: 'DATABASE_URL_NOT_CONFIGURED' }, { status: 500 });
@@ -375,7 +389,9 @@ export async function PUT(req: NextRequest) {
       data,
       select: PRODUCT_BASE_SELECT,
     });
-    return NextResponse.json({ ok: true, data: mapRow(flattenPrismaRowForMap(row)) });
+    const flat = flattenPrismaRowForMap(row) as Record<string, unknown>;
+    const matrix_inventory_guard = matrixInventoryGuardFromBody({ ...flat, ...body });
+    return NextResponse.json({ ok: true, data: mapRow(flattenPrismaRowForMap(row)), matrix_inventory_guard });
   } catch (e) {
     return NextResponse.json(
       { ok: false, error: e instanceof Error ? e.message : String(e) },

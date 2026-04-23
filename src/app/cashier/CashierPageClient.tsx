@@ -44,6 +44,7 @@ import AppModal from '@/components/layout/AppModal';
 import { DraggableRxEditorModal } from '@/components/cashier/DraggableRxEditorModal';
 import type { CartItem, Product, RxEye } from '@/components/cashier/cashierCartTypes';
 import { CUSTOM_COMBO_CATEGORY, isCustomComboLine, isLensProduct, isRxComplete } from '@/components/cashier/cashierCartTypes';
+import { buildCashierRefractiveIndexHints } from '@/matrix/suggest-runtime';
 import { ReadonlyCartBlock } from '@/components/cashier/ReadonlyCartBlock';
 import { QuickCheckoutList } from '@/components/cashier/QuickCheckoutList';
 import { DraggableCashierModal } from '@/components/cashier/DraggableCashierModal';
@@ -675,6 +676,8 @@ export default function CashierPage() {
   } | null>(null);
   const [rxPhotoFileName, setRxPhotoFileName] = useState('');
   const [rxRecognizing, setRxRecognizing] = useState(false);
+  /** 视光矩阵 suggest 层：折射率导购话术（本地 hub 推导，零 RTT） */
+  const [matrixRxSuggestHint, setMatrixRxSuggestHint] = useState<string | null>(null);
   const [showScanModal, setShowScanModal] = useState(false);
   const [showMeituanVerifyModal, setShowMeituanVerifyModal] = useState(false);
   const [meituanScanning, setMeituanScanning] = useState(false);
@@ -1393,6 +1396,23 @@ export default function CashierPage() {
     () => (rxEditorLineId ? cart.find((item) => item.lineId === rxEditorLineId) ?? null : null),
     [cart, rxEditorLineId],
   );
+
+  useEffect(() => {
+    if (!editingRxItem || !isLensProduct(editingRxItem)) {
+      setMatrixRxSuggestHint(null);
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      const { hints } = buildCashierRefractiveIndexHints({
+        od_ds: editingRxItem.rx.right.ds,
+        od_dc: editingRxItem.rx.right.dc,
+        os_ds: editingRxItem.rx.left.ds,
+        os_dc: editingRxItem.rx.left.dc,
+      });
+      setMatrixRxSuggestHint(hints[0] ?? null);
+    }, 420);
+    return () => window.clearTimeout(timer);
+  }, [editingRxItem]);
 
   const applyVoiceOrderResult = useCallback((result: VoiceOrderFillResult) => {
     if (typeof result.customerName === 'string' && result.customerName.trim()) {
@@ -4413,6 +4433,11 @@ export default function CashierPage() {
                   eye={editingRxItem.rx.left}
                   onPatch={(p) => patchRx(editingRxItem.lineId, 'left', p)}
                 />
+                {matrixRxSuggestHint ? (
+                  <p className="rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-xs leading-relaxed text-sky-950">
+                    <span className="font-semibold text-sky-900">视光建议（suggest）</span>：{matrixRxSuggestHint}
+                  </p>
+                ) : null}
               </div>
             </div>
 
