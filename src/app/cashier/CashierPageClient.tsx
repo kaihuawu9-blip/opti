@@ -30,7 +30,7 @@ import { localCache } from '@/lib/localCache';
 import { printReceiptViaWebBluetooth, printReceiptWithElectronPreference } from '@/lib/receiptElectronPrint';
 import { hasWebBluetooth, webBluetoothUnavailableReason } from '@/lib/webBluetoothSupport';
 import { compressImageFileToJpegBlob } from '@/lib/compressImageClient';
-import { runLocalPaddleThenAiDistill } from '@/lib/ocr-client';
+import { runServerCashierOcr } from '@/lib/cashierOcrPipeline';
 import { fetchLensTintConfigClient } from '@/lib/fittingbox/lensTintConfigClient';
 import type { LensTintPreset } from '@/lib/fittingbox/lensTintPresets';
 import { StandardLayout } from '@/components/layout/StandardLayout';
@@ -1371,7 +1371,7 @@ export default function CashierPage() {
         }, 'image/jpeg', 0.9);
       });
 
-      const { result } = await runLocalPaddleThenAiDistill(blob, 'frame.jpg');
+      const { result } = await runServerCashierOcr(blob, 'frame.jpg');
       const eyes = prepareRxOcrEyesOrAbandon(result);
       if (!eyes) return;
       applyRxFromOcr(editingRxItem.lineId, 'right', eyes.right);
@@ -3820,7 +3820,7 @@ export default function CashierPage() {
                     <Loader2 className="h-8 w-8 shrink-0 animate-spin text-sky-600" aria-hidden />
                     <p className="text-xs font-semibold text-gray-800">验光图识别中</p>
                     <p className="text-[10px] leading-snug text-gray-500">
-                      直连本机 Paddle（8866）取字后，由服务端 AI 解析球镜 / 柱镜 / 轴位并填入下方表单，请稍候…
+                      图片经本机 Next 转发至 Paddle（8866）取字，再由 AI 解析球镜 / 柱镜 / 轴位并填入下方表单，请稍候…
                     </p>
                   </div>
                 ) : null}
@@ -3862,7 +3862,7 @@ export default function CashierPage() {
                               maxBytes: 600 * 1024,
                               maxEdge: 2048,
                             });
-                            const { result } = await runLocalPaddleThenAiDistill(jpegBlob, 'rx.jpg');
+                            const { result } = await runServerCashierOcr(jpegBlob, 'rx.jpg');
                             const eyes = prepareRxOcrEyesOrAbandon(result);
                             if (!eyes) return;
                             applyRxFromOcr(editingRxItem.lineId, 'right', eyes.right);
@@ -3927,7 +3927,7 @@ export default function CashierPage() {
                       >
                         {visualEntryLoading ? 'AI 识别中…' : '抓拍当前画面 · AI 识别'}
                       </button>
-                      <span className="text-[10px] text-gray-500">验光图（8866 Paddle + AI 蒸馏）</span>
+                      <span className="text-[10px] text-gray-500">验光图（服务端 8866 Paddle + AI 蒸馏）</span>
                     </div>
                     {visualEntryError ? <p className="mt-2 text-xs text-red-600">{visualEntryError}</p> : null}
                   </div>

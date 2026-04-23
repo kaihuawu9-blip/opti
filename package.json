@@ -101,6 +101,8 @@
     "sqlite3": "^6.0.1",
     "tencentcloud-sdk-nodejs-hunyuan": "^4.1.188",
     "three": "^0.184.0",
+    "three-bvh-csg": "^0.0.18",
+    "three-mesh-bvh": "^0.9.9",
     "wechatpay-node-v3": "^2.2.1",
     "ws": "^8.20.0"
   },
