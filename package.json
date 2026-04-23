@@ -35,7 +35,11 @@
     "staff:create": "node scripts/create-staff-user.mjs",
     "seed:optical": "node scripts/seed-optical.mjs",
     "test:tencent-3d": "tsx scripts/test-tencent-3d.ts",
-    "catalog:normalize-handbook": "node scripts/normalize-zeiss-handbook.mjs"
+    "test:matrix-protocol": "vitest run src/lib/catalog/__tests__/matrixProtocol.vitest.ts",
+    "test:vitest": "vitest run",
+    "catalog:normalize-handbook": "node scripts/normalize-zeiss-handbook.mjs",
+    "catalog:export-handbook-images": "node scripts/export-zeiss-handbook-images.mjs",
+    "catalog:embed-handbook-to-matrix": "node scripts/embed-zeiss-handbook-to-matrix.mjs"
   },
   "build": {
     "appId": "cn.optiai.sale",
@@ -118,11 +122,13 @@
     "electron-builder": "^26.8.1",
     "eslint": "^9",
     "eslint-config-next": "16.2.1",
+    "pdf-to-img": "^6.0.0",
     "pg": "^8.16.0",
     "prisma": "^5.22.0",
     "tailwindcss": "^4",
     "to-ico": "^1.1.5",
     "tsx": "^4.21.0",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^3.2.4"
   }
 }

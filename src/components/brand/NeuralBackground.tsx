@@ -53,9 +53,22 @@ export function NeuralBackground() {
     resize();
     window.addEventListener('resize', resize);
 
+    const onVisibility = () => {
+      if (typeof document === 'undefined') return;
+      if (document.hidden) {
+        cancelAnimationFrame(raf);
+      } else {
+        raf = requestAnimationFrame(loop);
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+
     let t = 0;
     function loop() {
       if (!running) return;
+      if (typeof document !== 'undefined' && document.hidden) {
+        return;
+      }
       t += 0.014;
 
       ctx.fillStyle = '#030816';
@@ -107,6 +120,7 @@ export function NeuralBackground() {
     return () => {
       running = false;
       cancelAnimationFrame(raf);
+      document.removeEventListener('visibilitychange', onVisibility);
       window.removeEventListener('resize', resize);
     };
   }, []);

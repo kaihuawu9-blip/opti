@@ -63,9 +63,67 @@ function walkHandbookDir(absDir: string, relBase = ''): string[] {
   return out;
 }
 
+const PAGE_STEM_RE = /^page_(\d+)/i;
+
+/** 与 `zeissHandbookPageMap` 中物理页行数一致（缺图时 API 会打 warning） */
+export const EXPECTED_ZEISS_HANDBOOK_IMAGE_COUNT = 82;
+
+/**
+ * 根目录 `1.jpg`…`N.jpg`（或 .jpeg/.png… 嗅探）与 PDF 物理页 1:1；仅当 1..EXPECTED 全存在时才启用，避免与零散单张混淆。
+ * imageUrl 形如 `/catalog/zeiss-handbook/21.jpg`（以磁盘实际后缀为准）。
+ */
+function findRootHandbookFileForPage(n: number): string | null {
+  for (const ext of ['.jpg', '.jpeg', '.png', '.webp', '.avif']) {
+    const rel = `${n}${ext}`;
+    const abs = path.join(PUBLIC_HANDROOT, rel);
+    try {
+      if (fs.existsSync(abs) && fs.statSync(abs).isFile()) return rel.replace(/\\/g, '/');
+    } catch {
+      /* ignore */
+    }
+  }
+  return null;
+}
+
+function collectFromRootStrictOneToN(): string[] | null {
+  if (!fs.existsSync(PUBLIC_HANDROOT)) return null;
+  if (!findRootHandbookFileForPage(1)) return null;
+  const out: string[] = [];
+  for (let n = 1; n <= EXPECTED_ZEISS_HANDBOOK_IMAGE_COUNT; n++) {
+    const f = findRootHandbookFileForPage(n);
+    if (!f) return null;
+    out.push(f);
+  }
+  return out;
+}
+
+/**
+ * 优先使用 `zeiss-handbook/pages/page_###.*`：与 PDF 物理页 1…N 强一致，避免与根目录杂图混排、locale 排序歧义。
+ */
+function collectFromPagesSubfolderNumeric(): string[] | null {
+  const pagesDir = path.join(PUBLIC_HANDROOT, 'pages');
+  if (!fs.existsSync(pagesDir) || !fs.statSync(pagesDir).isDirectory()) return null;
+  const scored: { n: number; rel: string }[] = [];
+  for (const ent of fs.readdirSync(pagesDir, { withFileTypes: true })) {
+    if (!ent.isFile() || !HANDBOOK_IMAGE_EXT.test(ent.name)) continue;
+    const m = PAGE_STEM_RE.exec(ent.name);
+    if (!m) continue;
+    const n = parseInt(m[1]!, 10);
+    if (!Number.isFinite(n) || n < 1) continue;
+    scored.push({ n, rel: `pages/${ent.name}`.replace(/\\/g, '/') });
+  }
+  if (scored.length === 0) return null;
+  scored.sort((a, b) => a.n - b.n);
+  return scored.map((s) => s.rel);
+}
+
 /** 递归收集 public/catalog/zeiss-handbook 下高清图资产 */
 export function collectPublicHandbookRelPaths(): string[] {
   if (!fs.existsSync(PUBLIC_HANDROOT)) return [];
+  const fromRoot = collectFromRootStrictOneToN();
+  if (fromRoot) return fromRoot;
+  const fromPages = collectFromPagesSubfolderNumeric();
+  if (fromPages) return fromPages;
   const out = walkHandbookDir(PUBLIC_HANDROOT);
   return out.sort((a, b) => a.localeCompare(b, 'zh-CN', { numeric: true, sensitivity: 'base' }));
 }
@@ -79,6 +137,12 @@ export function manifestFromPublicFiles(): {
   const warnings: string[] = [];
   if (rels.length === 0) {
     return { manifest: null, warnings };
+  }
+
+  if (rels.length !== EXPECTED_ZEISS_HANDBOOK_IMAGE_COUNT) {
+    warnings.push(
+      `手册图共 ${rels.length} 张，预期 ${EXPECTED_ZEISS_HANDBOOK_IMAGE_COUNT} 张（与 2026 价目册 PDF 物理页一致）。请检查 public/catalog/zeiss-handbook/pages/ 下是否缺页或导出脚本是否只跑了一部分。`,
+    );
   }
 
   const pages: ZeissHandbookPage[] = rels.map((rel) => {

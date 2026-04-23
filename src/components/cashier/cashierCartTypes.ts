@@ -54,6 +54,15 @@ export type CartItem = CashierProduct & {
   isQuickSale?: boolean;
   /** 自主配镜行：手写镜框+镜片+成套价 */
   isCustomCombo?: boolean;
+  /**
+   * 收银「价目矩阵」镜片行：保存验光单时用 productName+index 拉取 powerRanges 做光度包络校验。
+   * 仅运行时挂在购物车行，不落库。
+   */
+  zeiss_matrix_rx_ref?: {
+    productName: string;
+    index: number;
+    coating: string;
+  } | null;
 };
 
 export function isLensProduct(p: Pick<CartItem, 'category' | 'lens_type' | 'name' | 'frame_type'>): boolean {

@@ -86,15 +86,56 @@
       "vertex_distance_mm_measurement_range": { "min": 8, "max": 18, "typical": 12 },
       "pantoscopic_tilt_deg": { "min": 0, "max": 15, "typical": 8 },
       "wrap_angle_deg": { "min": 0, "max": 15, "typical": 5 },
-      "lens_edge_min_thickness_mm_by_material": {
-        "@description": "边缘最小可加工厚度（兼顾镜架受力与抛光）。",
-        "cr39_1_50": 1.2,
-        "n_1_56": 1.0,
-        "n_1_60": 0.9,
-        "n_1_67": 0.8,
-        "n_1_74": 0.8
-      }
+    "lens_edge_min_thickness_mm_by_material": {
+      "@description": "边缘最小可加工厚度（兼顾镜架受力与抛光）。",
+      "cr39_1_50": 1.2,
+      "n_1_56": 1.0,
+      "n_1_60": 0.9,
+      "n_1_67": 0.8,
+      "n_1_74": 0.8
     },
+    "lens_center_thickness_min_mm_by_index": {
+      "@description": "中心厚度最小参考值（mm）；正度数/高下加渐进需比此值更厚。来源：Zeiss 工艺手册 + Essilor 参考；1.74 负片在高度数同样需维持 ≥1.0 以保证可加工与抗冲击。",
+      "1.50": 1.3,
+      "1.56": 1.2,
+      "1.59": 1.1,
+      "1.60": 1.1,
+      "1.67": 1.0,
+      "1.71": 1.0,
+      "1.74": 1.0
+    },
+    "product_specific_power_ranges": {
+      "@description": "镜片厂商手册声明的 (折射率 → 球/柱镜包络) 上下限。来源：蔡司 2026 价目册（public/catalog/zeiss-handbook/2026_蔡司价目册-1106-终审8（预览可复制）(1).pdf），结构化数据位于 src/data/zeissPriceMatrix.ts / ai-data/zeiss_digital_handbook/2026_price_matrix.json。Cashier 的 Select 下拉菜单与加工单校验应当 JOIN 本区块以判断可落单范围；超出本包络但未超出 validate.geometric_optics 区间时提示「需向厂家定制」而非硬拒。",
+      "brand": "zeiss",
+      "effective": { "from": "2026-01-01", "to": "2026-12-31" },
+      "entries": [
+        {
+          "product": "智锐单光",
+          "printed_page": 5,
+          "by_index": {
+            "1.50": { "sphere_d_min": -6.0,  "sphere_d_max":  6.0, "cylinder_d_min": -4.0, "cylinder_d_max": 0.0, "diameter_mm": [55, 75] },
+            "1.60": { "sphere_d_min": -10.0, "sphere_d_max":  8.0, "cylinder_d_min": -6.0, "cylinder_d_max": 0.0, "diameter_mm": [50, 80] },
+            "1.67": { "sphere_d_min": -12.0, "sphere_d_max":  8.0, "cylinder_d_min": -6.0, "cylinder_d_max": 0.0, "diameter_mm": [50, 80] },
+            "1.74": { "sphere_d_min": -19.0, "sphere_d_max": 16.0, "cylinder_d_min": -6.0, "cylinder_d_max": 0.0, "diameter_mm": [55, 70] }
+          }
+        },
+        {
+          "product": "小乐圆H版",
+          "printed_page": 20,
+          "by_index": {
+            "1.50": { "sphere_d_min": -6.0, "sphere_d_max": 0.0, "cylinder_d_min": -1.0, "cylinder_d_max": 0.0, "diameter_mm": [65, 75] },
+            "1.59": { "sphere_d_min": -9.0, "sphere_d_max": 0.0, "cylinder_d_min": -3.0, "cylinder_d_max": 0.0, "diameter_mm": [65, 73] },
+            "1.60": { "sphere_d_min": -9.0, "sphere_d_max": 0.0, "cylinder_d_min": -3.0, "cylinder_d_max": 0.0, "diameter_mm": [65, 73] },
+            "1.67": { "sphere_d_min": -10.0, "sphere_d_max": -2.0, "cylinder_d_min": -3.0, "cylinder_d_max": 0.0, "diameter_mm": [65, 73] }
+          }
+        }
+      ],
+      "_predict_notes": [
+        "// Predict: 其余产品的 by_index 上下限暂未写入本 JSON，但可由 src/data/zeissPriceMatrix.ts -> getZeissPowerRange(productName, index) 运行时读取（更适合频繁维护）。",
+        "// Predict: 对于未覆盖产品，回退顺序 = 产品级 powerRanges → geometric_optics.sphere_diopter_range → global_sanity。"
+      ]
+    }
+  },
 
     "compliance_standards": {
       "@description": "合规与标识：ISO/ANSI/GB 对出厂成品眼镜的刚性要求；门店不得绕过。",

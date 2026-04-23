@@ -52,16 +52,21 @@ import { WebCameraCaptureModal } from '@/components/WebCameraCaptureModal';
 import { CartLineOperations } from '@/components/cashier/CartLineOperations';
 import '@/styles/Print.css';
 import { CASHIER_OPEN_CHECKOUT_DRAWER_EVENT } from '@/lib/cashierCheckoutEvents';
+// MATRIX_PROTOCOL_V1 · 手册 → 收银桥接（品牌无关，下次放入依视路只需扩 pageMap）
+import { onHandbookAddToCart, toCashierLensProduct } from '@/lib/catalog/handbookCashierBridge';
 import { disableAuthMode } from '@/core/auth';
+import { formatMatrixLensDisplayName, type LensPriceEntryMode } from '@/lib/priceListEngine';
+import { validateCartLineRxPowerEnvelope } from '@/lib/cashierRxPowerValidate';
 import {
-  coatingsForZeissSelection,
-  formatZeissSkuName,
-  getZeissRetailProducts,
-  type LensPriceEntryMode,
-  resolveZeissRetailYuan,
-  searchZeissProducts,
-  indicesForZeissSeries,
-} from '@/lib/priceListEngine';
+  ZEISS_PRICE_MATRIX,
+  listCoatingsForProductIndex,
+  listIndicesForProduct,
+  listUniqueMatrixBrandKeys,
+  matrixBrandDisplayLabel,
+  matrixProductBrandKey,
+  resolveMatrixRetailYuan,
+} from '@/data/zeissPriceMatrix';
+import { LensSelectionSection } from '@/components/cashier/LensSelectionSection';
 
 /** 历史销售/挂单 JSON 中可能仍有 category「快充」，恢复购物车时剔除 */
 const LEGACY_QUICK_CATEGORY = '快充';
@@ -785,9 +790,16 @@ export default function CashierPage() {
   const [lensPriceMode, setLensPriceMode] = useState<LensPriceEntryMode>('catalog');
   const [zeissSearch, setZeissSearch] = useState('');
   const [zeissProductName, setZeissProductName] = useState('');
-  const [zeissSeriesName, setZeissSeriesName] = useState('');
   const [zeissIndexStr, setZeissIndexStr] = useState('');
   const [zeissCoating, setZeissCoating] = useState('');
+  /** 价目表选购：品牌 Tab（蔡司 / 依视路占位等） */
+  const [lensCatalogBrand, setLensCatalogBrand] = useState<string>(
+    () => listUniqueMatrixBrandKeys()[0] ?? 'ZEISS',
+  );
+  /** 价目表选购：染色服务（受矩阵 tintable 约束） */
+  const [lensCatalogTint, setLensCatalogTint] = useState(false);
+  /** 验光单保存时与价目册光度包络不符时的红色提示 */
+  const [rxPowerValidationError, setRxPowerValidationError] = useState<string | null>(null);
   /** 平板视口（max-xl）：右侧结算轨 Slide-over */
   const [checkoutDrawerOpen, setCheckoutDrawerOpen] = useState(false);
   const [successToast, setSuccessToast] = useState<string | null>(null);
@@ -1025,30 +1037,24 @@ export default function CashierPage() {
     setLensManualCoating('');
     setLensPriceMode('catalog');
     setZeissSearch('');
-    const prods = getZeissRetailProducts();
-    if (prods.length > 0) {
-      const p0 = prods[0];
+    const defaultBrand = listUniqueMatrixBrandKeys()[0] ?? 'ZEISS';
+    setLensCatalogBrand(defaultBrand);
+    setLensCatalogTint(false);
+    const rowsInit = ZEISS_PRICE_MATRIX.filter((p) => matrixProductBrandKey(p) === defaultBrand);
+    if (rowsInit.length > 0) {
+      const p0 = rowsInit[0]!;
       setZeissProductName(p0.productName);
-      const s0 = p0.series[0];
-      if (s0) {
-        setZeissSeriesName(s0.name);
-        const idxs = indicesForZeissSeries(p0.productName, s0.name);
-        const i0 = idxs[0];
-        if (i0 != null) {
-          setZeissIndexStr(String(i0));
-          setZeissCoating(coatingsForZeissSelection(p0.productName, s0.name, i0)[0] || '');
-        } else {
-          setZeissIndexStr('');
-          setZeissCoating('');
-        }
+      const idxs = listIndicesForProduct(p0.productName);
+      const i0 = idxs[0];
+      if (i0 != null) {
+        setZeissIndexStr(String(i0));
+        setZeissCoating(listCoatingsForProductIndex(p0.productName, i0)[0] || '');
       } else {
-        setZeissSeriesName('');
         setZeissIndexStr('');
         setZeissCoating('');
       }
     } else {
       setZeissProductName('');
-      setZeissSeriesName('');
       setZeissIndexStr('');
       setZeissCoating('');
     }
@@ -1071,28 +1077,53 @@ export default function CashierPage() {
     return customProductCategory.includes('镜框') || customProductCategory === '镜架';
   }, [customProductCategory]);
 
-  const zeissProductsForPicker = useMemo(() => {
-    const f = searchZeissProducts(zeissSearch);
-    const cur = getZeissRetailProducts().find((p) => p.productName === zeissProductName);
-    if (cur && !f.some((p) => p.productName === cur.productName)) {
-      return [cur, ...f];
+  const handleZeissProductNameChange = useCallback((name: string) => {
+    setZeissProductName(name);
+    const idxs = listIndicesForProduct(name);
+    const i0 = idxs[0];
+    if (i0 != null) {
+      setZeissIndexStr(String(i0));
+      setZeissCoating(listCoatingsForProductIndex(name, i0)[0] || '');
+    } else {
+      setZeissIndexStr('');
+      setZeissCoating('');
     }
-    return f;
-  }, [zeissSearch, zeissProductName]);
-  const zeissSeriesOptions = useMemo(() => {
-    const p = getZeissRetailProducts().find((x) => x.productName === zeissProductName);
-    return p?.series.map((s) => s.name) ?? [];
-  }, [zeissProductName]);
-  const zeissIndexOptions = useMemo(() => {
-    if (!zeissProductName || !zeissSeriesName) return [] as number[];
-    return indicesForZeissSeries(zeissProductName, zeissSeriesName);
-  }, [zeissProductName, zeissSeriesName]);
-  const zeissCoatingOptions = useMemo(() => {
-    if (!zeissProductName || !zeissSeriesName || zeissIndexStr === '') return [] as string[];
-    const idx = Number(zeissIndexStr);
-    if (!Number.isFinite(idx)) return [];
-    return coatingsForZeissSelection(zeissProductName, zeissSeriesName, idx);
-  }, [zeissProductName, zeissSeriesName, zeissIndexStr]);
+  }, []);
+
+  const handleZeissIndexStrChange = useCallback(
+    (v: string) => {
+      setZeissIndexStr(v);
+      const idx = Number(v);
+      if (Number.isFinite(idx) && zeissProductName) {
+        setZeissCoating(listCoatingsForProductIndex(zeissProductName, idx)[0] || '');
+      }
+    },
+    [zeissProductName],
+  );
+
+  const handleLensCatalogBrandChange = useCallback((b: string) => {
+    setLensCatalogBrand(b);
+    const rows = ZEISS_PRICE_MATRIX.filter((p) => matrixProductBrandKey(p) === b);
+    if (rows.length === 0) {
+      setZeissProductName('');
+      setZeissIndexStr('');
+      setZeissCoating('');
+      setCustomProductName('');
+      setCustomProductPrice('');
+      return;
+    }
+    const p0 = rows[0]!;
+    setZeissProductName(p0.productName);
+    const idxs = listIndicesForProduct(p0.productName);
+    const i0 = idxs[0];
+    if (i0 != null) {
+      setZeissIndexStr(String(i0));
+      setZeissCoating(listCoatingsForProductIndex(p0.productName, i0)[0] || '');
+    } else {
+      setZeissIndexStr('');
+      setZeissCoating('');
+    }
+  }, []);
 
   useEffect(() => {
     if (!showLensSkuUi || lensPriceMode === 'catalog') return;
@@ -1109,23 +1140,32 @@ export default function CashierPage() {
 
   useEffect(() => {
     if (!showLensSkuUi || lensPriceMode !== 'catalog') return;
-    const p = zeissProductName.trim();
-    const s = zeissSeriesName.trim();
-    const c = zeissCoating.trim();
-    const idx = Number(zeissIndexStr);
-    if (!p || !s || !c || !Number.isFinite(idx)) {
+    const rowsForBrand = ZEISS_PRICE_MATRIX.filter((p) => matrixProductBrandKey(p) === lensCatalogBrand);
+    if (rowsForBrand.length === 0) {
       setCustomProductName('');
       setCustomProductPrice('');
       return;
     }
-    const y = resolveZeissRetailYuan(p, s, idx, c);
-    setCustomProductName(formatZeissSkuName(p, s, String(idx), c));
+    const p = zeissProductName.trim();
+    const c = zeissCoating.trim();
+    const idx = Number(zeissIndexStr);
+    if (!p || !c || !Number.isFinite(idx)) {
+      setCustomProductName('');
+      setCustomProductPrice('');
+      return;
+    }
+    const y = resolveMatrixRetailYuan(p, idx, c);
+    setCustomProductName(formatMatrixLensDisplayName(p, c, String(idx)));
     if (y != null && Number.isFinite(y)) {
       setCustomProductPrice(String(y));
     } else {
       setCustomProductPrice('');
     }
-  }, [showLensSkuUi, lensPriceMode, zeissProductName, zeissSeriesName, zeissIndexStr, zeissCoating]);
+  }, [showLensSkuUi, lensPriceMode, lensCatalogBrand, zeissProductName, zeissIndexStr, zeissCoating]);
+
+  useEffect(() => {
+    setRxPowerValidationError(null);
+  }, [rxEditorLineId]);
 
   const prevShowLensSkuUiRef = useRef(false);
   useEffect(() => {
@@ -1301,7 +1341,14 @@ export default function CashierPage() {
     return () => document.removeEventListener('keydown', onCap, true);
   }, [handleOrderQrScan]);
 
-  const addToCart = useCallback((product: Product, options?: { ocrEvidenceUrlFallback?: string | null }) => {
+  const addToCart = useCallback(
+    (
+      product: Product,
+      options?: {
+        ocrEvidenceUrlFallback?: string | null;
+        zeissMatrixRxRef?: { productName: string; index: number; coating: string } | null;
+      },
+    ) => {
     const promoOk = product.allow_promo_price !== false;
     const promo =
       product.is_promo && promoOk && product.promo_price != null
@@ -1321,6 +1368,7 @@ export default function CashierPage() {
         discountPercent: 0,
         overrideUnitPrice: usePromo ? promo : null,
         tint_info: null,
+        zeiss_matrix_rx_ref: options?.zeissMatrixRxRef ?? null,
       },
     ]);
     if (isLensProduct(product)) {
@@ -1331,6 +1379,15 @@ export default function CashierPage() {
       setRxRecognizing(false);
     }
   }, []);
+
+  // MATRIX_PROTOCOL_V1 · 监听手册页「加入收银」：透传品牌/系列/折射率/膜层/价格/tintable/powerRange
+  useEffect(() => {
+    const off = onHandbookAddToCart((payload) => {
+      const base = toCashierLensProduct(payload);
+      addToCart(base as unknown as Product);
+    });
+    return off;
+  }, [addToCart]);
 
   const removeFromCart = useCallback((lineId: string) => {
     setCart((prev) => prev.filter((item) => item.lineId !== lineId));
@@ -1747,19 +1804,23 @@ export default function CashierPage() {
   const createCustomProductAndAddToCart = useCallback(async () => {
     if (showLensSkuUi) {
       if (lensPriceMode === 'catalog') {
-        if (getZeissRetailProducts().length === 0) {
-          window.alert('价目表数据未加载，请改用「自由填报」或检查 src/data/AI-DATA-zeiss-retail.json');
+        const rowsBrand = ZEISS_PRICE_MATRIX.filter((p) => matrixProductBrandKey(p) === lensCatalogBrand);
+        if (rowsBrand.length === 0) {
+          window.alert('当前品牌在价目矩阵中暂无产品，请更换品牌或改用「自由填报」');
+          return;
+        }
+        if (ZEISS_PRICE_MATRIX.length === 0) {
+          window.alert('视光价目矩阵未加载，请改用「自由填报」或检查 src/data/zeissPriceMatrix.ts 数据源');
           return;
         }
         const p = zeissProductName.trim();
-        const s = zeissSeriesName.trim();
         const c = zeissCoating.trim();
         const idx = Number(zeissIndexStr);
-        if (!p || !s || !c || !Number.isFinite(idx)) {
-          window.alert('请完成价目表：品种、系列、折射率、膜层');
+        if (!p || !c || !Number.isFinite(idx)) {
+          window.alert('请完成价目表：品种、折射率、膜层');
           return;
         }
-        const y = resolveZeissRetailYuan(p, s, idx, c);
+        const y = resolveMatrixRetailYuan(p, idx, c);
         if (y == null || !Number.isFinite(y) || y < 0) {
           window.alert('当前组合在价目中无零售价，请更换选项或改用自由填报');
           return;
@@ -1802,9 +1863,9 @@ export default function CashierPage() {
         payload.frame_type = m;
       }
       if (showLensSkuUi && lensPriceMode === 'catalog') {
-        payload.brand = '蔡司';
+        payload.brand = matrixBrandDisplayLabel(lensCatalogBrand);
         payload.model = zeissProductName.trim();
-        payload.lens_type = `${zeissSeriesName.trim()} / ${zeissIndexStr} / ${zeissCoating.trim()}`;
+        payload.lens_type = `${zeissIndexStr} / ${zeissCoating.trim()}`;
       }
       const evUrl = customProductOcrEvidenceUrl?.trim();
       if (!showLensSkuUi && evUrl) {
@@ -1825,13 +1886,13 @@ export default function CashierPage() {
         category: cat,
         brand:
           showLensSkuUi && lensPriceMode === 'catalog'
-            ? '蔡司'
+            ? matrixBrandDisplayLabel(lensCatalogBrand)
             : row.brand ?? null,
         lens_type:
           cat.includes('镜片') || cat === '套餐'
             ? row.lens_type ||
               (showLensSkuUi && lensPriceMode === 'catalog'
-                ? `${zeissSeriesName} / ${zeissIndexStr} / ${zeissCoating}`
+                ? `${zeissIndexStr} / ${zeissCoating}`
                 : '通用')
             : row.lens_type ?? null,
         frame_type:
@@ -1840,7 +1901,22 @@ export default function CashierPage() {
             : row.frame_type ?? null,
         ocr_evidence_url: row.ocr_evidence_url ?? (evUrl || null),
       };
-      addToCart(p, { ocrEvidenceUrlFallback: evUrl || null });
+      const idxRef = Number(zeissIndexStr);
+      addToCart(p, {
+        ocrEvidenceUrlFallback: evUrl || null,
+        zeissMatrixRxRef:
+          showLensSkuUi &&
+          lensPriceMode === 'catalog' &&
+          zeissProductName.trim() &&
+          zeissCoating.trim() &&
+          Number.isFinite(idxRef)
+            ? {
+                productName: zeissProductName.trim(),
+                index: idxRef,
+                coating: zeissCoating.trim(),
+              }
+            : null,
+      });
       setCustomProductName('');
       setCustomProductPrice('');
       setCustomFrameModel('');
@@ -1867,9 +1943,9 @@ export default function CashierPage() {
     lensManualIndex,
     lensManualCoating,
     zeissProductName,
-    zeissSeriesName,
     zeissIndexStr,
     zeissCoating,
+    lensCatalogBrand,
     customProductName,
     customProductPrice,
     customProductCategory,
@@ -2053,7 +2129,27 @@ export default function CashierPage() {
     setVisualEntryError(null);
     setVisualEntryPulse(false);
     setRxEditorMinimized(false);
+    setRxPowerValidationError(null);
   }, []);
+
+  const confirmRxEditorSave = useCallback(() => {
+    if (!editingRxItem) {
+      setRxEditorLineId(null);
+      setRxFocusTarget(null);
+      setRxEditorMinimized(false);
+      setRxPowerValidationError(null);
+      return;
+    }
+    const v = validateCartLineRxPowerEnvelope(editingRxItem);
+    if (!v.ok) {
+      setRxPowerValidationError(`${v.title}\n\n${v.body}`);
+      return;
+    }
+    setRxPowerValidationError(null);
+    setRxEditorLineId(null);
+    setRxFocusTarget(null);
+    setRxEditorMinimized(false);
+  }, [editingRxItem]);
 
   const minimizeRxEditor = useCallback(() => {
     setRxEditorMinimized(true);
@@ -3559,134 +3655,22 @@ export default function CashierPage() {
                       </button>
                     </div>
                     {lensPriceMode === 'catalog' ? (
-                      <div className="space-y-2">
-                        {getZeissRetailProducts().length === 0 ? (
-                          <p className="text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-2 py-1.5">
-                            价目基线文件为空。请将 <code className="text-[10px]">src/data/AI-DATA-zeiss-retail.json</code>{' '}
-                            配好后再用本模式，或切换到「自由填报」。
-                          </p>
-                        ) : null}
-                        <input
-                          value={zeissSearch}
-                          onChange={(e) => setZeissSearch(e.target.value)}
-                          placeholder="搜索品种（泽锐、智锐…）"
-                          className="w-full text-sm border border-gray-200 rounded-lg px-2 py-1.5"
-                        />
-                        <label className="block text-[11px] text-gray-600">
-                          品种
-                          <select
-                            value={zeissProductName}
-                            onChange={(e) => {
-                              const name = e.target.value;
-                              setZeissProductName(name);
-                              const p = getZeissRetailProducts().find((x) => x.productName === name);
-                              const s0 = p?.series[0];
-                              if (s0) {
-                                setZeissSeriesName(s0.name);
-                                const idxs = indicesForZeissSeries(name, s0.name);
-                                const i0 = idxs[0];
-                                if (i0 != null) {
-                                  setZeissIndexStr(String(i0));
-                                  setZeissCoating(coatingsForZeissSelection(name, s0.name, i0)[0] || '');
-                                } else {
-                                  setZeissIndexStr('');
-                                  setZeissCoating('');
-                                }
-                              } else {
-                                setZeissSeriesName('');
-                                setZeissIndexStr('');
-                                setZeissCoating('');
-                              }
-                            }}
-                            className="mt-0.5 w-full text-sm border border-gray-200 rounded-lg px-2 py-1.5 bg-white"
-                          >
-                            {zeissProductsForPicker.map((pr) => (
-                              <option key={pr.productName} value={pr.productName}>
-                                {pr.productName}
-                              </option>
-                            ))}
-                          </select>
-                        </label>
-                        <label className="block text-[11px] text-gray-600">
-                          系列
-                          <select
-                            value={zeissSeriesName}
-                            onChange={(e) => {
-                              const s = e.target.value;
-                              setZeissSeriesName(s);
-                              const idxs = indicesForZeissSeries(zeissProductName, s);
-                              const i0 = idxs[0];
-                              if (i0 != null) {
-                                setZeissIndexStr(String(i0));
-                                setZeissCoating(coatingsForZeissSelection(zeissProductName, s, i0)[0] || '');
-                              } else {
-                                setZeissIndexStr('');
-                                setZeissCoating('');
-                              }
-                            }}
-                            className="mt-0.5 w-full text-sm border border-gray-200 rounded-lg px-2 py-1.5 bg-white"
-                          >
-                            {zeissSeriesOptions.map((s) => (
-                              <option key={s} value={s}>
-                                {s}
-                              </option>
-                            ))}
-                          </select>
-                        </label>
-                        <label className="block text-[11px] text-gray-600">
-                          折射率
-                          <select
-                            value={zeissIndexStr}
-                            onChange={(e) => {
-                              const v = e.target.value;
-                              setZeissIndexStr(v);
-                              const idx = Number(v);
-                              if (Number.isFinite(idx) && zeissProductName && zeissSeriesName) {
-                                setZeissCoating(
-                                  coatingsForZeissSelection(zeissProductName, zeissSeriesName, idx)[0] || '',
-                                );
-                              }
-                            }}
-                            className="mt-0.5 w-full text-sm border border-gray-200 rounded-lg px-2 py-1.5 bg-white"
-                          >
-                            {zeissIndexOptions.map((n) => (
-                              <option key={String(n)} value={String(n)}>
-                                {n}
-                              </option>
-                            ))}
-                          </select>
-                        </label>
-                        <label className="block text-[11px] text-gray-600">
-                          膜层
-                          <select
-                            value={zeissCoating}
-                            onChange={(e) => setZeissCoating(e.target.value)}
-                            className="mt-0.5 w-full text-sm border border-gray-200 rounded-lg px-2 py-1.5 bg-white"
-                          >
-                            {zeissCoatingOptions.map((c) => (
-                              <option key={c} value={c}>
-                                {c}
-                              </option>
-                            ))}
-                          </select>
-                        </label>
-                        <p className="text-[10px] text-gray-500 leading-snug">
-                          数据来源：<code className="text-[10px]">AI-DATA-zeiss-retail.json</code>
-                          ；零售价由价目行自动带出。
-                        </p>
-                        <input
-                          value={customProductPrice}
-                          readOnly
-                          disabled
-                          placeholder="单价（价目表）"
-                          className="w-full text-sm border border-dashed border-gray-300 rounded-lg px-2 py-1.5 bg-gray-50 text-gray-700"
-                        />
-                        {customProductName.trim() ? (
-                          <p className="text-[10px] text-gray-600">
-                            将创建：<span className="font-medium text-gray-800">{customProductName.trim()}</span>
-                          </p>
-                        ) : null}
-                      </div>
+                      <LensSelectionSection
+                        brand={lensCatalogBrand}
+                        onBrandChange={handleLensCatalogBrandChange}
+                        search={zeissSearch}
+                        onSearchChange={setZeissSearch}
+                        productName={zeissProductName}
+                        onProductNameChange={handleZeissProductNameChange}
+                        indexStr={zeissIndexStr}
+                        onIndexStrChange={handleZeissIndexStrChange}
+                        coating={zeissCoating}
+                        onCoatingChange={setZeissCoating}
+                        lensCatalogTint={lensCatalogTint}
+                        onLensCatalogTintChange={setLensCatalogTint}
+                        previewName={customProductName}
+                        previewPrice={customProductPrice}
+                      />
                     ) : (
                       <div className="space-y-2">
                         <div className="rounded-lg border border-blue-100 bg-blue-50/50 px-2 py-2 space-y-1.5">
@@ -3862,7 +3846,13 @@ export default function CashierPage() {
                 )}
                 <button
                   type="button"
-                  disabled={customProductBusy}
+                  disabled={
+                    customProductBusy ||
+                    (showLensSkuUi &&
+                      lensPriceMode === 'catalog' &&
+                      (ZEISS_PRICE_MATRIX.filter((p) => matrixProductBrandKey(p) === lensCatalogBrand).length === 0 ||
+                        ZEISS_PRICE_MATRIX.length === 0))
+                  }
                   onClick={() => void createCustomProductAndAddToCart()}
                   className="w-full rounded-lg bg-blue-600 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
                 >
@@ -4441,25 +4431,31 @@ export default function CashierPage() {
               </div>
             </div>
 
-            <div className="flex shrink-0 justify-end gap-2 border-t border-gray-100 bg-gray-50 px-5 py-3">
-              <button
-                type="button"
-                onClick={closeRxEditorFull}
-                className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
-              >
-                稍后填写
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setRxEditorLineId(null);
-                  setRxFocusTarget(null);
-                  setRxEditorMinimized(false);
-                }}
-                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
-              >
-                保存并返回
-              </button>
+            <div className="flex shrink-0 flex-col gap-2 border-t border-gray-100 bg-gray-50 px-5 py-3">
+              {rxPowerValidationError ? (
+                <div
+                  role="alert"
+                  className="rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-xs font-medium text-red-800 whitespace-pre-line"
+                >
+                  {rxPowerValidationError}
+                </div>
+              ) : null}
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={closeRxEditorFull}
+                  className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
+                >
+                  稍后填写
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmRxEditorSave}
+                  className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+                >
+                  保存并返回
+                </button>
+              </div>
             </div>
           </div>
         ) : null}
