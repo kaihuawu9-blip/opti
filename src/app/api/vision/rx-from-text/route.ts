@@ -35,6 +35,10 @@ export async function POST(req: Request) {
     });
   } catch (e) {
     const msg = e instanceof Error ? e.message : '未知错误';
-    return NextResponse.json({ ok: false, error: msg }, { status: 500 });
+    const hint =
+      msg.includes('OCR 文本为空')
+        ? '没有可供解析的文本。请先完成 OCR 或贴入原单文字。'
+        : '模型暂未能从文本中拆出双眼度数。可缩短原文、分眼分行后再试。';
+    return NextResponse.json({ ok: false, error: msg, hint }, { status: 500 });
   }
 }

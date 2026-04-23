@@ -38,19 +38,40 @@ export async function POST(req: Request) {
 
     if (!ocrResponse.ok) {
       return NextResponse.json(
-        { ok: false, error: 'Paddle OCR 服务异常', detail: ocrData },
+        {
+          ok: false,
+          error: 'Paddle OCR 服务异常',
+          detail: ocrData,
+          hint: '无法连接本机 OCR 服务（Paddle）。请确认 8866 端口上已启动容器，或检查 PADDLE_OCR_BASE_URL。',
+        },
         { status: ocrResponse.status >= 400 ? ocrResponse.status : 502 },
       );
     }
 
     if (ocrData.status !== 'success' || !Array.isArray(ocrData.data)) {
       return NextResponse.json(
-        { ok: false, error: 'Paddle OCR 返回格式异常', detail: ocrData },
+        {
+          ok: false,
+          error: 'Paddle OCR 返回格式异常',
+          detail: ocrData,
+          hint: 'OCR 引擎返回格式异常。请确认本机 Paddle 容器正常，或稍后重试。',
+        },
         { status: 502 },
       );
     }
 
-    const rawText = ocrData.data.map((item) => item.text).join(' ');
+    const rawText = ocrData.data.map((item) => item.text).join(' ').trim();
+    if (!rawText) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: '未从画面中提取到文字',
+          rawText: '',
+          hint: '已拍摄，但图内未识别出可解析文字。请换更清晰的验光单、补光/对焦后重拍，或改用手动输入。',
+        },
+        { status: 502 },
+      );
+    }
 
     let right: Record<string, unknown>;
     let left: Record<string, unknown>;
@@ -74,11 +95,16 @@ export async function POST(req: Request) {
       };
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e);
+      const hint =
+        message.includes('OCR 文本为空') || /^\s*$/.test(rawText)
+          ? '已识别到画面，但仍未获得可填写的度数。请重拍、增强对比，或改用手动输入。'
+          : '已识别到部分文字，但暂未能拆出球镜/柱镜/轴位。请对照原单手动校对。';
       return NextResponse.json(
         {
           ok: false,
           error: `AI 解析失败：${message}`,
           rawText,
+          hint,
         },
         { status: 502 },
       );

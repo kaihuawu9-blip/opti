@@ -16,15 +16,22 @@ function shouldSkipJsonContentType(pathname: string): boolean {
   return API_BINARY_OR_STREAM_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 }
 
+function isMultipartRequest(request: NextRequest): boolean {
+  const t = (request.headers.get('content-type') || '').toLowerCase();
+  return t.includes('multipart/form-data');
+}
+
 /**
  * `/api/*`：
  * - 禁止在此做 HTML 登录重定向；鉴权失败应走各 Route 的 `NextResponse.json`。
  * - 为 JSON API 统一附加 `Content-Type: application/json`（二进制路由见白名单跳过）。
+ * - 对 `multipart/form-data` 的 POST 勿在 middleware 中预设响应 Content-Type，否则在部分运行时下 Route 内 `formData()` 会报类型不符。
  */
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const res = NextResponse.next();
-  if (!shouldSkipJsonContentType(pathname)) {
+  const skipJson = shouldSkipJsonContentType(pathname) || isMultipartRequest(request);
+  if (!skipJson) {
     res.headers.set('Content-Type', 'application/json; charset=utf-8');
   }
   res.headers.set('X-Opti-Api-Gateway', '1');

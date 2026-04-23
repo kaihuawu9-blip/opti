@@ -4,20 +4,42 @@ export type CashierOcrApiBody = {
   ok?: boolean;
   error?: string;
   message?: string;
+  /** 面向收银台展示的短提示（与 error 技术信息分离） */
+  hint?: string;
   rawText?: string;
   result?: { right?: Record<string, unknown>; left?: Record<string, unknown> };
   detail?: unknown;
 };
 
+function resolveCashierOcrUserMessage(status: number, data: CashierOcrApiBody): string {
+  if (typeof data.hint === 'string' && data.hint.trim()) {
+    return data.hint.trim();
+  }
+  const err = (typeof data.error === 'string' && data.error) || '';
+  const msg = (typeof data.message === 'string' && data.message) || '';
+  if (status === 502) {
+    if (err.includes('Paddle') || /Paddle OCR|格式异常|未从画面/.test(err)) {
+      return 'OCR 步骤失败：请确认本机 8866 上 Paddle 已启动、图片清晰。若已识别出图但无字，请补光后重拍。';
+    }
+    if (err.startsWith('AI 解析失败') || err.includes('AI 解析失败')) {
+      return '已得到文字，但模型未能填好球镜/柱镜/轴位。请对照原单手动填写或重拍。';
+    }
+  }
+  if (status === 500 && msg) {
+    return `处理失败：${msg}`;
+  }
+  return [err, msg].filter(Boolean).join(' ').trim() || 'OCR 识别失败，请重试。';
+}
+
 export async function postCashierOcrImage(
   blob: Blob,
   fileName = 'rx.jpg',
-): Promise<{ httpOk: boolean; data: CashierOcrApiBody }> {
+): Promise<{ httpOk: boolean; status: number; data: CashierOcrApiBody }> {
   const fd = new FormData();
   fd.append('file', blob, fileName);
   const resp = await fetch('/api/ocr', { method: 'POST', body: fd });
   const data = (await resp.json().catch(() => ({}))) as CashierOcrApiBody;
-  return { httpOk: resp.ok, data };
+  return { httpOk: resp.ok, status: resp.status, data };
 }
 
 /**
@@ -32,10 +54,12 @@ export async function runServerCashierOcr(
   result: { right: Record<string, unknown>; left: Record<string, unknown> };
 }> {
   let httpOk: boolean;
+  let status: number;
   let data: CashierOcrApiBody;
   try {
     const r = await postCashierOcrImage(blob, fileName);
     httpOk = r.httpOk;
+    status = r.status;
     data = r.data;
   } catch (e) {
     const m = e instanceof Error ? e.message : String(e);
@@ -47,14 +71,10 @@ export async function runServerCashierOcr(
     throw e;
   }
   if (!httpOk) {
-    throw new Error(
-      (typeof data.error === 'string' && data.error) || data.message || 'OCR 服务返回异常',
-    );
+    throw new Error(resolveCashierOcrUserMessage(status, data));
   }
   if (!data.ok) {
-    throw new Error(
-      (typeof data.error === 'string' && data.error) || data.message || 'OCR 识别失败',
-    );
+    throw new Error(resolveCashierOcrUserMessage(status, data));
   }
   if (!data.result?.right || !data.result?.left) {
     throw new Error('OCR 返回数据不完整');

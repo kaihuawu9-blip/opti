@@ -82,11 +82,68 @@ function pickAxisFromEyePayload(x: Record<string, unknown>): unknown {
   return x.axis ?? x['轴线'] ?? x['轴向'] ?? x['轴位'];
 }
 
+/**
+ * 从 OCR/手写蒸馏出的球镜、柱镜做常见位错修正（与 Prompt 中规则配合）。
+ * 例如 500/5.0/5.00 按近视角理解为 -5.00；其它数字若已为 ±x.xx 则统一两位小数。
+ */
+function sweepDiopterOcrMistake(raw: string): string {
+  const t = asString(raw).replace(/\s/g, '');
+  if (!t) return '';
+  if (t === '500') return '-5.00';
+  if (t === '5.0' || t === '5.00' || t === '+5.0' || t === '+5.00') return '-5.00';
+  if (t.includes('.') && !/[eE]/.test(t)) {
+    const n = Number(t);
+    if (Number.isFinite(n)) return n.toFixed(2);
+  }
+  return t;
+}
+
+/**
+ * 模型可能输出 rightEye/OD 或把 JSON 包在 data/result 里；与 normalizeEye 衔接前做归一。
+ */
+function pickEyePayloadFromTextOcrRoot(parsed: unknown, side: 'right' | 'left'): unknown {
+  const x = (parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {}) as Record<string, unknown>;
+  let root: Record<string, unknown> = x;
+  if (!x.right && !x.left && !x.rightEye && !x.leftEye && !x.OD && !x.OS) {
+    const d = x.data;
+    const r0 = x.result;
+    if (d && typeof d === 'object' && !Array.isArray(d)) root = d as Record<string, unknown>;
+    else if (r0 && typeof r0 === 'object' && !Array.isArray(r0)) root = r0 as Record<string, unknown>;
+  }
+  if (side === 'right') {
+    return (
+      root.right ??
+      root.Right ??
+      root.rightEye ??
+      root.OD ??
+      root.od ??
+      root['右眼'] ??
+      root['右']
+    );
+  }
+  return (
+    root.left ??
+    root.Left ??
+    root.leftEye ??
+    root.OS ??
+    root.os ??
+    root['左眼'] ??
+    root['左']
+  );
+}
+
+/** 纯文本 OCR 蒸馏与 /api/vision/rx-from-text 共用，面向手写单与杂乱版面 */
+const RX_OCR_TEXT_DISTILL_RULES = `【容错规则】
+1) 度数：手写/扫描常出现「500」「5.0」等，请理解为屈光度 D 并统一为两位小数（如 -5.00）。语境为近视/负球镜、柱镜为负柱时若缺负号应补上。柱镜同理。
+2) 左右眼：R、右、OD、右眼 → 键 "right"；L、左、OS、左眼 → 键 "left"（禁止用 rightEye/leftEye）。
+3) 噪点：忽略日期、店名、电话、地址、单号、验光师签名等非光学信息，不填入 JSON。
+4) 只根据与球镜/柱镜/轴位/瞳距/ADD/VA 相关的内容填写；读不到用空字符串或 null。轴位为纯数字或 null，不要带 °。`;
+
 function normalizeEye(value: unknown): StandardEye {
   const x = (value && typeof value === 'object' ? value : {}) as Record<string, unknown>;
   return {
-    ds: asString(x.ds),
-    dc: asString(x.dc),
+    ds: sweepDiopterOcrMistake(asString(x.ds)),
+    dc: sweepDiopterOcrMistake(asString(x.dc)),
     axis: parseMaybeNumber(pickAxisFromEyePayload(x)),
     va: asString(x.va),
     pd: parseMaybeNumber(x.pd),
@@ -332,13 +389,15 @@ export class AIService {
       throw new Error('OCR 文本为空');
     }
     const safe = trimmed.replace(/"""/g, '"');
-    const systemPrompt = '你只输出一个 JSON 对象，不要 Markdown、不要解释。';
-    const userPrompt = `你是一个配镜专家，请从这段 OCR 文本中提取球镜、柱镜、轴位，轴位直接返回 JSON 格式，不要废话。
+    const systemPrompt = '你是配镜验光单结构化助手。只输出一个 JSON 对象，不要 Markdown、不要解释。';
+    const userPrompt = `从下方 OCR 文本中提取双眼验光数据（含真实手写单、杂乱排版）。必须只输出 JSON。
 
-严格使用下列键名（读不到用空字符串或 null；axis 为纯数字或 null，不要带 °）：
+${RX_OCR_TEXT_DISTILL_RULES}
+
+严格使用下列键名与结构（读不到用空字符串或 null；axis 为纯数字或 null；pd 为数字或 null）：
 {
-  "right": { "ds": "", "dc": "", "axis": null },
-  "left": { "ds": "", "dc": "", "axis": null }
+  "right": { "ds": "", "dc": "", "axis": null, "va": "", "pd": null, "add": "" },
+  "left": { "ds": "", "dc": "", "axis": null, "va": "", "pd": null, "add": "" }
 }
 
 OCR 文本：
@@ -353,10 +412,9 @@ OCR 文本：
       this.config.chatModel,
     );
 
-    const x = (parsed && typeof parsed === 'object' ? parsed : {}) as Record<string, unknown>;
     return {
-      right: normalizeEye(x.right),
-      left: normalizeEye(x.left),
+      right: normalizeEye(pickEyePayloadFromTextOcrRoot(parsed, 'right')),
+      left: normalizeEye(pickEyePayloadFromTextOcrRoot(parsed, 'left')),
     };
   }
 
@@ -370,8 +428,12 @@ OCR 文本：
     }
     const safe = trimmed.replace(/"""/g, '"');
     const systemPrompt = '只输出一个 JSON 对象，不要 Markdown、不要解释。';
-    const userPrompt = `从这段文字中提取验光 JSON（右眼 right、左眼 left；每眼 ds 球镜、dc 柱镜、axis 轴位；读不到填空字符串或 null；axis 为数字或 null）：
-{"right":{"ds":"","dc":"","axis":null},"left":{"ds":"","dc":"","axis":null}}
+    const userPrompt = `从下方纯文本（通常来自手写验光单 OCR）提取验光数据。必须只输出 JSON。
+
+${RX_OCR_TEXT_DISTILL_RULES}
+
+严格使用下列键名与结构（右眼 right、左眼 left）：
+{"right":{"ds":"","dc":"","axis":null,"va":"","pd":null,"add":""},"left":{"ds":"","dc":"","axis":null,"va":"","pd":null,"add":""}}
 
 文字：
 """${safe}"""`;
@@ -385,10 +447,9 @@ OCR 文本：
       this.config.chatModel,
     );
 
-    const x = (parsed && typeof parsed === 'object' ? parsed : {}) as Record<string, unknown>;
     return {
-      right: normalizeEye(x.right),
-      left: normalizeEye(x.left),
+      right: normalizeEye(pickEyePayloadFromTextOcrRoot(parsed, 'right')),
+      left: normalizeEye(pickEyePayloadFromTextOcrRoot(parsed, 'left')),
     };
   }
 

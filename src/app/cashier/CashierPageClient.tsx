@@ -221,21 +221,62 @@ function inferBinocularPdTotalMm(result: Record<string, unknown>): number | null
 }
 
 /**
+ * 与 AI 服务侧一致：模型可能用 rightEye/OD 或包一层 data/result，避免 result.right 为空导致整单未填。
+ */
+function pickOcrResultEyeRecord(r: Record<string, unknown>, side: 'right' | 'left'): Record<string, unknown> {
+  let root: Record<string, unknown> = r;
+  if (!r.right && !r.left && !r.rightEye && !r.leftEye) {
+    const d = r.data;
+    const inner = r.result;
+    if (d && typeof d === 'object' && !Array.isArray(d)) root = d as Record<string, unknown>;
+    else if (inner && typeof inner === 'object' && !Array.isArray(inner)) root = inner as Record<string, unknown>;
+  }
+  const raw =
+    side === 'right'
+      ? (root.right ??
+        root.Right ??
+        root.rightEye ??
+        root.OD ??
+        root.od ??
+        root['右眼'] ??
+        root['右'])
+      : (root.left ??
+        root.Left ??
+        root.leftEye ??
+        root.OS ??
+        root.os ??
+        root['左眼'] ??
+        root['左']);
+  if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
+    return { ...(raw as Record<string, unknown>) };
+  }
+  return {};
+}
+
+/**
  * 总瞳距若超出常见区间：确认后才回填；确认且左右 pd 仍空时按总距对半写入（与单格总瞳距一致）。
  * 在区间内：直接返回左右载荷，不弹窗。
+ * 用户点「取消」时仍回填球镜/柱镜/轴等，仅去掉本行的 pd，避免整单空着。
  */
 function prepareRxOcrEyesOrAbandon(result: unknown): { right: Record<string, unknown>; left: Record<string, unknown> } | null {
   if (!result || typeof result !== 'object') return null;
   const r = result as Record<string, unknown>;
-  const right = { ...(typeof r.right === 'object' && r.right ? (r.right as Record<string, unknown>) : {}) };
-  const left = { ...(typeof r.left === 'object' && r.left ? (r.left as Record<string, unknown>) : {}) };
-  const t = inferBinocularPdTotalMm(r);
+  const right = pickOcrResultEyeRecord(r, 'right');
+  const left = pickOcrResultEyeRecord(r, 'left');
+  const t = inferBinocularPdTotalMm({ ...r, right, left });
   if (t != null && (t < PD_BINOCULAR_HUMANE_MIN_MM || t > PD_BINOCULAR_HUMANE_MAX_MM)) {
     const label = t < PD_BINOCULAR_HUMANE_MIN_MM ? '偏窄' : '偏宽';
     const ok = window.confirm(
-      `识别到的瞳距总距约 ${t} mm，相对常见范围 ${PD_BINOCULAR_HUMANE_MIN_MM}–${PD_BINOCULAR_HUMANE_MAX_MM} mm ${label}。\n\n点「确定」仍按识别结果填入（单格总瞳距将拆成左右各一半）；点「取消」放弃本次度数回填。`,
+      `识别到的瞳距总距约 ${t} mm，相对常见范围 ${PD_BINOCULAR_HUMANE_MIN_MM}–${PD_BINOCULAR_HUMANE_MAX_MM} mm ${label}。\n\n点「确定」仍按识别结果填入（单格总瞳距将拆成左右各一半）；点「取消」将跳过瞳距、其余度数仍会填入。`,
     );
-    if (!ok) return null;
+    if (!ok) {
+      const stripPd = (o: Record<string, unknown>) => {
+        const n = { ...o };
+        delete n.pd;
+        return n;
+      };
+      return { right: stripPd(right), left: stripPd(left) };
+    }
     const rr = parsePdMmFromOcrField(right.pd);
     const ll = parsePdMmFromOcrField(left.pd);
     if (rr == null && ll == null && Number.isFinite(t)) {
@@ -245,6 +286,20 @@ function prepareRxOcrEyesOrAbandon(result: unknown): { right: Record<string, unk
     }
   }
   return { right, left };
+}
+
+/** 若 AI 全空，避免误以为已写入 */
+function ocrEyesHasAnyValue(eyes: { right: Record<string, unknown>; left: Record<string, unknown> }): boolean {
+  const keys = ['ds', 'dc', 'axis', 'va', 'pd', 'add'] as const;
+  for (const side of [eyes.right, eyes.left]) {
+    for (const k of keys) {
+      const v = side[k];
+      if (v == null) continue;
+      if (typeof v === 'number' && Number.isFinite(v)) return true;
+      if (typeof v === 'string' && v.trim() !== '') return true;
+    }
+  }
+  return false;
 }
 
 /** 仅覆盖 AI 返回的非空字符串字段，避免空结果冲掉已有输入 */
@@ -1349,7 +1404,10 @@ export default function CashierPage() {
   }, []);
 
   const runVisualEntryRecognition = useCallback(async () => {
-    if (!editingRxItem) return;
+    if (!editingRxItem) {
+      setVisualEntryError('请先打开验光单编辑并选中要填写的镜片行，再使用摄像头识别。');
+      return;
+    }
     const video = visualEntryVideoRef.current;
     if (!video || !video.videoWidth || !video.videoHeight) {
       setVisualEntryError('摄像头预览未就绪，请稍后再试。');
@@ -1374,6 +1432,10 @@ export default function CashierPage() {
       const { result } = await runServerCashierOcr(blob, 'frame.jpg');
       const eyes = prepareRxOcrEyesOrAbandon(result);
       if (!eyes) return;
+      if (!ocrEyesHasAnyValue(eyes)) {
+        setVisualEntryError('识别完成，但没有解析到可填的球镜/柱镜/轴位。请手填或重拍、换更清晰的验光单。');
+        return;
+      }
       applyRxFromOcr(editingRxItem.lineId, 'right', eyes.right);
       applyRxFromOcr(editingRxItem.lineId, 'left', eyes.left);
       setVisualEntryPulse(true);
@@ -3855,6 +3917,11 @@ export default function CashierPage() {
                         onChange={async (e) => {
                           const file = e.target.files?.[0];
                           if (!file) return;
+                          if (!editingRxItem) {
+                            window.alert('请先打开验光单编辑并选中要填写的镜片行，再使用相册选图。');
+                            e.currentTarget.value = '';
+                            return;
+                          }
                           setRxPhotoFileName(file.name);
                           setRxRecognizing(true);
                           try {
@@ -3865,6 +3932,10 @@ export default function CashierPage() {
                             const { result } = await runServerCashierOcr(jpegBlob, 'rx.jpg');
                             const eyes = prepareRxOcrEyesOrAbandon(result);
                             if (!eyes) return;
+                            if (!ocrEyesHasAnyValue(eyes)) {
+                              window.alert('识别完成，但没有解析到可填的球镜/柱镜/轴位。请手填或重拍。');
+                              return;
+                            }
                             applyRxFromOcr(editingRxItem.lineId, 'right', eyes.right);
                             applyRxFromOcr(editingRxItem.lineId, 'left', eyes.left);
                             window.alert('识别完成，已自动回填右眼/左眼度数。请核对后保存。');
