@@ -22,6 +22,11 @@ import {
   ESSILOR_HANDBOOK_PAGE_IMAGE_DATA,
   findEssilorProductMatrix,
 } from '@/data/essilorPriceMatrix';
+import { HOYA_HANDBOOK_PAGE_MAP } from '@/data/hoyaHandbookPageMap';
+import {
+  HOYA_HANDBOOK_PAGE_IMAGE_DATA,
+  findHoyaProductMatrix,
+} from '@/data/hoyaPriceMatrix';
 
 export type HandbookSection =
   | 'cover-brand'
@@ -58,6 +63,8 @@ export interface HandbookPageEntry {
   ocrRequired?: boolean;
   /** 页面标题（用于 UI 右侧导航） */
   title?: string;
+  /** 静态 public 路径（如豪雅 `/catalog/hoya/p1.jpg`）；无内嵌图时由 3D 页组件使用 */
+  imageUrl?: string;
 }
 
 export const ZEISS_HANDBOOK_PAGE_MAP: readonly HandbookPageEntry[] = Object.freeze([
@@ -365,7 +372,8 @@ export function buildSideNav(): Array<{
 // 三位一体 + 内嵌图：
 //   - pdfIndex / printedLabel / dataAnchor 同上
 //   - imageData     与价目同内存：`2026_price_matrix.json` 的 `handbookPageImageData[物理页]`
-//                    或该页 product 的 `imageData`（data URL），无则 null（不再走 /catalog/ 直链）
+//                    或该页 product 的 `imageData`（data URL），无则 null
+//   - imageUrl      豪雅等：`HandbookPageEntry.imageUrl` → `/catalog/[品牌]/p{n}.jpg`（PDF 拆解）
 //
 // 跨品牌：通过 `HANDBOOK_BRAND_REGISTRY` 扩展，下一次放入「依视路.pdf」时，
 //   只需新增一条注册 + 对应 pageMap 数组，UI / 收银桥接可**零修改**自动适配。
@@ -390,6 +398,8 @@ export interface HandbookPageData {
    * 本页内嵌位图 data URL（`data:image/webp;base64,...` 等），与价目同 JSON 加载；无内嵌为 null
    */
   imageData: string | null;
+  /** public 静态图 URL（优先内嵌图缺失时使用，如豪雅 PDF 拆解的 p{n}.jpg） */
+  imageUrl: string | null;
 }
 
 /** 品牌适配接口：新品牌只需实现此契约 */
@@ -425,11 +435,27 @@ const ESSILOR_ADAPTER: HandbookBrandAdapter = {
   manifestApi: '/api/catalog/essilor-manifest/',
 };
 
+const HOYA_HANDBOOK_PAGE_ENTRIES: readonly HandbookPageEntry[] = HOYA_HANDBOOK_PAGE_MAP.map((e) => ({
+  pdfPage: e.pdfPage,
+  printedPage: e.printedPage,
+  section: e.section as HandbookSection,
+  productName: e.productName,
+  title: e.title,
+  imageUrl: e.imageUrl,
+}));
+
+const HOYA_ADAPTER: HandbookBrandAdapter = {
+  brand: 'hoya',
+  pages: HOYA_HANDBOOK_PAGE_ENTRIES,
+  resolveProduct: (name) => findHoyaProductMatrix(name),
+  manifestApi: '/api/catalog/hoya-manifest/',
+};
+
 /** 多品牌注册表：新增 Essilor/HOYA 时在此追加条目 */
 export const HANDBOOK_BRAND_REGISTRY: Record<DigitalHandbookBrand, HandbookBrandAdapter | null> = {
   zeiss: ZEISS_ADAPTER,
   essilor: ESSILOR_ADAPTER,
-  hoya: null,
+  hoya: HOYA_ADAPTER,
 };
 
 export function getBrandAdapter(brand: DigitalHandbookBrand): HandbookBrandAdapter | null {
@@ -459,8 +485,15 @@ export function getPageData(
   const product = anchor ? adapter.resolveProduct(anchor) ?? null : null;
   const pageKey = String(entry.pdfPage);
   const pageImageMap =
-    brand === 'essilor' ? ESSILOR_HANDBOOK_PAGE_IMAGE_DATA : ZEISS_HANDBOOK_PAGE_IMAGE_DATA;
+    brand === 'essilor'
+      ? ESSILOR_HANDBOOK_PAGE_IMAGE_DATA
+      : brand === 'hoya'
+        ? HOYA_HANDBOOK_PAGE_IMAGE_DATA
+        : ZEISS_HANDBOOK_PAGE_IMAGE_DATA;
   const imageData = pageImageMap[pageKey] ?? product?.imageData ?? null;
+  const embedded = imageData && imageData.length > 0 ? imageData : null;
+  const fromEntry = entry.imageUrl?.trim();
+  const publicUrl = fromEntry && fromEntry.length > 0 ? fromEntry : null;
   return {
     brand,
     pdfIndex: entry.pdfPage,
@@ -470,7 +503,8 @@ export function getPageData(
     title: entry.title ?? HANDBOOK_SECTION_NAV_LABEL[entry.section] ?? '',
     product,
     ocrRequired: Boolean(entry.ocrRequired),
-    imageData: imageData && imageData.length > 0 ? imageData : null,
+    imageData: embedded,
+    imageUrl: publicUrl,
   };
 }
 

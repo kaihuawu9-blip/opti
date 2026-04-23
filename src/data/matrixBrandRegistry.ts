@@ -30,6 +30,6 @@ export const MATRIX_BRAND_REGISTRY: readonly MatrixBrandRegistryEntry[] = Object
     brandKey: 'HOYA',
     label: '豪雅',
     handbookPageMapFile: 'src/data/hoyaHandbookPageMap.ts',
-    priceMatrixJsonFile: 'ai-data/hoya_handbook/price_matrix.stub.json',
+    priceMatrixJsonFile: 'ai-data/hoya_handbook/price_matrix.json',
   },
 ]);

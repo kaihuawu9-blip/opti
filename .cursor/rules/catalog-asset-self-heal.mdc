@@ -1,0 +1,34 @@
+---
+description: 数字化手册 public/catalog 下仅有 PDF、缺少栅格页时的资源自愈（拆解 + 页表绑定 + UI）
+globs: public/catalog/**/*,src/data/*HandbookPageMap.ts,scripts/catalog-pdf-to-jpg-pages.mjs
+alwaysApply: false
+---
+
+# Catalog · 资源自愈协议（Matrix V1.3）
+
+## 触发条件
+
+在 `public/catalog/<品牌>/` 中发现 **`.pdf` 已存在**，但 **`p*.jpg`（或既定命名）缺失或页数与 `*HandbookPageCount.json` 不一致** 时，助手应**主动**执行拆解与索引同步，无需用户重复提醒。
+
+## 标准动作（豪雅 / 未来依视路等）
+
+1. **栅格化（仓库内 canonical）**  
+   运行：`npm run catalog:pdf-to-jpg-pages -- --dir public/catalog/<品牌>`  
+   实现：`scripts/catalog-pdf-to-jpg-pages.mjs`（`pdf-to-img` + `sharp`，与 `catalog:export-handbook-images` 同源栈）。  
+   输出：同级目录 `p1.jpg` … `pN.jpg`，DPI 由 `--dpi` 控制（默认 175，建议 150–200）。  
+   同步：写入 `src/data/hoyaHandbookPageCount.json`（豪雅；其它品牌可类推专用 meta 文件）。
+
+2. **Python（与 npm 等价）**  
+   `pip install -r requirements-catalog.txt` → `npm run catalog:hoya-pdf-python`  
+   或：`python scripts/catalog_pdf_to_jpg_pages.py --dir public/catalog/hoya --dpi 175`  
+   拆解后同样写入 `src/data/hoyaHandbookPageCount.json`（路径含 `hoya` 时）。**无可用 Python 时以 `npm run catalog:pdf-to-jpg-pages` 为准**。
+
+3. **页表**  
+   更新对应 `*HandbookPageMap.ts`，使每页 `imageUrl` 为 `/catalog/<品牌>/p{n}.jpg`（无多余子目录）。
+
+4. **UI**  
+   `getPageData` 的 `imageUrl` + `ZeissHandbookPage` 已支持静态路径；豪雅侧用 `handbookImagePreloader` 在 `ZeissDigitalHandbook` 预读。
+
+## 新品牌接入
+
+若仅提供 PDF：按上列顺序执行拆解 → 更新 `HANDBOOK_BRAND_REGISTRY` / 价目矩阵引用 → 确认 3D 手册非黑屏。

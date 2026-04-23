@@ -39,7 +39,9 @@
     "test:vitest": "vitest run",
     "catalog:normalize-handbook": "node scripts/normalize-zeiss-handbook.mjs",
     "catalog:export-handbook-images": "node scripts/export-zeiss-handbook-images.mjs",
-    "catalog:embed-handbook-to-matrix": "node scripts/embed-zeiss-handbook-to-matrix.mjs"
+    "catalog:embed-handbook-to-matrix": "node scripts/embed-zeiss-handbook-to-matrix.mjs",
+    "catalog:pdf-to-jpg-pages": "node scripts/catalog-pdf-to-jpg-pages.mjs",
+    "catalog:hoya-pdf-python": "python scripts/catalog_pdf_to_jpg_pages.py --dir public/catalog/hoya --dpi 175"
   },
   "build": {
     "appId": "cn.optiai.sale",

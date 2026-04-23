@@ -1,0 +1,6 @@
+# 数字化手册 · PDF → p{n}.jpg（Matrix V1.3 豪雅/多品牌 catalog 拆解）
+# 安装：python -m pip install -r requirements-catalog.txt
+# 运行：python scripts/catalog_pdf_to_jpg_pages.py --dir public/catalog/hoya --dpi 175
+# 无 Python 时等价命令：npm run catalog:pdf-to-jpg-pages -- --dir public/catalog/hoya --dpi 175
+
+pymupdf>=1.24.0

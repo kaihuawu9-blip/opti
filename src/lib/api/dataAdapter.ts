@@ -18,6 +18,7 @@ import {
   type ZeissSeriesSubset,
 } from '@/data/zeissPriceMatrix';
 import { findEssilorMatrixRow, findEssilorProductMatrix } from '@/data/essilorPriceMatrix';
+import { findHoyaMatrixRow, findHoyaProductMatrix } from '@/data/hoyaPriceMatrix';
 
 // ─── 基础枚举与类型 ─────────────────────────────────────────────────────────
 
@@ -386,10 +387,28 @@ export const essilorSkuMatcher: LensSkuMatcher = {
   },
 };
 
+export const hoyaSkuMatcher: LensSkuMatcher = {
+  brand: 'HOYA',
+  match(spec) {
+    if (spec.brand !== 'HOYA') return null;
+    const product = findHoyaProductMatrix(spec.series);
+    if (!product) return null;
+    const hit = findHoyaMatrixRow(spec.series, spec.index, spec.coating);
+    if (!hit) return null;
+    return {
+      retailYuan: Number(hit.row.retailYuan),
+      tintable: Boolean(hit.row.tintable),
+      row: hit.row,
+      subset: hit.subset,
+    };
+  },
+};
+
 /** 未来多品牌按 `brand` 分发；`OTHER` 始终返回 `null`（由人工定价） */
 export const defaultSkuMatcherRegistry: Readonly<Partial<Record<LensBrandKey, LensSkuMatcher>>> = {
   ZEISS: zeissSkuMatcher,
   ESSILOR: essilorSkuMatcher,
+  HOYA: hoyaSkuMatcher,
 };
 
 export function resolveSkuMatcher(

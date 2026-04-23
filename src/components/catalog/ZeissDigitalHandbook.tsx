@@ -31,6 +31,7 @@ import {
 } from '@/data/zeissHandbookPageMap';
 import { embeddedHandbookPageCount } from '@/data/zeissPriceMatrix';
 import { ESSILOR_PRICE_MATRIX } from '@/data/essilorPriceMatrix';
+import { HOYA_PRICE_MATRIX } from '@/data/hoyaPriceMatrix';
 import {
   buildCashierPayloadFromPage,
   dispatchHandbookAddToCart,
@@ -50,6 +51,11 @@ import {
   runDataIntegrityValidator,
   type HandbookActiveNavState,
 } from '@/lib/catalog/dataIntegrityValidator';
+import {
+  preloadAround,
+  preloadHead,
+  resetPreloadCache,
+} from '@/lib/catalog/handbookImagePreloader';
 
 const HANDBOOK_EMPTY_ACTIVE_NAV: HandbookActiveNavState = { anchorId: '', dataStatus: 'pending' };
 
@@ -315,6 +321,18 @@ export function ZeissDigitalHandbook() {
         cancelled = true;
       };
     }
+    if (brand === 'hoya') {
+      fetch('/api/catalog/hoya-manifest/')
+        .then((r) => r.json())
+        .then((j: { manifest?: ZeissHandbookManifest }) => {
+          if (cancelled || !j?.manifest) return;
+          startTransition(() => setZeissManifest(j.manifest));
+        })
+        .catch(() => {});
+      return () => {
+        cancelled = true;
+      };
+    }
     queueMicrotask(() => {
       if (!cancelled) startTransition(() => setZeissManifest(null));
     });
@@ -406,6 +424,7 @@ export function ZeissDigitalHandbook() {
 
   const total = useMemo(() => getHandbookPageCount(brand), [brand]);
   const essilorPagesReady = getHandbookPageCount('essilor') > 0;
+  /** Matrix V1.3：豪雅 BRAND_ROW 随页表挂载自动可点，勿写死 disabled */
   const hoyaPagesReady = getHandbookPageCount('hoya') > 0;
 
   /** 与 bookFrame Ref ResizeObserver 同步；无观测值时回退 dims / 80vh */
@@ -429,6 +448,11 @@ export function ZeissDigitalHandbook() {
     if (brand === 'essilor') {
       return resolveActiveHandbookNavState(seriesNav, currentPage, [], {
         matrixProducts: ESSILOR_PRICE_MATRIX,
+      });
+    }
+    if (brand === 'hoya') {
+      return resolveActiveHandbookNavState(seriesNav, currentPage, [], {
+        matrixProducts: HOYA_PRICE_MATRIX,
       });
     }
     return HANDBOOK_EMPTY_ACTIVE_NAV;
@@ -631,11 +655,26 @@ export function ZeissDigitalHandbook() {
             pageNumber={pdfN}
             title={pd?.title ?? `第 ${pdfN} 页`}
             imageData={pd?.imageData ?? null}
+            imageUrl={pd?.imageUrl ?? null}
           />
         );
       }),
     [total, brand],
   );
+
+  useEffect(() => {
+    resetPreloadCache();
+  }, [brand]);
+
+  useEffect(() => {
+    if (brand !== 'hoya' || total <= 0 || typeof window === 'undefined') return;
+    const urls = Array.from({ length: total }, (_, idx) => {
+      const p = getPageData(idx + 1, 'hoya');
+      return p?.imageData ?? p?.imageUrl ?? null;
+    });
+    preloadHead(urls, 14);
+    preloadAround(urls, currentPage, { radius: 6 });
+  }, [brand, total, currentPage]);
 
   if (total === 0) {
     return (

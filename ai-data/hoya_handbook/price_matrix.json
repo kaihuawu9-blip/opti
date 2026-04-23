@@ -1,0 +1,191 @@
+{
+  "_source": "hoya-handbook-v1.3-seed",
+  "_effective": { "from": "2026-04-24", "to": "2027-04-24" },
+  "_currency": "CNY",
+  "_unit": "片",
+  "_extractedAt": "2026-04-24T12:00:00.000Z",
+  "handbookPageImageData": {},
+  "products": [
+    {
+      "brand": "HOYA",
+      "productName": "新乐学",
+      "englishName": "MiyoSmart",
+      "lensType": "MyopiaControl",
+      "lensCategory": "青少年近视管理",
+      "catalog_page_reference": { "pdfIndex": 2, "printedPage": 1 },
+      "series": [
+        {
+          "name": "唯洁 Hi-Vision Meiryo",
+          "rows": [
+            {
+              "index": 1.5,
+              "coating": "唯洁",
+              "coatingCode": "MEIRYO",
+              "retailYuan": 3280,
+              "tintable": false
+            },
+            {
+              "index": 1.59,
+              "coating": "唯洁",
+              "coatingCode": "MEIRYO",
+              "retailYuan": 3680,
+              "tintable": false
+            },
+            {
+              "index": 1.6,
+              "coating": "唯洁",
+              "coatingCode": "MEIRYO",
+              "retailYuan": 3980,
+              "tintable": false
+            }
+          ]
+        },
+        {
+          "name": "兰御 BlueControl",
+          "rows": [
+            {
+              "index": 1.5,
+              "coating": "兰御",
+              "coatingCode": "BLUECTRL",
+              "retailYuan": 3480,
+              "tintable": false
+            },
+            {
+              "index": 1.59,
+              "coating": "兰御",
+              "coatingCode": "BLUECTRL",
+              "retailYuan": 3880,
+              "tintable": false
+            },
+            {
+              "index": 1.6,
+              "coating": "兰御",
+              "coatingCode": "BLUECTRL",
+              "retailYuan": 4180,
+              "tintable": false
+            }
+          ]
+        }
+      ],
+      "powerRanges": {
+        "1.5": {
+          "sphere_d": { "min": -6, "max": 4 },
+          "cylinder_d": { "min": -4, "max": 4 },
+          "source": "hoya-v1.3-seed"
+        },
+        "1.59": {
+          "sphere_d": { "min": -8, "max": 4 },
+          "cylinder_d": { "min": -4, "max": 4 },
+          "source": "hoya-v1.3-seed"
+        },
+        "1.6": {
+          "sphere_d": { "min": -6, "max": 4 },
+          "cylinder_d": { "min": -4, "max": 4 },
+          "source": "hoya-v1.3-seed"
+        }
+      }
+    },
+    {
+      "brand": "HOYA",
+      "productName": "Eyvia单光",
+      "englishName": "Eyvia",
+      "lensType": "SingleVision",
+      "lensCategory": "单焦点 · 1.74 高折",
+      "catalog_page_reference": { "pdfIndex": 3, "printedPage": 2 },
+      "series": [
+        {
+          "name": "唯洁 Hi-Vision Meiryo",
+          "rows": [
+            {
+              "index": 1.74,
+              "coating": "唯洁",
+              "coatingCode": "MEIRYO",
+              "retailYuan": 4280,
+              "tintable": false
+            }
+          ]
+        },
+        {
+          "name": "兰御 BlueControl",
+          "rows": [
+            {
+              "index": 1.74,
+              "coating": "兰御",
+              "coatingCode": "BLUECTRL",
+              "retailYuan": 4480,
+              "tintable": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "brand": "HOYA",
+      "productName": "Eynoa单光",
+      "englishName": "Eynoa",
+      "lensType": "SingleVision",
+      "lensCategory": "单焦点 · 1.67",
+      "catalog_page_reference": { "pdfIndex": 4, "printedPage": 3 },
+      "series": [
+        {
+          "name": "唯洁 Hi-Vision Meiryo",
+          "rows": [
+            {
+              "index": 1.67,
+              "coating": "唯洁",
+              "coatingCode": "MEIRYO",
+              "retailYuan": 2680,
+              "tintable": false
+            }
+          ]
+        },
+        {
+          "name": "兰御 BlueControl",
+          "rows": [
+            {
+              "index": 1.67,
+              "coating": "兰御",
+              "coatingCode": "BLUECTRL",
+              "retailYuan": 2880,
+              "tintable": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "brand": "HOYA",
+      "productName": "Eyas2单光",
+      "englishName": "Eyas 2.0",
+      "lensType": "SingleVision",
+      "lensCategory": "单焦点 · 1.60",
+      "catalog_page_reference": { "pdfIndex": 5, "printedPage": 4 },
+      "series": [
+        {
+          "name": "唯洁 Hi-Vision Meiryo",
+          "rows": [
+            {
+              "index": 1.6,
+              "coating": "唯洁",
+              "coatingCode": "MEIRYO",
+              "retailYuan": 1980,
+              "tintable": false
+            }
+          ]
+        },
+        {
+          "name": "兰御 BlueControl",
+          "rows": [
+            {
+              "index": 1.6,
+              "coating": "兰御",
+              "coatingCode": "BLUECTRL",
+              "retailYuan": 2180,
+              "tintable": false
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
