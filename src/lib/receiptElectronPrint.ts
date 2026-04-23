@@ -9,8 +9,19 @@ function looksLikeFilePrinter(name: string | null | undefined): boolean {
   return /pdf|onenote|xps|fax|document writer|save as|导出|保存为|virtual/.test(t);
 }
 
+/** 收银预览挂载时由 CashierPage 注入：用 react-to-print 只打票据 DOM，避免整页 visibility 规则打出白纸 */
+let cashierBrowserPrintOverride: (() => void | Promise<void>) | null = null;
+
+export function setCashierBrowserPrintOverride(handler: (() => void | Promise<void>) | null): void {
+  cashierBrowserPrintOverride = handler;
+}
+
 function tryBrowserPrintFallback(): boolean {
   if (typeof window === 'undefined' || typeof window.print !== 'function') return false;
+  if (cashierBrowserPrintOverride) {
+    void Promise.resolve(cashierBrowserPrintOverride());
+    return true;
+  }
   // 让当前 tick 的 UI 更新（预览区渲染）先完成，再弹浏览器打印对话框。
   window.setTimeout(() => window.print(), 0);
   return true;

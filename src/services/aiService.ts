@@ -77,9 +77,19 @@ function extractJsonObject(content: string): string {
   return source;
 }
 
-/** 表头常见「轴线」「轴向」与 axis 同义 */
+/** 表头常见「轴线」「轴向」与 axis 同义；部分模型用 A 表示轴位 */
 function pickAxisFromEyePayload(x: Record<string, unknown>): unknown {
-  return x.axis ?? x['轴线'] ?? x['轴向'] ?? x['轴位'];
+  return x.axis ?? x['轴线'] ?? x['轴向'] ?? x['轴位'] ?? x.A;
+}
+
+/** 合并多种英文/缩写到同一字符串字段（球镜/柱镜常见别名） */
+function stringOrNumberField(...candidates: unknown[]): string {
+  for (const v of candidates) {
+    if (v === null || v === undefined) continue;
+    if (typeof v === 'number' && Number.isFinite(v)) return String(v);
+    if (typeof v === 'string' && v.trim() !== '') return v.trim();
+  }
+  return '';
 }
 
 /**
@@ -141,14 +151,28 @@ const RX_OCR_TEXT_DISTILL_RULES = `【容错规则】
 
 function normalizeEye(value: unknown): StandardEye {
   const x = (value && typeof value === 'object' ? value : {}) as Record<string, unknown>;
+  const dsRaw = stringOrNumberField(x.ds, x.sphere, x.S, x.sph, x['SPH'], x['球镜']);
+  const dcRaw = stringOrNumberField(x.dc, x.cylinder, x.C, x.cyl, x['CYL'], x['柱镜']);
   return {
-    ds: sweepDiopterOcrMistake(asString(x.ds)),
-    dc: sweepDiopterOcrMistake(asString(x.dc)),
+    ds: sweepDiopterOcrMistake(dsRaw),
+    dc: sweepDiopterOcrMistake(dcRaw),
     axis: parseMaybeNumber(pickAxisFromEyePayload(x)),
     va: asString(x.va),
     pd: parseMaybeNumber(x.pd),
     add: asString(x.add),
   };
+}
+
+/** 至少一眼有可写入表单的数或视标 */
+function isStandardRxPairMeaningful(r: StandardEye, l: StandardEye): boolean {
+  const one = (e: StandardEye) =>
+    e.ds.trim() !== '' ||
+    e.dc.trim() !== '' ||
+    e.va.trim() !== '' ||
+    e.add.trim() !== '' ||
+    (e.pd != null && Number.isFinite(e.pd)) ||
+    (e.axis != null && Number.isFinite(e.axis));
+  return one(r) || one(l);
 }
 
 /** 双眼总瞳距（如 65.5）均分到左右眼各一半，单位 mm，保留两位小数 */
@@ -252,11 +276,15 @@ function resolveProviderConfig(): AiProviderConfig {
   return { provider, apiKey, baseUrl, chatModel, visionModel, speechModel };
 }
 
+type ChatJsonOptions = { temperature?: number };
+
 async function openAIChatCompletionJson(
   config: AiProviderConfig,
   messages: OpenAIMessage[],
   model: string,
+  options?: ChatJsonOptions,
 ): Promise<unknown> {
+  const temp = options?.temperature ?? 0;
   const resp = await fetch(`${config.baseUrl}/chat/completions`, {
     method: 'POST',
     headers: {
@@ -265,7 +293,7 @@ async function openAIChatCompletionJson(
     },
     body: JSON.stringify({
       model,
-      temperature: 0,
+      temperature: temp,
       messages,
     }),
   });
@@ -382,6 +410,7 @@ export class AIService {
 
   /**
    * 从 Paddle 等产出的纯 OCR 文本中，用对话模型抽取双眼球镜 / 柱镜 / 轴位（供 /api/ocr 等链路）。
+   * 若首轮全空，自动用略高温度与更强调式 prompt 再试一次，降低「有字无表」。
    */
   async extractRxSphCylAxisFromOcrText(rawText: string): Promise<{ right: StandardEye; left: StandardEye }> {
     const trimmed = rawText.trim();
@@ -389,8 +418,30 @@ export class AIService {
       throw new Error('OCR 文本为空');
     }
     const safe = trimmed.replace(/"""/g, '"');
-    const systemPrompt = '你是配镜验光单结构化助手。只输出一个 JSON 对象，不要 Markdown、不要解释。';
-    const userPrompt = `从下方 OCR 文本中提取双眼验光数据（含真实手写单、杂乱排版）。必须只输出 JSON。
+    const first = await this.extractRxFromOcrTextPass(safe, false);
+    if (isStandardRxPairMeaningful(first.right, first.left)) return first;
+    return this.extractRxFromOcrTextPass(safe, true);
+  }
+
+  private async extractRxFromOcrTextPass(
+    safe: string,
+    isRetry: boolean,
+  ): Promise<{ right: StandardEye; left: StandardEye }> {
+    const systemPrompt = isRetry
+      ? '你是配镜验光单结构化助手。只输出一个 JSON 对象。上一步可能漏填：若原文出现带小数的屈光度（如 -3.00、+1.25）或轴位整数，必须写入对应眼的 ds、dc 或 axis。'
+      : '你是配镜验光单结构化助手。只输出一个 JSON 对象，不要 Markdown、不要解释。';
+    const userPrompt = isRetry
+      ? `二次提取。请按「右/OD/左/OS」与表格列，将原文中可见的球镜、柱镜、轴向数字写入 JSON。原文里明显有验光数时不得全空。${RX_OCR_TEXT_DISTILL_RULES}
+
+严格使用下列键名与结构（读不到用空字符串或 null；axis 为纯数字或 null；pd 为数字或 null）：
+{
+  "right": { "ds": "", "dc": "", "axis": null, "va": "", "pd": null, "add": "" },
+  "left": { "ds": "", "dc": "", "axis": null, "va": "", "pd": null, "add": "" }
+}
+
+OCR 文本：
+"""${safe}"""`
+      : `从下方 OCR 文本中提取双眼验光数据（含真实手写单、杂乱排版）。必须只输出 JSON。
 
 ${RX_OCR_TEXT_DISTILL_RULES}
 
@@ -410,6 +461,7 @@ OCR 文本：
         { role: 'user', content: userPrompt },
       ],
       this.config.chatModel,
+      isRetry ? { temperature: 0.12 } : undefined,
     );
 
     return {
@@ -419,23 +471,39 @@ OCR 文本：
   }
 
   /**
-   * 极简 Prompt：纯文本 OCR → 验光 JSON（供浏览器直连 Paddle 后的「秒回」蒸馏）。
+   * 与 extractRxSphCylAxisFromOcrText 同链路（含首轮空时二次蒸馏），/api/vision/rx-from-text 与收银一致。
    */
   async extractRxJsonFromOcrTextLite(rawText: string): Promise<{ right: StandardEye; left: StandardEye }> {
+    return this.extractRxSphCylAxisFromOcrText(rawText);
+  }
+
+  /**
+   * 镜腿 / 吊牌 OCR 全文 → 品牌、型号、镜架尺寸、色号（收银「拍照识镜框」专项）。
+   */
+  async extractFrameTempleFromOcrText(rawText: string): Promise<{
+    brand: string;
+    model: string;
+    size: string;
+    color: string;
+    productName: string;
+  }> {
     const trimmed = rawText.trim();
     if (!trimmed) {
       throw new Error('OCR 文本为空');
     }
     const safe = trimmed.replace(/"""/g, '"');
-    const systemPrompt = '只输出一个 JSON 对象，不要 Markdown、不要解释。';
-    const userPrompt = `从下方纯文本（通常来自手写验光单 OCR）提取验光数据。必须只输出 JSON。
+    const systemPrompt =
+      '你是眼镜店资深店员。用户输入来自镜腿或吊牌拍照的 OCR 文本。只输出一个 JSON 对象，不要 Markdown、不要解释。';
+    const userPrompt = `请从 OCR 文本中提取以下字段（键名必须完全一致；读不到请用空字符串 ""）：
+1. brand：品牌（如 Ray-Ban、雷朋）
+2. model：型号（通常为一串字母+数字，如 RB2140）
+3. size：镜架尺寸（形如 52□18-140、52-18-140 等，保留原文中的符号与数字）
+4. color：颜色代码（如有 C12、色号等）
 
-${RX_OCR_TEXT_DISTILL_RULES}
+只输出 JSON，结构固定为：
+{"brand":"","model":"","size":"","color":""}
 
-严格使用下列键名与结构（右眼 right、左眼 left）：
-{"right":{"ds":"","dc":"","axis":null,"va":"","pd":null,"add":""},"left":{"ds":"","dc":"","axis":null,"va":"","pd":null,"add":""}}
-
-文字：
+OCR 文本：
 """${safe}"""`;
 
     const parsed = await openAIChatCompletionJson(
@@ -446,11 +514,129 @@ ${RX_OCR_TEXT_DISTILL_RULES}
       ],
       this.config.chatModel,
     );
+    const obj = parsed && typeof parsed === 'object' ? (parsed as Record<string, unknown>) : {};
+    const brand = asString(obj.brand);
+    const model = asString(obj.model);
+    const size = asString(obj.size);
+    const color = asString(obj.color);
+    const productName = [brand, model].filter(Boolean).join(' ').trim() || model || brand || '';
+    return { brand, model, size, color, productName };
+  }
 
+  /**
+   * 非镜腿刻字类包装/标签 OCR：根据当前库存分类生成商品名称与一行补充说明。
+   */
+  async extractGenericCustomProductFromOcrText(
+    rawText: string,
+    category: string,
+  ): Promise<{ productName: string; modelLine: string }> {
+    const trimmed = rawText.trim();
+    if (!trimmed) {
+      throw new Error('OCR 文本为空');
+    }
+    const safe = trimmed.replace(/"""/g, '"');
+    const cat = category.trim() || '其他';
+    const systemPrompt =
+      '你是眼镜门店商品录入助手。根据 OCR 文本与给定库存分类，推断要写入系统的商品名称。只输出一个 JSON 对象，不要 Markdown、不要解释。';
+    const userPrompt = `当前库存分类（中文）：「${cat.replace(/"""/g, '"')}」
+
+从下方 OCR 文本推断：
+1. productName：适合出现在小票/库存里的商品名称（简短、可读；读不出可用「${cat}」+ 文本前 20 字内关键词）。
+2. modelLine：规格、货号、口味、颜色等补充信息的一行（没有则空字符串）。
+
+只输出 JSON：
+{"productName":"","modelLine":""}
+
+OCR 文本：
+"""${safe}"""`;
+
+    const parsed = await openAIChatCompletionJson(
+      this.config,
+      [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ],
+      this.config.chatModel,
+    );
+    const obj = parsed && typeof parsed === 'object' ? (parsed as Record<string, unknown>) : {};
     return {
-      right: normalizeEye(pickEyePayloadFromTextOcrRoot(parsed, 'right')),
-      left: normalizeEye(pickEyePayloadFromTextOcrRoot(parsed, 'left')),
+      productName: asString(obj.productName),
+      modelLine: asString(obj.modelLine),
     };
+  }
+
+  /**
+   * 入库拍照识别：镜框/镜片包装等（含无标签、字极少场景）。
+   * 【雙鏈注釋】系統 Prompt 與業務約定見 `src/app/api/inventory/ocr/route.ts` 頂部常量 `INVENTORY_ENTRY_PROMPT`；
+   * 維護 JSON 鍵名或欄位語義時請雙端同步。
+   *
+   * @param inventoryEntrySystemPrompt 須與 `INVENTORY_ENTRY_PROMPT` 一致（由 API route 傳入）
+   */
+  async extractInventoryEntryFromOcrText(
+    rawText: string,
+    inventoryEntrySystemPrompt: string,
+  ): Promise<{
+    brand: string;
+    model: string;
+    size: string;
+    color: string;
+    refractiveIndex: string;
+    suggestedRetailPrice: number | null;
+    referenceCost: number | null;
+  }> {
+    const empty = {
+      brand: '',
+      model: '',
+      size: '',
+      color: '',
+      refractiveIndex: '',
+      suggestedRetailPrice: null as number | null,
+      referenceCost: null as number | null,
+    };
+    const trimmed = rawText.trim();
+    if (!trimmed) return empty;
+
+    const safe = trimmed.replace(/"""/g, '"');
+    const parseMoney = (v: unknown): number | null => {
+      if (typeof v === 'number' && Number.isFinite(v)) return v;
+      if (v == null || !String(v).trim()) return null;
+      const n = Number(String(v).replace(/[^\d.]/g, ''));
+      return Number.isFinite(n) ? n : null;
+    };
+
+    const userPrompt = `只输出 JSON，键名必须完全一致：
+{"brand":"","model":"","size":"","color":"","refractive_index":"","msrp":"","cost":""}
+
+OCR 文本：
+"""${safe}"""`;
+
+    try {
+      const parsed = await openAIChatCompletionJson(
+        this.config,
+        [
+          { role: 'system', content: inventoryEntrySystemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
+        this.config.chatModel,
+      );
+      const obj = parsed && typeof parsed === 'object' ? (parsed as Record<string, unknown>) : {};
+      let suggestedRetailPrice = parseMoney(obj.msrp);
+      if (suggestedRetailPrice == null) {
+        suggestedRetailPrice = parseMoney(obj.suggested_retail_price);
+      }
+      const referenceCost = parseMoney(obj.cost);
+      return {
+        brand: asString(obj.brand),
+        model: asString(obj.model),
+        size: asString(obj.size),
+        color: asString(obj.color),
+        refractiveIndex: asString(obj.refractive_index),
+        suggestedRetailPrice,
+        referenceCost,
+      };
+    } catch {
+      return empty;
+    }
   }
 
   async extractVoiceOrderFromText(text: string): Promise<StandardVoiceOrderResult> {

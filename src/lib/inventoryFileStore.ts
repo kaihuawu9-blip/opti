@@ -62,6 +62,10 @@ export type FileInventoryRecord = {
   allow_discount?: boolean | null;
   allow_points?: boolean | null;
   allow_promo_price?: boolean | null;
+  /** 收银 OCR 存证相对路径，如 /recordings/frame_xxx.jpg（溯源） */
+  ocr_evidence_url?: string | null;
+  /** 采购进价（元），扩展字段 */
+  purchase_price?: number | null;
 };
 
 type FileRoot = { version: number; items: FileInventoryRecord[] };
@@ -196,6 +200,17 @@ export function parseProductExtensionFromBody(
   if ('allow_discount' in body) out.allow_discount = body.allow_discount !== false;
   if ('allow_points' in body) out.allow_points = body.allow_points !== false;
   if ('allow_promo_price' in body) out.allow_promo_price = body.allow_promo_price !== false;
+  if ('ocr_evidence_url' in body) {
+    const u = body.ocr_evidence_url != null ? String(body.ocr_evidence_url).trim() : '';
+    out.ocr_evidence_url = u ? u : null;
+  }
+  if ('purchase_price' in body) {
+    if (body.purchase_price == null || body.purchase_price === '') out.purchase_price = null;
+    else {
+      const n = num(body.purchase_price, null);
+      out.purchase_price = n != null && n >= 0 ? n : null;
+    }
+  }
 
   return out;
 }
@@ -216,6 +231,8 @@ export const PRODUCT_EXTENSION_DEFAULTS: Record<string, unknown> = {
   lens_type: null,
   refractive_index: null,
   coating: null,
+  ocr_evidence_url: null,
+  purchase_price: null,
 };
 
 /** 从 POST/PUT 的 body 建立或合并一行（实验用，字段与 Prisma `attributes` + 基列 对齐） */
@@ -247,6 +264,12 @@ export function fileRecordFromCreateBody(body: Record<string, unknown>, id: stri
     allow_discount: ext.allow_discount !== false,
     allow_points: ext.allow_points !== false,
     allow_promo_price: ext.allow_promo_price !== false,
+    ocr_evidence_url:
+      ext.ocr_evidence_url != null && String(ext.ocr_evidence_url).trim()
+        ? String(ext.ocr_evidence_url).trim()
+        : null,
+    purchase_price:
+      ext.purchase_price != null && ext.purchase_price !== '' ? (num(ext.purchase_price, null) ?? null) : null,
   };
 }
 
@@ -282,6 +305,8 @@ export function mergeFileRecordFromBody(base: FileInventoryRecord, body: Record<
         allow_discount: next.allow_discount,
         allow_points: next.allow_points,
         allow_promo_price: next.allow_promo_price,
+        ocr_evidence_url: next.ocr_evidence_url,
+        purchase_price: next.purchase_price,
       }).filter(([, v]) => v !== undefined),
     ),
   );
@@ -309,5 +334,11 @@ export function mergeFileRecordFromBody(base: FileInventoryRecord, body: Record<
     allow_discount: ext.allow_discount !== false,
     allow_points: ext.allow_points !== false,
     allow_promo_price: ext.allow_promo_price !== false,
+    ocr_evidence_url:
+      ext.ocr_evidence_url != null && String(ext.ocr_evidence_url).trim()
+        ? String(ext.ocr_evidence_url).trim()
+        : null,
+    purchase_price:
+      ext.purchase_price != null && ext.purchase_price !== '' ? (num(ext.purchase_price, null) ?? null) : null,
   };
 }

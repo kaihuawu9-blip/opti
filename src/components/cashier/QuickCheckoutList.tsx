@@ -1,8 +1,51 @@
 'use client';
 
-import { memo } from 'react';
+import { memo, useCallback, useEffect, useState } from 'react';
 import { Trash2 } from 'lucide-react';
 import type { CartItem } from '@/components/cashier/cashierCartTypes';
+
+/** 快捷结算行：悬停「存证」徽标展示 OCR 原图预览（同源 pathname） */
+function OcrEvidenceHoverPreview({ url, dense }: { url: string; dense: boolean }) {
+  const [imgOk, setImgOk] = useState(true);
+  const onImgError = useCallback(() => setImgOk(false), []);
+  useEffect(() => {
+    setImgOk(true);
+  }, [url]);
+  const chipCls = dense
+    ? 'px-0.5 py-px text-[8px] leading-none'
+    : 'px-1 py-0.5 text-[9px] leading-tight';
+
+  return (
+    <span className="group/ev relative inline-flex shrink-0">
+      <span
+        className={`cursor-help rounded border border-blue-200 bg-blue-50/95 font-medium text-blue-700 ${chipCls}`}
+        title={`悬停预览存证图：${url}`}
+      >
+        存证
+      </span>
+      <div
+        className="pointer-events-none invisible absolute top-full right-0 z-[100] mt-0.5 w-44 rounded-md border border-gray-200 bg-white p-1 opacity-0 shadow-lg ring-1 ring-black/5 transition-opacity duration-150 group-hover/ev:visible group-hover/ev:opacity-100 sm:w-48"
+        role="tooltip"
+        aria-hidden
+      >
+        {imgOk ? (
+          // eslint-disable-next-line @next/next/no-img-element -- 本地 public/recordings 存证，需原生 img 悬停即显
+          <img
+            src={url}
+            alt=""
+            className="max-h-52 w-full rounded object-contain"
+            onError={onImgError}
+          />
+        ) : (
+          <p className="px-1 py-2 text-center text-[10px] text-amber-700">图片无法加载</p>
+        )}
+        <p className="max-w-[11rem] truncate px-0.5 pt-0.5 text-[8px] leading-tight text-gray-500" title={url}>
+          {url}
+        </p>
+      </div>
+    </span>
+  );
+}
 
 export type QuickCheckoutListProps = {
   cart: CartItem[];
@@ -30,6 +73,8 @@ function QuickCheckoutListInner({
     <ul className={`divide-y divide-gray-100/90 ${dense ? 'leading-none' : ''}`}>
       {cart.map((item) => {
         const unit = getFinalUnitPrice(item);
+        const ev = String(item.ocr_evidence_url || '').trim();
+        const nameTitle = ev ? `${item.name}\nOCR 存证：${ev}` : item.name;
         return (
           <li
             key={item.lineId}
@@ -39,10 +84,11 @@ function QuickCheckoutListInner({
           >
             <span
               className={`min-w-0 flex-1 truncate font-medium text-gray-900 ${dense ? 'text-[10px]' : 'text-[11px]'}`}
-              title={item.name}
+              title={nameTitle}
             >
               {item.name}
             </span>
+            {ev ? <OcrEvidenceHoverPreview url={ev} dense={dense} /> : null}
             <span className="shrink-0 text-[10px] font-light text-gray-300" aria-hidden>
               |
             </span>

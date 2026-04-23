@@ -31,6 +31,8 @@ export type CashierProduct = {
   is_promo?: boolean | null;
   promo_price?: number | null;
   low_stock_threshold?: number | null;
+  /** 自定义商品 OCR 存证（如 /recordings/frame_*.jpg），写入库存 attributes 并随购物车保留 */
+  ocr_evidence_url?: string | null;
 };
 
 /** 页面内沿用 Product 命名时可等价于 CashierProduct */

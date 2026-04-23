@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback, useId } from 'react';
 import { usePathname } from 'next/navigation';
 import { useAppNavigate } from '@/lib/useAppNavigate';
 import { toChineseErrorMessage } from '@/lib/userMessages';
@@ -17,6 +17,7 @@ import {
   type LensBrandKey,
   type LensSeriesOption,
 } from '@/lib/lensCatalog';
+import { compressImageFileToJpegBlob } from '@/lib/compressImageClient';
 
 type Product = {
   id: string;
@@ -36,6 +37,9 @@ type Product = {
   is_promo?: boolean | null;
   promo_price?: number | null;
   low_stock_threshold?: number | null;
+  refractive_index?: number | null;
+  purchase_price?: number | null;
+  ocr_evidence_url?: string | null;
 };
 
 type StockFilter = 'all' | 'low' | 'out' | 'hot' | 'promo';
@@ -138,6 +142,8 @@ export default function InventoryPage() {
     frame_type: '',
     lens_type: '',
     price: '',
+    purchase_price: '',
+    refractive_index: '',
     stock: '',
     low_stock_threshold: '10',
     is_hot: false,
@@ -147,6 +153,13 @@ export default function InventoryPage() {
     allow_points: true,
     allow_promo_price: true,
   });
+
+  /** 入库 OCR：/api/inventory/ocr 存证图 + 异步回填；采购价/折射率在下方手填 */
+  const [inventoryEntryOcrBusy, setInventoryEntryOcrBusy] = useState(false);
+  const [inventoryEntryOcrHint, setInventoryEntryOcrHint] = useState<string | null>(null);
+  const [inventoryEntryEvidenceUrl, setInventoryEntryEvidenceUrl] = useState<string | null>(null);
+  const inventoryEntryCameraId = useId();
+  const inventoryEntryGalleryId = useId();
 
   /** 镜架图上传 OSS（与混元 3D 测试脚本一致：records/admin-frames/&lt;时间戳&gt;_frame.jpg） */
   type FrameUploadMeta = { objectKey: string; imageUrl: string; contentMd5: string };
@@ -212,6 +225,126 @@ export default function InventoryPage() {
       setFrameImageBusy(false);
     }
   }
+
+  type InventoryOcrApiJson = {
+    ok?: boolean;
+    error?: string;
+    /** 500 等错误时服务端可能附带的技术说明 */
+    message?: string;
+    evidenceUrl?: string | null;
+    rawText?: string;
+    hint?: string;
+    result?: {
+      brand?: string;
+      model?: string;
+      size?: string;
+      color?: string;
+      refractiveIndex?: string;
+      suggestedRetailPrice?: number | null;
+      referenceCost?: number | null;
+    };
+  };
+
+  /**
+   * 入库 OCR 闭环：先挂存证图（与提交时 ocr_evidence_url 同源）；仅 HTTP 200 且 j.ok 为真时才自动填表。
+   * 502/500 等：预览与存证 URL 仍保留，提示错误，不覆盖已手填字段。
+   */
+  const applyInventoryOcrResponseToForm = useCallback(
+    (j: InventoryOcrApiJson, ctx: { httpOk: boolean; httpStatus: number }) => {
+      const ev = typeof j.evidenceUrl === 'string' && j.evidenceUrl.trim() ? j.evidenceUrl.trim() : null;
+      if (ev) {
+        setInventoryEntryEvidenceUrl(ev);
+      }
+
+      const hintTrim = typeof j.hint === 'string' ? j.hint.trim() : '';
+      const errTrim = typeof j.error === 'string' ? j.error.trim() : '';
+      const msgTrim = typeof j.message === 'string' ? j.message.trim() : '';
+
+      const httpFailed = !ctx.httpOk;
+      const businessFailed = j.ok !== true;
+      if (httpFailed || businessFailed) {
+        const fallback =
+          !ctx.httpOk && !errTrim && !msgTrim && !hintTrim ? `请求失败 HTTP ${ctx.httpStatus}` : '';
+        setInventoryEntryOcrHint(errTrim || msgTrim || hintTrim || fallback || '未知错误');
+        return;
+      }
+
+      setInventoryEntryOcrHint(null);
+      const r = j.result;
+      if (!r || typeof r !== 'object') return;
+    const brand = String(r.brand ?? '').trim();
+    const model = String(r.model ?? '').trim();
+    const size = String(r.size ?? '').trim();
+    const color = String(r.color ?? '').trim();
+    const riAi = String(r.refractiveIndex ?? '').trim();
+    const srp = r.suggestedRetailPrice;
+    const refCost = r.referenceCost;
+    setFormData((prev) => {
+      const nameFromAi = [brand, model].filter(Boolean).join(' ').trim();
+      const frameBits = [size, color].filter(Boolean).join(' · ').trim();
+      let priceNext = prev.price;
+      if (!String(prev.price).trim()) {
+        if (typeof srp === 'number' && Number.isFinite(srp) && srp >= 0) priceNext = String(srp);
+        else if (srp != null && String(srp).trim()) {
+          const n = Number(String(srp).replace(/[^\d.]/g, ''));
+          if (Number.isFinite(n) && n >= 0) priceNext = String(n);
+        }
+      }
+      let purchaseNext = prev.purchase_price;
+      if (!String(prev.purchase_price).trim()) {
+        if (typeof refCost === 'number' && Number.isFinite(refCost) && refCost >= 0) purchaseNext = String(refCost);
+        else if (refCost != null && String(refCost).trim()) {
+          const n = Number(String(refCost).replace(/[^\d.]/g, ''));
+          if (Number.isFinite(n) && n >= 0) purchaseNext = String(n);
+        }
+      }
+      let riNext = prev.refractive_index;
+      if (!String(prev.refractive_index).trim() && riAi) {
+        const n = Number(riAi.replace(/[^\d.]/g, ''));
+        riNext = Number.isFinite(n) ? String(n) : riAi;
+      }
+      return {
+        ...prev,
+        name: prev.name.trim() ? prev.name : nameFromAi || prev.name,
+        brand: prev.brand.trim() ? prev.brand : brand || prev.brand,
+        model: prev.model.trim() ? prev.model : model || prev.model,
+        frame_type: prev.frame_type.trim() ? prev.frame_type : frameBits || prev.frame_type,
+        price: priceNext,
+        purchase_price: purchaseNext,
+        refractive_index: riNext,
+      };
+    });
+  }, []);
+
+  const processInventoryEntryOcrFile = useCallback(
+    async (file: File) => {
+      setInventoryEntryOcrBusy(true);
+      setInventoryEntryOcrHint(null);
+      try {
+        const blob = await compressImageFileToJpegBlob(file, { maxBytes: 1_800_000, maxEdge: 2048 });
+        const fd = new FormData();
+        fd.append('file', blob, 'stock_entry.jpg');
+        const res = await fetch('/api/inventory/ocr', { method: 'POST', body: fd });
+        const j = (await res.json().catch(() => ({}))) as InventoryOcrApiJson;
+        applyInventoryOcrResponseToForm(j, { httpOk: res.ok, httpStatus: res.status });
+        if (!res.ok || j.ok !== true) {
+          const errLine =
+            j.error?.trim() ||
+            j.message?.trim() ||
+            j.hint?.trim() ||
+            (!res.ok ? `HTTP ${res.status}` : '未知错误');
+          window.alert('识别中断：' + toChineseErrorMessage(errLine));
+          return;
+        }
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        window.alert('入库识别失败：' + toChineseErrorMessage(msg));
+      } finally {
+        setInventoryEntryOcrBusy(false);
+      }
+    },
+    [applyInventoryOcrResponseToForm],
+  );
 
   // 让下拉在“自定义 + 进口/国产”时仍然能显示选中项
   const lensBrandSelectValue = formData.brand === '自定义' ? (formData.model || '') : '';
@@ -323,6 +456,9 @@ export default function InventoryPage() {
 
   const resetForm = () => {
     clearFrameImageUpload();
+    setInventoryEntryOcrBusy(false);
+    setInventoryEntryOcrHint(null);
+    setInventoryEntryEvidenceUrl(null);
     setFormData({
       name: '',
       category: '其他',
@@ -331,6 +467,8 @@ export default function InventoryPage() {
       frame_type: '',
       lens_type: '',
       price: '',
+      purchase_price: '',
+      refractive_index: '',
       stock: '',
       low_stock_threshold: '10',
       is_hot: false,
@@ -642,6 +780,9 @@ export default function InventoryPage() {
   const openCreateForm = () => {
     clearFrameImageUpload();
     setEditingProduct(null);
+    setInventoryEntryOcrBusy(false);
+    setInventoryEntryOcrHint(null);
+    setInventoryEntryEvidenceUrl(null);
     setFormData({
       name: '',
       category: isPackagesRoute ? '套餐' : '其他',
@@ -650,6 +791,8 @@ export default function InventoryPage() {
       frame_type: '',
       lens_type: '',
       price: '',
+      purchase_price: '',
+      refractive_index: '',
       stock: '',
       low_stock_threshold: '10',
       is_hot: false,
@@ -681,6 +824,14 @@ export default function InventoryPage() {
       frame_type: product.frame_type || '',
       lens_type: product.lens_type || '',
       price: String(product.price),
+      purchase_price:
+        product.purchase_price != null && Number.isFinite(Number(product.purchase_price))
+          ? String(product.purchase_price)
+          : '',
+      refractive_index:
+        product.refractive_index != null && Number.isFinite(Number(product.refractive_index))
+          ? String(product.refractive_index)
+          : '',
       stock: String(product.stock),
       low_stock_threshold: String(thresholdFor(product)),
       is_hot: product.is_hot === true,
@@ -690,6 +841,12 @@ export default function InventoryPage() {
       allow_points: product.allow_points !== false,
       allow_promo_price: product.allow_promo_price !== false,
     });
+    setInventoryEntryEvidenceUrl(
+      typeof product.ocr_evidence_url === 'string' && product.ocr_evidence_url.trim()
+        ? product.ocr_evidence_url.trim()
+        : null,
+    );
+    setInventoryEntryOcrHint(null);
     setShowForm(true);
   };
 
@@ -722,7 +879,7 @@ export default function InventoryPage() {
       return;
     }
     if (Number.isNaN(price) || price < 0) {
-      window.alert('请输入正确的价格');
+      window.alert('请输入正确的零售价');
       return;
     }
     if (!Number.isInteger(stock) || stock < 0) {
@@ -740,6 +897,30 @@ export default function InventoryPage() {
       }
     }
 
+    const purchaseRaw = formData.purchase_price.trim();
+    let purchase_price: number | null = null;
+    if (purchaseRaw !== '') {
+      const pp = Number(purchaseRaw);
+      if (Number.isNaN(pp) || pp < 0) {
+        window.alert('采购价需为非负数字，或留空');
+        return;
+      }
+      purchase_price = pp;
+    }
+
+    const riRaw = formData.refractive_index.trim();
+    let refractive_index: number | null = null;
+    if (riRaw !== '') {
+      const ri = Number(riRaw);
+      if (Number.isNaN(ri)) {
+        window.alert('折射率需为数字（如 1.67），或留空');
+        return;
+      }
+      refractive_index = ri;
+    }
+
+    const evUrl = inventoryEntryEvidenceUrl?.trim() || '';
+
     const retailPayload = {
       low_stock_threshold,
       is_hot: formData.is_hot,
@@ -748,6 +929,9 @@ export default function InventoryPage() {
       allow_discount: formData.allow_discount,
       allow_points: formData.allow_points,
       allow_promo_price: formData.allow_promo_price,
+      purchase_price,
+      refractive_index,
+      ocr_evidence_url: evUrl || null,
     };
 
     const payload = { name, category, brand, model, frame_type, lens_type, price, stock, ...retailPayload };
@@ -1365,6 +1549,126 @@ export default function InventoryPage() {
         maxWidthClassName="max-w-3xl"
       >
         <div className="grid touch-pan-y grid-cols-1 gap-4 overscroll-contain p-4 md:grid-cols-2 md:p-5">
+              <div className="md:col-span-2 rounded-xl border border-emerald-200 bg-emerald-50/40 p-4 space-y-3">
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">入库拍照识别（选填）</p>
+                  <p className="mt-1 text-[11px] text-gray-600 leading-snug">
+                    拍摄镜片包装或镜框：服务端在 <code className="text-[10px]">public/inventory_ref</code> 存档后 OCR
+                    + AI 异步回填；未识别项请在<strong>下方</strong>手填采购价、零售价与折射率。
+                  </p>
+                </div>
+                <input
+                  id={inventoryEntryGalleryId}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    e.target.value = '';
+                    if (f) void processInventoryEntryOcrFile(f);
+                  }}
+                />
+                <input
+                  id={inventoryEntryCameraId}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  className="hidden"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    e.target.value = '';
+                    if (f) void processInventoryEntryOcrFile(f);
+                  }}
+                />
+                <div className="flex flex-wrap items-center gap-2">
+                  <label
+                    htmlFor={inventoryEntryGalleryId}
+                    className={`inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-emerald-300 bg-white px-3 py-2 text-sm text-gray-800 hover:bg-emerald-50 ${
+                      inventoryEntryOcrBusy ? 'pointer-events-none opacity-50' : ''
+                    }`}
+                  >
+                    <ImageIcon className="w-4 h-4 shrink-0" />
+                    相册选图
+                  </label>
+                  <label
+                    htmlFor={inventoryEntryCameraId}
+                    className={`inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-emerald-300 bg-white px-3 py-2 text-sm text-gray-800 hover:bg-emerald-50 ${
+                      inventoryEntryOcrBusy ? 'pointer-events-none opacity-50' : ''
+                    }`}
+                  >
+                    <Camera className="w-4 h-4 shrink-0" />
+                    拍照识别
+                  </label>
+                  {inventoryEntryEvidenceUrl ? (
+                    <button
+                      type="button"
+                      disabled={inventoryEntryOcrBusy}
+                      onClick={() => {
+                        setInventoryEntryEvidenceUrl(null);
+                        setInventoryEntryOcrHint(null);
+                      }}
+                      className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50"
+                    >
+                      清除存证预览
+                    </button>
+                  ) : null}
+                </div>
+                {inventoryEntryOcrBusy ? (
+                  <p className="text-xs font-medium text-emerald-800">正在上传并存档、识别中…</p>
+                ) : null}
+                {inventoryEntryOcrHint ? (
+                  <p className="text-[11px] text-amber-900 bg-amber-50/90 border border-amber-100 rounded-lg px-2 py-1.5">
+                    {inventoryEntryOcrHint}
+                  </p>
+                ) : null}
+                {inventoryEntryEvidenceUrl ? (
+                  <div className="rounded-lg border border-emerald-100 bg-white p-2">
+                    <p className="mb-1 text-[10px] text-gray-500">存证预览（同源路径）</p>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={inventoryEntryEvidenceUrl}
+                      alt="入库存证"
+                      className="mx-auto max-h-52 w-full max-w-lg object-contain"
+                    />
+                  </div>
+                ) : (
+                  <p className="text-center text-[11px] text-gray-500 py-2 border border-dashed border-emerald-200/80 rounded-lg bg-white/60">
+                    尚未拍摄；拍照后此处显示存证图
+                  </p>
+                )}
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-0.5">采购价（元）</label>
+                    <input
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      value={formData.purchase_price}
+                      onChange={(e) =>
+                        setFormData((prev) => ({ ...prev, purchase_price: e.target.value }))
+                      }
+                      placeholder="AI 未识别时手填"
+                      className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded-lg bg-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-0.5">折射率 n（补录）</label>
+                    <input
+                      value={formData.refractive_index}
+                      onChange={(e) =>
+                        setFormData((prev) => ({ ...prev, refractive_index: e.target.value }))
+                      }
+                      placeholder="如 1.67"
+                      inputMode="decimal"
+                      className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded-lg bg-white"
+                    />
+                  </div>
+                </div>
+                <p className="text-[10px] text-gray-500">
+                  零售价请在下方「零售价」字段填写；AI 若识别到建议零售价会尝试自动填入该框。
+                </p>
+              </div>
+
               <div>
                 <label className="block text-sm text-gray-600 mb-1">商品名称</label>
                 <input
@@ -1711,7 +2015,7 @@ export default function InventoryPage() {
               </div>
 
               <div>
-                <label className="block text-sm text-gray-600 mb-1">价格</label>
+                <label className="block text-sm text-gray-600 mb-1">零售价（元）</label>
                 <input
                   type="number"
                   min="0"

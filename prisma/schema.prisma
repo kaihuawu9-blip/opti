@@ -13,7 +13,8 @@ model products {
   name       String?
   stock      Int?    @default(0)
   price      Decimal? @db.Decimal
-  /// 扩展字段：category/brand/镜片与促销等（与本地 JSON 库存同构，避免只写入 name/stock/price）
+  /// 扩展字段（JSON，与本地 JSON 库存同构）：含 category、brand、镜片与促销等；
+  /// 收银自定义商品 OCR 溯源键 **ocr_evidence_url**（同源 pathname，如 /recordings/frame_*.jpg）亦存于此。
   attributes Json?   @db.JsonB
   stores     stores? @relation(fields: [store_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }

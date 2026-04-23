@@ -25,6 +25,64 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* -------------------------------------------------------------------------- */
+/* 打印：globals 骨架 + body:has(#print-bundle-area) 感知；版式/visibility 白名单见 styles/Print.css */
+/* -------------------------------------------------------------------------- */
+
+@media print {
+  /* 容器全解锁：高度链 + 裁剪 + 击穿 fixed/absolute 定位容器，避免白纸与截断 */
+  html,
+  body,
+  main,
+  main[data-layout],
+  #__next,
+  #root,
+  body > div {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    position: static !important;
+  }
+
+  /* 精准识别打印挂载点：存在票据根时一键清除 UI 噪声（与 Print.css visibility 白名单配合） */
+  body:has(#print-bundle-area) button,
+  body:has(#print-bundle-area) [role='button'],
+  body:has(#print-bundle-area) input,
+  body:has(#print-bundle-area) textarea,
+  body:has(#print-bundle-area) select,
+  body:has(#print-bundle-area) nav,
+  body:has(#print-bundle-area) aside {
+    display: none !important;
+  }
+
+  /* 颜色存证：镜片示意、深浅底纹不丢 */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* 核心卡片：防跨页折断；块级化避免 flex 子项高度塌陷 */
+  .print-doc-card {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    position: relative !important;
+    display: block !important;
+    width: 100% !important;
+  }
+
+  /* 收银打印预览壳：与 Tailwind print: 类一致，CSS 层兜底 */
+  .cashier-print-preview-root,
+  .cashier-print-preview-card,
+  .cashier-print-preview-scroll {
+    display: block !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+}
+
 /* 品牌页：「镜售」悬停荧光呼吸 */
 @keyframes jingshou-breathe {
   0%,

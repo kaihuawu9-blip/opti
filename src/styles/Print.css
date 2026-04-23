@@ -367,6 +367,14 @@
 }
 
 /* -------------------------------------------------------------------------- */
+/* 打印卡片：收据核心 / 镜片示意 / 生产单 — 禁止 fixed，避免重叠成白纸 */
+/* -------------------------------------------------------------------------- */
+
+.print-doc-card {
+  box-sizing: border-box;
+}
+
+/* -------------------------------------------------------------------------- */
 /* @media print */
 /* -------------------------------------------------------------------------- */
 
@@ -376,10 +384,14 @@
     margin: 0;
   }
 
+  /* .print-doc-card 的防折断 / 块级 / 颜色存证：已上移至 app/globals.css，与 body:has 策略统一 */
+
   body * {
     visibility: hidden !important;
   }
 
+  #print-bundle-area,
+  #print-bundle-area *,
   #receipt-print-area,
   #receipt-print-area *,
   #workorder-print-area,
@@ -387,29 +399,47 @@
     visibility: visible !important;
   }
 
+  #print-bundle-area {
+    position: relative !important;
+    display: block !important;
+    overflow: visible !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
   #receipt-print-area,
   #workorder-print-area {
-    position: fixed !important;
-    left: 0 !important;
-    top: 0 !important;
+    position: relative !important;
+    left: auto !important;
+    top: auto !important;
     width: 80mm !important;
     max-width: 80mm !important;
-    margin: 0 !important;
+    margin: 0 auto !important;
     padding: 2mm 2.5mm !important;
     box-shadow: none !important;
     border: none !important;
     background: #fff !important;
     color: #000 !important;
     font-size: 9.5px !important;
-    overflow: hidden !important;
+    overflow: visible !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
+  /* 销售单后可换页；加工单单独一块（外层 print-doc-card）尽量不内部分页 */
   #receipt-print-area {
     page-break-after: always !important;
   }
 
   #workorder-print-area {
-    page-break-before: always !important;
+    page-break-before: auto !important;
   }
 
   #receipt-print-area .receipt-store-name {
@@ -433,8 +463,7 @@
     visibility: hidden !important;
   }
 
-  header,
-  footer,
+  /* 勿用通配 header/footer：会误伤小票内 <header class="print80-header"> / <footer class="print80-footer"> */
   nav,
   aside {
     display: none !important;

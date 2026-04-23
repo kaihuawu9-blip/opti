@@ -38,6 +38,8 @@ const EXTENSION_FIELD_KEYS = [
   'allow_discount',
   'allow_points',
   'allow_promo_price',
+  'ocr_evidence_url',
+  'purchase_price',
 ] as const;
 
 function hasExtensionKeyInBody(body: Record<string, unknown>): boolean {
@@ -114,6 +116,8 @@ type MappedProduct = {
   promo_price: number | null;
   low_stock_threshold: number;
   store_id: string | null;
+  ocr_evidence_url: string | null;
+  purchase_price: number | null;
 };
 
 function fallbackMappedRow(partialId: string): MappedProduct {
@@ -138,6 +142,8 @@ function fallbackMappedRow(partialId: string): MappedProduct {
     promo_price: null,
     low_stock_threshold: 10,
     store_id: null,
+    ocr_evidence_url: null,
+    purchase_price: null,
   };
 }
 
@@ -165,6 +171,8 @@ function mapRow(
     is_hot?: unknown;
     is_promo?: unknown;
     promo_price?: unknown;
+    ocr_evidence_url?: unknown;
+    purchase_price?: unknown;
   },
 ) {
   try {
@@ -202,6 +210,8 @@ function mapRow(
       })(),
       low_stock_threshold: Math.max(0, safeInt(p.low_stock_threshold, 10)),
       store_id: typeof p.store_id === 'string' && p.store_id.trim() ? p.store_id.trim() : null,
+      ocr_evidence_url: optionalTrimmedString(p.ocr_evidence_url),
+      purchase_price: optionalFiniteNumber(p.purchase_price),
     };
   } catch (e) {
     console.warn('[api/inventory/products] mapRow failed', e);

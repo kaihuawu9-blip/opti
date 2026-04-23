@@ -848,7 +848,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         ) : null}
         {navCollapsed && !bossGrid ? <NavRevealButton variant="bossDock" onExpand={expandSidebarFromUi} /> : null}
         <main
-          className={`relative z-0 min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden bg-gray-50 touch-pan-y overscroll-y-contain [-webkit-overflow-scrolling:touch] ${
+          className={`relative z-0 min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden bg-gray-50 touch-pan-y overscroll-y-contain [-webkit-overflow-scrolling:touch] print:h-auto print:max-h-none print:min-h-0 print:overflow-visible print:overscroll-auto ${
             bossBottomDockMainPadding ? 'pb-[calc(5.5rem+env(safe-area-inset-bottom))]' : ''
           } ${bossGrid ? 'h-full max-h-full min-h-0 max-xl:overscroll-behavior-y-contain' : 'h-screen'}`}
           data-layout="boss"
@@ -905,7 +905,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         <NavRevealButton variant="sidebar" onExpand={expandSidebarFromUi} />
       ) : null}
       <StandardLayout
-        className={`h-full min-h-0 min-w-0 ${shellGridCols} ${
+        className={`h-full min-h-0 min-w-0 ${shellGridCols} print:h-auto print:max-h-none print:min-h-0 print:overflow-visible ${
           staffCompactShell ? 'max-xl:h-[100dvh] max-xl:max-h-[100dvh] max-xl:min-h-0' : ''
         }`}
       >
@@ -934,10 +934,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           ) : null}
         </StandardLayout.LeftSlot>
         <StandardLayout.MiddleSlot
-          className={`h-full overflow-y-auto overflow-x-hidden px-0 ${staffCompactShell ? 'max-xl:min-w-0 max-xl:flex-1 max-xl:min-h-0' : ''}`}
+          className={`h-full overflow-y-auto overflow-x-hidden px-0 print:h-auto print:max-h-none print:min-h-0 print:overflow-visible ${staffCompactShell ? 'max-xl:min-w-0 max-xl:flex-1 max-xl:min-h-0' : ''}`}
         >
           <main
-            className={`relative z-0 min-h-0 min-w-0 h-full overflow-y-auto overflow-x-hidden bg-gray-50 touch-pan-y overscroll-y-contain [-webkit-overflow-scrolling:touch] ${
+            className={`relative z-0 min-h-0 min-w-0 h-full overflow-y-auto overflow-x-hidden bg-gray-50 touch-pan-y overscroll-y-contain [-webkit-overflow-scrolling:touch] print:h-auto print:max-h-none print:min-h-0 print:overflow-visible print:overscroll-auto ${
               staffCompactShell ? 'max-xl:overscroll-behavior-y-contain' : ''
             }`}
             data-layout={nonBossLayout}

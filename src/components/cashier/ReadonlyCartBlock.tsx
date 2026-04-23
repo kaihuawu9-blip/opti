@@ -88,13 +88,17 @@ function ReadonlyCartBlockInner({
         const showRxDegreeBlock = isLensProduct(item) || isCustomComboLine(item);
         const rxWarn = highlightIds?.has(item.lineId) ?? false;
         const rxEditable = Boolean(onEditRx) && lineSupportsRxEditor(item);
+        const ocrEv = String(item.ocr_evidence_url || '').trim();
+        const nameTitle = ocrEv ? `${item.name}\nOCR 存证：${ocrEv}` : item.name;
         const shellClass = `rounded-md border bg-white px-2 py-1 leading-tight text-stone-700 shadow-sm ${
           rxWarn ? 'border-red-500 ring-2 ring-red-500/90' : 'border-stone-200/90'
         } ${rxEditable ? 'cursor-pointer transition hover:bg-stone-50/90 hover:shadow-md active:scale-[0.99]' : ''}`;
         const inner = (
           <>
             <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0 border-b border-stone-100 pb-1 text-[11px]">
-              <span className="min-w-0 flex-1 font-semibold text-stone-900">{item.name}</span>
+              <span className="min-w-0 flex-1 font-semibold text-stone-900" title={nameTitle}>
+                {item.name}
+              </span>
               <span className="shrink-0 text-[10px] text-stone-300">|</span>
               <span className="shrink-0 tabular-nums text-stone-600">
                 ￥{unit.toFixed(2)} × {item.quantity} ={' '}

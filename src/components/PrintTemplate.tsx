@@ -100,7 +100,41 @@ function axisCell(v: unknown): string {
   return text(v).replace(/°+$/u, '');
 }
 
-export default function PrintTemplate({ order, className = '' }: Props) {
+type LensDiagramProps = { data: PrintOrder };
+
+/**
+ * 销售单「分段保护」中的第二段：镜片厚度示意单独 `print-doc-card`，与第一段收据主体解耦，
+ * 长收据分页时不腰斩示意区。显式 print-color-adjust 保留浅色底与描边。
+ */
+function LensThicknessDiagram({ data }: LensDiagramProps) {
+  void data;
+  return (
+    <div
+      className="print-doc-card rounded-md border border-gray-200/80 bg-gray-50/50 p-2 [-webkit-print-color-adjust:exact] [print-color-adjust:exact] [&_*]:[-webkit-print-color-adjust:exact] [&_*]:[print-color-adjust:exact]"
+      aria-label="镜片厚度示意"
+    >
+      <div className="text-xs font-bold mb-1 text-slate-800 print:text-[10px]">镜片厚度示意</div>
+      <section className="print80-thickness-demo">
+        <div className="thickness-visual">
+          <div className="lens-group">
+            <p className="lens-label">左镜片（示意）</p>
+            <div className="lens-shape" />
+            <p className="lens-metric">颞 4.12 mm　鼻 2.46 mm</p>
+            <p className="lens-metric-sub">颞侧（下缘）2.34 mm</p>
+          </div>
+          <div className="thickness-center-divider" />
+          <div className="lens-group">
+            <p className="lens-label">右镜片（示意）</p>
+            <div className="lens-shape" />
+            <p className="lens-metric">鼻 2.46 mm　颞 4.12 mm</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+export function PrintTemplate({ order, className = '' }: Props) {
   const orderNo = text(order.order_no ?? order.orderNo);
   const storeName = resolveStoreDisplayName(order.store_name ?? order.storeName);
   const createdAt = text(order.created_at ?? order.createdAt);
@@ -124,10 +158,10 @@ export default function PrintTemplate({ order, className = '' }: Props) {
     }));
   const techSupportLine = getPrintTechSupportLineSync();
 
-  const orderRx = order.rx ?? items.find((it) => Boolean(it.rx?.right || it.rx?.left))?.rx ?? null;
-
+  /* 销售单分段：① 收据主体 ② 镜片示意；各自 print-doc-card，见 ReceiptPrintBundle 头注释。 */
   return (
-    <section id="print-template-80mm" className={`print80 ${className}`.trim()}>
+    <div id="print-template-80mm" className={`print80 overflow-visible ${className}`.trim()}>
+      <div className="print-doc-card mb-4 border-b-2 border-dashed border-gray-300 pb-4 print:mb-3 print:pb-3 print:border-gray-400">
       <header className="print80-header">
         <h1 className="print80-title-main">销售收据</h1>
         <p className="print80-store">{storeName}</p>
@@ -217,24 +251,9 @@ export default function PrintTemplate({ order, className = '' }: Props) {
         <p className="sub">请妥善保管此收据</p>
         <p className="tech-support">{techSupportLine}</p>
       </footer>
+      </div>
 
-      <section className="print80-thickness-demo" aria-label="镜片厚度示意">
-        <p className="thickness-title">镜片厚度示意</p>
-        <div className="thickness-visual">
-          <div className="lens-group">
-            <p className="lens-label">左镜片（示意）</p>
-            <div className="lens-shape" />
-            <p className="lens-metric">颞 4.12 mm　鼻 2.46 mm</p>
-            <p className="lens-metric-sub">颞侧（下缘）2.34 mm</p>
-          </div>
-          <div className="thickness-center-divider" />
-          <div className="lens-group">
-            <p className="lens-label">右镜片（示意）</p>
-            <div className="lens-shape" />
-            <p className="lens-metric">鼻 2.46 mm　颞 4.12 mm</p>
-          </div>
-        </div>
-      </section>
+      <LensThicknessDiagram data={order} />
 
       <style jsx>{`
         .print80 {
@@ -252,7 +271,7 @@ export default function PrintTemplate({ order, className = '' }: Props) {
             sans-serif;
           font-size: 10px;
           line-height: 1.35;
-          overflow: hidden;
+          overflow: visible !important;
           word-break: break-word;
           overflow-wrap: anywhere;
         }
@@ -391,19 +410,11 @@ export default function PrintTemplate({ order, className = '' }: Props) {
         }
 
         .print80-thickness-demo {
-          margin-top: 2.6mm;
+          margin-top: 0;
           border: 1px solid #dbeafe;
           border-radius: 2.2mm;
           padding: 1.8mm 1.6mm;
           background: #f8fbff;
-        }
-
-        .thickness-title {
-          margin: 0 0 1.4mm;
-          text-align: center;
-          font-size: 10px;
-          font-weight: 800;
-          color: #0f172a;
         }
 
         .thickness-visual {
@@ -466,9 +477,12 @@ export default function PrintTemplate({ order, className = '' }: Props) {
             max-width: 74mm !important;
             margin: 0 auto !important;
             padding: 2.2mm 2.2mm !important;
+            overflow: visible !important;
           }
         }
       `}</style>
-    </section>
+    </div>
   );
 }
+
+export default PrintTemplate;

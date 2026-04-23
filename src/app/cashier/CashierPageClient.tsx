@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback, useId, type ChangeEvent } from 'react';
+import { useReactToPrint } from 'react-to-print';
 import { flushSync } from 'react-dom';
 import { cloudRest, isCloudRestConfigured, cloudRestConfigHint } from '@/lib/cloudRest';
 import { toChineseErrorMessage } from '@/lib/userMessages';
@@ -27,10 +28,14 @@ import { resolveStoreDisplayName } from '@/lib/storeDisplayName';
 import { ReceiptDesktopPrinterBar } from '@/components/ReceiptDesktopPrinterBar';
 import { buildOrderQrPayload, ORDER_QR_MAGIC, parseOrderQrPayload } from '@/lib/orderQr';
 import { localCache } from '@/lib/localCache';
-import { printReceiptViaWebBluetooth, printReceiptWithElectronPreference } from '@/lib/receiptElectronPrint';
+import {
+  printReceiptViaWebBluetooth,
+  printReceiptWithElectronPreference,
+  setCashierBrowserPrintOverride,
+} from '@/lib/receiptElectronPrint';
 import { hasWebBluetooth, webBluetoothUnavailableReason } from '@/lib/webBluetoothSupport';
 import { compressImageFileToJpegBlob } from '@/lib/compressImageClient';
-import { runServerCashierOcr } from '@/lib/cashierOcrPipeline';
+import { runServerCashierCustomAddOcr, runServerCashierOcr } from '@/lib/cashierOcrPipeline';
 import { fetchLensTintConfigClient } from '@/lib/fittingbox/lensTintConfigClient';
 import type { LensTintPreset } from '@/lib/fittingbox/lensTintPresets';
 import { StandardLayout } from '@/components/layout/StandardLayout';
@@ -77,6 +82,19 @@ function snapshotCartForSale(items: CartItem[]): CartItem[] {
       left: { ...item.rx.left },
     },
   }));
+}
+
+/**
+ * 购物车行上的 OCR 存证：优先用库存/API 带回的 `product.ocr_evidence_url`，否则用收银台刚识别时的临时 URL。
+ * 在 `addToCart` 里**显式赋值**，避免 `...product` 缺键或未展开到类型外字段时被丢失。
+ */
+function mergeOcrEvidenceUrlForCart(product: Product, fallback?: string | null): string | null {
+  const fromProduct =
+    product.ocr_evidence_url != null && String(product.ocr_evidence_url).trim()
+      ? String(product.ocr_evidence_url).trim()
+      : '';
+  const fromFallback = fallback != null && String(fallback).trim() ? String(fallback).trim() : '';
+  return fromProduct || fromFallback || null;
 }
 
 function genId(): string {
@@ -253,6 +271,29 @@ function pickOcrResultEyeRecord(r: Record<string, unknown>, side: 'right' | 'lef
   return {};
 }
 
+/** 与服务端 normalizeEye 一致：LLM 可能用 sphere / S / cyl 等而不用 ds/dc */
+function mergeRxAliasesIntoStandardKeys(o: Record<string, unknown>): Record<string, unknown> {
+  const m = { ...o };
+  const hasVal = (v: unknown) =>
+    v != null &&
+    (typeof v === 'number'
+      ? Number.isFinite(v)
+      : typeof v === 'string' && v.trim() !== '');
+  if (!hasVal(m.ds)) {
+    const v = m.sphere ?? m.S ?? m.sph ?? m['SPH'] ?? m['球镜'];
+    if (hasVal(v)) m.ds = v;
+  }
+  if (!hasVal(m.dc)) {
+    const v = m.cylinder ?? m.C ?? m.cyl ?? m['CYL'] ?? m['柱镜'];
+    if (hasVal(v)) m.dc = v;
+  }
+  if (m.axis == null || m.axis === '') {
+    const a = m.A ?? m['轴位'] ?? m['轴向'] ?? m['轴线'];
+    if (hasVal(a)) m.axis = a;
+  }
+  return m;
+}
+
 /**
  * 总瞳距若超出常见区间：确认后才回填；确认且左右 pd 仍空时按总距对半写入（与单格总瞳距一致）。
  * 在区间内：直接返回左右载荷，不弹窗。
@@ -261,8 +302,8 @@ function pickOcrResultEyeRecord(r: Record<string, unknown>, side: 'right' | 'lef
 function prepareRxOcrEyesOrAbandon(result: unknown): { right: Record<string, unknown>; left: Record<string, unknown> } | null {
   if (!result || typeof result !== 'object') return null;
   const r = result as Record<string, unknown>;
-  const right = pickOcrResultEyeRecord(r, 'right');
-  const left = pickOcrResultEyeRecord(r, 'left');
+  const right = mergeRxAliasesIntoStandardKeys(pickOcrResultEyeRecord(r, 'right'));
+  const left = mergeRxAliasesIntoStandardKeys(pickOcrResultEyeRecord(r, 'left'));
   const t = inferBinocularPdTotalMm({ ...r, right, left });
   if (t != null && (t < PD_BINOCULAR_HUMANE_MIN_MM || t > PD_BINOCULAR_HUMANE_MAX_MM)) {
     const label = t < PD_BINOCULAR_HUMANE_MIN_MM ? '偏窄' : '偏宽';
@@ -288,18 +329,27 @@ function prepareRxOcrEyesOrAbandon(result: unknown): { right: Record<string, unk
   return { right, left };
 }
 
-/** 若 AI 全空，避免误以为已写入 */
-function ocrEyesHasAnyValue(eyes: { right: Record<string, unknown>; left: Record<string, unknown> }): boolean {
-  const keys = ['ds', 'dc', 'axis', 'va', 'pd', 'add'] as const;
-  for (const side of [eyes.right, eyes.left]) {
-    for (const k of keys) {
-      const v = side[k];
-      if (v == null) continue;
-      if (typeof v === 'number' && Number.isFinite(v)) return true;
-      if (typeof v === 'string' && v.trim() !== '') return true;
-    }
+function ocrEyeRecordHasUsableValue(o: Record<string, unknown>): boolean {
+  for (const v of Object.values(o)) {
+    if (v == null) continue;
+    if (typeof v === 'object') continue;
+    if (typeof v === 'number' && Number.isFinite(v)) return true;
+    if (typeof v === 'string' && v.trim() !== '') return true;
   }
   return false;
+}
+
+function ocrMergedEyesMeaningful(eyes: { right: Record<string, unknown>; left: Record<string, unknown> }): boolean {
+  return ocrEyeRecordHasUsableValue(eyes.right) || ocrEyeRecordHasUsableValue(eyes.left);
+}
+
+function formatOcrNoAutofillMessage(rawText: string | undefined): string {
+  const t = (rawText || '').replace(/\s+/g, ' ').trim();
+  if (!t) {
+    return '已识别，但本单未解出可自动填入的球镜/柱镜/轴位。请重拍、提高对比度，或手填。';
+  }
+  const ex = t.length > 120 ? `${t.slice(0, 120)}…` : t;
+  return `已识别，但本单未解出可自动填入的球镜/柱镜/轴位。取字片段供核对：${ex}`;
 }
 
 /** 仅覆盖 AI 返回的非空字符串字段，避免空结果冲掉已有输入 */
@@ -616,6 +666,28 @@ export default function CashierPage() {
   const [orderLookupLoading, setOrderLookupLoading] = useState(false);
   const orderScanBufRef = useRef('');
   const orderScanLastTsRef = useRef(0);
+  /** 小票 + 定制生产单（加工单）打印根节点：交给 react-to-print 克隆进 iframe，避免整页 @media print 打出白纸 */
+  const cashierPrintBundleRef = useRef<HTMLDivElement>(null);
+  const printDocumentTitle = useCallback(() => {
+    const o = lastOrder?.orderObject;
+    const no = (o?.order_no ?? o?.orderNo ?? 'receipt') as string;
+    return `镜售-${String(no)}`;
+  }, [lastOrder?.orderObject]);
+  const printCashierBundleReact = useReactToPrint({
+    contentRef: cashierPrintBundleRef,
+    documentTitle: printDocumentTitle,
+    pageStyle: `@page { size: 80mm auto; margin: 0; }`,
+  });
+
+  useEffect(() => {
+    setCashierBrowserPrintOverride(() => {
+      if (cashierPrintBundleRef.current) printCashierBundleReact();
+      else if (typeof window !== 'undefined' && typeof window.print === 'function') {
+        window.setTimeout(() => window.print(), 0);
+      }
+    });
+    return () => setCashierBrowserPrintOverride(null);
+  }, [printCashierBundleReact]);
 
   const [voiceOrderRecording, setVoiceOrderRecording] = useState(false);
   const [voiceOrderBusy, setVoiceOrderBusy] = useState(false);
@@ -628,6 +700,15 @@ export default function CashierPage() {
   const [customProductPrice, setCustomProductPrice] = useState('');
   const [customProductCategory, setCustomProductCategory] = useState('其他');
   const [customProductBusy, setCustomProductBusy] = useState(false);
+  /** 镜框自定义：型号/刻字编码，可与「拍照识镜框」OCR 联动 */
+  const [customFrameModel, setCustomFrameModel] = useState('');
+  /** 最近一次自定义商品名称 OCR 的存证路径（写入新建商品并随购物车溯源） */
+  const [customProductOcrEvidenceUrl, setCustomProductOcrEvidenceUrl] = useState<string | null>(null);
+  /** 自定义商品名称「相机眼」OCR 进行中（仅调 /api/ocr，与库存列表/图片接口无关） */
+  const [customAddNameOcrBusy, setCustomAddNameOcrBusy] = useState(false);
+  /** 与 label htmlFor 同源：原生 file 控件才是相机/相册入口（移动端易唤起后置相机） */
+  const customAddOcrCaptureId = useId();
+  const customAddOcrFileInputRef = useRef<HTMLInputElement>(null);
   /** 镜片自定义：品牌（原「蔡司」位，自填其它品牌）+ 系列/折射率/膜层 */
   const [lensManualBrand, setLensManualBrand] = useState('');
   const [lensManualSeries, setLensManualSeries] = useState('');
@@ -866,6 +947,8 @@ export default function CashierPage() {
     if (productInfoModalCategory === null) return;
     setCustomProductName('');
     setCustomProductPrice('');
+    setCustomFrameModel('');
+    setCustomProductOcrEvidenceUrl(null);
     setCustomProductCategory(
       productInfoModalCategory === 'all' ? '其他' : categoryLabelForQuickModal(productInfoModalCategory),
     );
@@ -909,6 +992,17 @@ export default function CashierPage() {
     if (productInfoModalCategory === 'all' && customProductCategory === '镜片') return true;
     return false;
   }, [productInfoModalCategory, customProductCategory]);
+
+  /** 与 /api/ocr custom_add 同步：当前弹窗对应的库存分类文案 */
+  const customAddOcrCategory = useMemo(() => {
+    if (productInfoModalCategory === null) return '其他';
+    if (productInfoModalCategory === 'all') return customProductCategory.trim() || '其他';
+    return categoryLabelForQuickModal(productInfoModalCategory);
+  }, [productInfoModalCategory, customProductCategory]);
+
+  const customAddSecondaryFieldIsFrameStyle = useMemo(() => {
+    return customProductCategory.includes('镜框') || customProductCategory === '镜架';
+  }, [customProductCategory]);
 
   const zeissProductsForPicker = useMemo(() => {
     const f = searchZeissProducts(zeissSearch);
@@ -975,6 +1069,7 @@ export default function CashierPage() {
     if (prevShowLensSkuUiRef.current && !showLensSkuUi) {
       setCustomProductName('');
       setCustomProductPrice('');
+      setCustomFrameModel('');
     }
     prevShowLensSkuUiRef.current = showLensSkuUi;
   }, [showLensSkuUi, productInfoModalCategory]);
@@ -1139,18 +1234,20 @@ export default function CashierPage() {
     return () => document.removeEventListener('keydown', onCap, true);
   }, [handleOrderQrScan]);
 
-  const addToCart = useCallback((product: Product) => {
+  const addToCart = useCallback((product: Product, options?: { ocrEvidenceUrlFallback?: string | null }) => {
     const promoOk = product.allow_promo_price !== false;
     const promo =
       product.is_promo && promoOk && product.promo_price != null
         ? Number(product.promo_price)
         : null;
     const usePromo = promo !== null && Number.isFinite(promo) && promo >= 0;
+    const ocr_evidence_url = mergeOcrEvidenceUrlForCart(product, options?.ocrEvidenceUrlFallback);
     const lineId = genId();
     setCart((prev) => [
       ...prev,
       {
         ...product,
+        ocr_evidence_url,
         lineId,
         quantity: 1,
         rx: { right: emptyEye(), left: emptyEye() },
@@ -1429,11 +1526,11 @@ export default function CashierPage() {
         }, 'image/jpeg', 0.9);
       });
 
-      const { result } = await runServerCashierOcr(blob, 'frame.jpg');
+      const { result, rawText } = await runServerCashierOcr(blob, 'frame.jpg');
       const eyes = prepareRxOcrEyesOrAbandon(result);
       if (!eyes) return;
-      if (!ocrEyesHasAnyValue(eyes)) {
-        setVisualEntryError('识别完成，但没有解析到可填的球镜/柱镜/轴位。请手填或重拍、换更清晰的验光单。');
+      if (!ocrMergedEyesMeaningful(eyes)) {
+        setVisualEntryError(formatOcrNoAutofillMessage(rawText));
         return;
       }
       applyRxFromOcr(editingRxItem.lineId, 'right', eyes.right);
@@ -1458,6 +1555,51 @@ export default function CashierPage() {
       stopVisualEntryCamera();
     };
   }, [visualEntryOpen, startVisualEntryCamera, stopVisualEntryCamera]);
+
+  /**
+   * 自定义添加「商品名称」相机：经隐藏 file 的 onChange 进入；仅 FormData → `runServerCashierCustomAddOcr` → `/api/ocr`（Paddle + AI）。
+   * 禁止在此链接库存图片检索（如 getInventoryImages）；与 `POST /api/inventory/products` 无关。
+   */
+  const runCustomAddNameOcrFromBlob = useCallback(async (blob: Blob) => {
+    setCustomAddNameOcrBusy(true);
+    setCustomProductOcrEvidenceUrl(null);
+    try {
+      const { productName, modelLine, model, rawText, evidenceUrl, ocrMode } = await runServerCashierCustomAddOcr(
+        blob,
+        'custom.jpg',
+        customAddOcrCategory,
+      );
+      const ev = typeof evidenceUrl === 'string' && evidenceUrl.trim() ? evidenceUrl.trim() : null;
+      setCustomProductOcrEvidenceUrl(ev);
+      if (productName) setCustomProductName(productName);
+      if (modelLine) setCustomFrameModel(modelLine);
+      else if (model) setCustomFrameModel(model);
+      if (!productName && !modelLine && !model) {
+        window.alert(`未识别到可用的名称或型号。原文节选：${(rawText ?? '').slice(0, 160)}`);
+      } else if (ev) {
+        console.info(`[自定义商品OCR:${ocrMode}] 原图已存证`, ev);
+      }
+    } catch (e) {
+      window.alert(e instanceof Error ? e.message : String(e));
+    } finally {
+      setCustomAddNameOcrBusy(false);
+    }
+  }, [customAddOcrCategory]);
+
+  const onCustomAddOcrFileInputChange = useCallback(
+    async (e: ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      e.target.value = '';
+      if (!file) return;
+      try {
+        const blob = await compressImageFileToJpegBlob(file, { maxBytes: 1_800_000 });
+        await runCustomAddNameOcrFromBlob(blob);
+      } catch (err) {
+        window.alert(err instanceof Error ? err.message : String(err));
+      }
+    },
+    [runCustomAddNameOcrFromBlob],
+  );
 
   const createCustomProductAndAddToCart = useCallback(async () => {
     if (showLensSkuUi) {
@@ -1511,10 +1653,19 @@ export default function CashierPage() {
         store_id: selectedStoreId || null,
         category: cat,
       };
+      if ((cat.includes('镜框') || cat === '镜架') && customFrameModel.trim()) {
+        const m = customFrameModel.trim();
+        payload.model = m;
+        payload.frame_type = m;
+      }
       if (showLensSkuUi && lensPriceMode === 'catalog') {
         payload.brand = '蔡司';
         payload.model = zeissProductName.trim();
         payload.lens_type = `${zeissSeriesName.trim()} / ${zeissIndexStr} / ${zeissCoating.trim()}`;
+      }
+      const evUrl = customProductOcrEvidenceUrl?.trim();
+      if (!showLensSkuUi && evUrl) {
+        payload.ocr_evidence_url = evUrl;
       }
       const res = await fetch('/api/inventory/products', {
         method: 'POST',
@@ -1544,10 +1695,13 @@ export default function CashierPage() {
           cat.includes('镜框') || cat === '镜架' || cat === '套餐'
             ? row.frame_type || '通用'
             : row.frame_type ?? null,
+        ocr_evidence_url: row.ocr_evidence_url ?? (evUrl || null),
       };
-      addToCart(p);
+      addToCart(p, { ocrEvidenceUrlFallback: evUrl || null });
       setCustomProductName('');
       setCustomProductPrice('');
+      setCustomFrameModel('');
+      setCustomProductOcrEvidenceUrl(null);
       setProductInfoModalCategory(null);
       try {
         const reload = await fetch('/api/inventory/products/');
@@ -1577,6 +1731,8 @@ export default function CashierPage() {
     customProductPrice,
     customProductCategory,
     customProductBusy,
+    customFrameModel,
+    customProductOcrEvidenceUrl,
     selectedStoreId,
     addToCart,
   ]);
@@ -2413,7 +2569,11 @@ export default function CashierPage() {
         return;
       }
       if (!hasElectronBridge && isCoarsePointer && !supportsWebBluetooth) {
-        window.setTimeout(() => window.print(), 0);
+        if (!cashierPrintBundleRef.current) {
+          window.alert('打印区域未就绪，请稍候再试或关闭预览后重新结算打开。');
+          return;
+        }
+        printCashierBundleReact();
         return;
       }
       await printReceiptWithElectronPreference(lastOrder.orderObject);
@@ -2424,7 +2584,7 @@ export default function CashierPage() {
     } finally {
       setReceiptPrinting(false);
     }
-  }, [lastOrder, receiptPrinting]);
+  }, [lastOrder, receiptPrinting, printCashierBundleReact]);
 
   const handleBluetoothReceiptPrint = useCallback(async () => {
     if (!lastOrder?.orderObject || receiptBtPrinting) return;
@@ -2699,7 +2859,7 @@ export default function CashierPage() {
   const webBtUnavailableHint = typeof window !== 'undefined' ? webBluetoothUnavailableReason() : null;
 
   return (
-    <div className="space-y-4 xl:space-y-6 overscroll-y-none max-xl:pb-[max(0.75rem,env(safe-area-inset-bottom))] xl:pb-0">
+    <div className="space-y-4 xl:space-y-6 overscroll-y-none max-xl:pb-[max(0.75rem,env(safe-area-inset-bottom))] xl:pb-0 min-h-0 print:h-auto print:min-h-0 print:max-h-none print:overflow-visible">
       <AnimatePresence>
         {successToast ? (
           <motion.div
@@ -2774,9 +2934,9 @@ export default function CashierPage() {
 
       <StandardLayout
         variant="cashier-two"
-        className="h-auto min-h-0 xl:h-[calc(100dvh-12rem)] xl:min-h-[640px] max-xl:gap-3"
+        className="h-auto min-h-0 xl:h-[calc(100dvh-12rem)] xl:min-h-[640px] max-xl:gap-3 print:h-auto print:min-h-0 print:max-h-none print:overflow-visible xl:print:h-auto xl:print:max-h-none"
       >
-        <StandardLayout.LeftSlot className="space-y-4">
+        <StandardLayout.LeftSlot className="space-y-4 print:overflow-visible print:max-h-none">
           <div className="bg-white rounded-xl border border-gray-200 p-3 space-y-2">
             <div className="flex flex-wrap items-center gap-2" role="group" aria-label="按分类打开库存商品弹窗">
               {([
@@ -2911,7 +3071,7 @@ export default function CashierPage() {
           </div>
         </StandardLayout.LeftSlot>
 
-        <StandardLayout.RightSlot className="max-xl:hidden h-full min-h-0">
+        <StandardLayout.RightSlot className="max-xl:hidden h-full min-h-0 print:h-auto print:min-h-0 print:max-h-none print:overflow-visible">
           <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm [contain:layout_paint]">
             <div className="sticky top-0 z-[2] shrink-0 space-y-1 border-b border-gray-100 bg-white/95 px-2 pb-1.5 pt-2 leading-none backdrop-blur sm:px-2.5">
               <div className="grid grid-cols-3 gap-1.5">
@@ -3432,12 +3592,69 @@ export default function CashierPage() {
                   </div>
                 ) : (
                   <>
-                    <input
-                      value={customProductName}
-                      onChange={(e) => setCustomProductName(e.target.value)}
-                      placeholder="商品名称（必填）"
-                      className="w-full text-sm border border-gray-200 rounded-lg px-2 py-1.5"
-                    />
+                    <div className="block text-[11px] text-gray-600">
+                      <span className="block">商品名称</span>
+                      <div className="relative mt-0.5">
+                        <input
+                          value={customProductName}
+                          onChange={(e) => setCustomProductName(e.target.value)}
+                          placeholder="商品名称（必填，可拍照识别包装或镜腿）"
+                          className="w-full text-sm border border-gray-200 rounded-lg py-1.5 pl-2 pr-11"
+                        />
+                        <input
+                          ref={customAddOcrFileInputRef}
+                          id={customAddOcrCaptureId}
+                          type="file"
+                          accept="image/*"
+                          capture="environment"
+                          disabled={customAddNameOcrBusy || customProductBusy}
+                          className="sr-only"
+                          tabIndex={-1}
+                          aria-hidden
+                          onChange={(e) => void onCustomAddOcrFileInputChange(e)}
+                        />
+                        {/*
+                          相机眼：用 label htmlFor 触发原生 file，无 onClick；不得接库存图片 API。
+                          全部分类（镜框/套餐/其他…）在「非镜片价目表」路径下均走同一 OCR，后端 intent=custom_add + Paddle。
+                        */}
+                        <label
+                          htmlFor={customAddOcrCaptureId}
+                          onPointerDownCapture={() => {
+                            if (customAddNameOcrBusy || customProductBusy) return;
+                            const el = customAddOcrFileInputRef.current;
+                            if (el) el.value = '';
+                          }}
+                          className={`absolute right-1 top-1/2 -translate-y-1/2 rounded-full p-2 text-blue-600 hover:bg-gray-100 ${
+                            customAddNameOcrBusy || customProductBusy
+                              ? 'pointer-events-none opacity-50'
+                              : 'cursor-pointer'
+                          }`}
+                          title="拍照识别（按文字自动选用镜腿或通用品名解析）"
+                          aria-label="拍照或选择图片以识别商品名称"
+                        >
+                          <Camera className="h-5 w-5" aria-hidden />
+                        </label>
+                      </div>
+                      {customProductOcrEvidenceUrl ? (
+                        <p className="mt-1 text-[10px] text-emerald-800 leading-snug">
+                          OCR 原图已存证，将随本商品写入库存与购物车：
+                          <code className="ml-0.5 text-[10px]">{customProductOcrEvidenceUrl}</code>
+                        </p>
+                      ) : null}
+                    </div>
+                    <label className="block text-[11px] text-gray-600">
+                      {customAddSecondaryFieldIsFrameStyle ? '型号 / 刻字编码' : '规格 / 货号（可选）'}
+                      <input
+                        value={customFrameModel}
+                        onChange={(e) => setCustomFrameModel(e.target.value)}
+                        placeholder={
+                          customAddSecondaryFieldIsFrameStyle
+                            ? '型号（可选，可由识别带出）'
+                            : '规格、货号等（可选，可由识别带出）'
+                        }
+                        className="mt-0.5 w-full text-sm border border-gray-200 rounded-lg px-2 py-1.5"
+                      />
+                    </label>
                     <input
                       value={customProductPrice}
                       onChange={(e) => setCustomProductPrice(sanitizePriceDraft(e.target.value))}
@@ -3929,11 +4146,11 @@ export default function CashierPage() {
                               maxBytes: 600 * 1024,
                               maxEdge: 2048,
                             });
-                            const { result } = await runServerCashierOcr(jpegBlob, 'rx.jpg');
+                            const { result, rawText } = await runServerCashierOcr(jpegBlob, 'rx.jpg');
                             const eyes = prepareRxOcrEyesOrAbandon(result);
                             if (!eyes) return;
-                            if (!ocrEyesHasAnyValue(eyes)) {
-                              window.alert('识别完成，但没有解析到可填的球镜/柱镜/轴位。请手填或重拍。');
+                            if (!ocrMergedEyesMeaningful(eyes)) {
+                              window.alert(formatOcrNoAutofillMessage(rawText));
                               return;
                             }
                             applyRxFromOcr(editingRxItem.lineId, 'right', eyes.right);
@@ -4048,8 +4265,8 @@ export default function CashierPage() {
       </DraggableRxEditorModal>
 
       {showReceipt && lastOrder && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end justify-center z-50 p-2 sm:items-center sm:p-4 print:p-0 print:bg-white print:static print:inset-auto">
-          <div className="bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl max-w-3xl w-full overflow-y-auto overflow-x-hidden flex flex-col max-h-[min(92dvh,920px)] print:shadow-none print:max-w-none print:w-full print:rounded-none">
+        <div className="cashier-print-preview-root fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end justify-center z-50 p-2 sm:items-center sm:p-4 print:p-0 print:bg-white print:static print:inset-auto print:block print:h-auto print:min-h-0 print:max-h-none print:overflow-visible">
+          <div className="cashier-print-preview-card bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl max-w-3xl w-full overflow-y-auto overflow-x-hidden flex flex-col max-h-[min(92dvh,920px)] print:shadow-none print:max-w-none print:w-full print:rounded-none print:block print:h-auto print:min-h-0 print:max-h-none print:overflow-visible print:flex-none">
             <div className="p-5 border-b border-gray-100 flex justify-between items-center print:hidden">
               <div className="flex items-center space-x-2 text-gray-800">
                 <Printer className="w-5 h-5" />
@@ -4064,10 +4281,8 @@ export default function CashierPage() {
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto overscroll-y-contain touch-pan-y p-6 flex justify-center bg-gray-50 print:bg-white print:p-0 [-webkit-overflow-scrolling:touch]">
-              <div id="print-bundle-area" className="space-y-4 print:space-y-0">
-                <ReceiptPrintBundle order={lastOrder.orderObject} />
-              </div>
+            <div className="cashier-print-preview-scroll flex-1 overflow-y-auto overscroll-y-contain touch-pan-y p-6 flex justify-center bg-gray-50 print:block print:flex-none print:h-auto print:min-h-0 print:max-h-none print:overflow-visible print:bg-white print:p-0 print:overscroll-auto [-webkit-overflow-scrolling:touch]">
+              <ReceiptPrintBundle ref={cashierPrintBundleRef} order={lastOrder.orderObject} />
             </div>
 
             <div className="p-6 bg-gray-50 border-t border-gray-100 space-y-3 print:hidden">

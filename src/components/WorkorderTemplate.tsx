@@ -1,5 +1,12 @@
 'use client';
 
+/**
+ * 定制生产单（加工单）版式组件。
+ * 「整体保护」由父级 `#workorder-print-area.print-doc-card`（ReceiptPrintBundle）统一提供：
+ * 整张工厂凭证尽量不分页。本组件内请勿再包一层 `print-doc-card`，避免双重 avoid；
+ * 条码、镜片车房参数等应直接排在本模板 DOM 中。
+ */
+
 import { resolveStoreDisplayName } from '@/lib/storeDisplayName';
 import type { PrintOrder } from '@/components/PrintTemplate';
 
@@ -45,7 +52,7 @@ export default function WorkorderTemplate({ order }: Props) {
   const tintLines = collectTintLines(order);
 
   return (
-    <section className="workorder80">
+    <section className="workorder80 print-doc-workorder">
       <header className="workorder80-header">
         <h2>定制生产单</h2>
         <p>门店: {storeName}</p>
