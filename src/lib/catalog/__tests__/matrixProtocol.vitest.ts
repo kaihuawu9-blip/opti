@@ -8,6 +8,10 @@ import { resolveActiveHandbookNavState } from '@/lib/catalog/dataIntegrityValida
 import { pluginACalibrate } from '@/lib/catalog/indexAutoCalibrator';
 import type { SchemaGapItem } from '@/lib/catalog/indexAutoCalibrator';
 import type { HandbookSeriesNavItem } from '@/data/zeissHandbookPageMap';
+import { MATRIX_BRAND_REGISTRY } from '@/data/matrixBrandRegistry';
+import { getPageData, getHandbookPageCount } from '@/data/zeissHandbookPageMap';
+import { ESSILOR_PRICE_MATRIX } from '@/data/essilorPriceMatrix';
+import { adaptOcrToOrderItemStrict } from '@/lib/api/dataAdapter';
 
 describe('Matrix Protocol V1.1 — IndexAutoCalibrator (插件 A)', () => {
   it('L1：文件名 slug（含 A-Prog）锁定价目块', () => {
@@ -58,5 +62,46 @@ describe('Matrix Protocol V1.1 — 插件 B activeNav', () => {
 describe('EssilorAliasMap ↔ 蔡司折射率槽位', () => {
   it('assertEssilorAliasMapsZeissSlots 不抛错', () => {
     expect(() => assertEssilorAliasMapsZeissSlots()).not.toThrow();
+  });
+});
+
+describe('Matrix Protocol V1.2 — MATRIX_BRAND_REGISTRY', () => {
+  it('登记蔡司、依视路、豪雅三条品牌链路', () => {
+    const keys = MATRIX_BRAND_REGISTRY.map((b) => b.brandKey);
+    expect(keys).toEqual(expect.arrayContaining(['ZEISS', 'ESSILOR', 'HOYA']));
+  });
+});
+
+describe('Matrix Protocol V1.3 — Essilor 钻晶首批收割', () => {
+  it('HANDBOOK 挂载后价目页与 JSON 品种一致', () => {
+    expect(getHandbookPageCount('essilor')).toBeGreaterThan(0);
+    const p2 = getPageData(2, 'essilor');
+    expect(p2?.dataAnchor).toBe('钻晶A4单光');
+    expect(p2?.product?.productName).toBe('钻晶A4单光');
+    expect(ESSILOR_PRICE_MATRIX.some((p) => p.productName === '钻晶A4单光')).toBe(true);
+  });
+
+  it('数据海关 strict 命中依视路价目矩阵 SKU', () => {
+    const r = adaptOcrToOrderItemStrict({
+      ocr: {
+        source: 'manual',
+        fields: {
+          BRAND: '依视路',
+          SERIES: '钻晶A4单光',
+          INDEX: 1.6,
+          COATING: '钻晶A4膜',
+          OD_SPH: -2,
+          OD_CYL: 0,
+          OD_AXIS: 90,
+          OD_PD: 32,
+          OS_SPH: -2,
+          OS_CYL: 0,
+          OS_AXIS: 90,
+          OS_PD: 31,
+        },
+      },
+    });
+    expect(r.order.lens.brand).toBe('ESSILOR');
+    expect(r.skuMatch?.retailYuan).toBe(988);
   });
 });

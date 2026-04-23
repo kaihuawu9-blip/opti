@@ -17,6 +17,11 @@ import {
   ZEISS_PRICE_MATRIX,
   matrixLensTypeGroupLabel,
 } from '@/data/zeissPriceMatrix';
+import { ESSILOR_HANDBOOK_PAGE_MAP } from '@/data/essilorHandbookPageMap';
+import {
+  ESSILOR_HANDBOOK_PAGE_IMAGE_DATA,
+  findEssilorProductMatrix,
+} from '@/data/essilorPriceMatrix';
 
 export type HandbookSection =
   | 'cover-brand'
@@ -254,6 +259,47 @@ export function buildHandbookSeriesNavItems(): HandbookSeriesNavItem[] {
   return out.sort((a, b) => a.startPage0 - b.startPage0);
 }
 
+/** 指定品牌的系列导航（与 `buildHandbookSeriesNavItems` 同源逻辑，读 adapter.pages） */
+export function buildHandbookSeriesNavItemsForBrand(
+  brand: DigitalHandbookBrand = 'zeiss',
+): HandbookSeriesNavItem[] {
+  const adapter = getBrandAdapter(brand);
+  if (!adapter) return [];
+  const seen = new Set<string>();
+  const out: HandbookSeriesNavItem[] = [];
+  for (const e of adapter.pages) {
+    if (e.productName) {
+      const key = `p:${e.productName}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push({
+        id: key,
+        label: e.productName,
+        section: e.section,
+        startPage0: e.pdfPage - 1,
+        printedPage: e.printedPage,
+      });
+      continue;
+    }
+    const sk = `s:${e.section}`;
+    if (seen.has(sk)) continue;
+    seen.add(sk);
+    out.push({
+      id: sk,
+      label: HANDBOOK_SECTION_NAV_LABEL[e.section] ?? e.title ?? e.section,
+      section: e.section,
+      startPage0: e.pdfPage - 1,
+      printedPage: e.printedPage,
+    });
+  }
+  return out.sort((a, b) => a.startPage0 - b.startPage0);
+}
+
+/** 数字化手册物理页数（0 = 该品牌尚未挂载 adapter） */
+export function getHandbookPageCount(brand: DigitalHandbookBrand): number {
+  return getBrandAdapter(brand)?.pages.length ?? 0;
+}
+
 /**
  * 与手动翻页同步：取当前页所属「最后一条不越过当前页」的导航项 AnchorID。
  * 若需插件 B 的 `dataStatus: "validated" | "warning"` 与占位文案，请用
@@ -364,10 +410,25 @@ const ZEISS_ADAPTER: HandbookBrandAdapter = {
   manifestApi: '/api/catalog/zeiss-manifest/',
 };
 
+const ESSILOR_HANDBOOK_PAGE_ENTRIES: readonly HandbookPageEntry[] = ESSILOR_HANDBOOK_PAGE_MAP.map((e) => ({
+  pdfPage: e.pdfPage,
+  printedPage: e.printedPage,
+  section: e.section as HandbookSection,
+  productName: e.productName,
+  title: e.title,
+}));
+
+const ESSILOR_ADAPTER: HandbookBrandAdapter = {
+  brand: 'essilor',
+  pages: ESSILOR_HANDBOOK_PAGE_ENTRIES,
+  resolveProduct: (name) => findEssilorProductMatrix(name),
+  manifestApi: '/api/catalog/essilor-manifest/',
+};
+
 /** 多品牌注册表：新增 Essilor/HOYA 时在此追加条目 */
 export const HANDBOOK_BRAND_REGISTRY: Record<DigitalHandbookBrand, HandbookBrandAdapter | null> = {
   zeiss: ZEISS_ADAPTER,
-  essilor: null,
+  essilor: ESSILOR_ADAPTER,
   hoya: null,
 };
 
@@ -397,8 +458,9 @@ export function getPageData(
   const anchor = entry.productName?.trim() || null;
   const product = anchor ? adapter.resolveProduct(anchor) ?? null : null;
   const pageKey = String(entry.pdfPage);
-  const imageData =
-    ZEISS_HANDBOOK_PAGE_IMAGE_DATA[pageKey] ?? product?.imageData ?? null;
+  const pageImageMap =
+    brand === 'essilor' ? ESSILOR_HANDBOOK_PAGE_IMAGE_DATA : ZEISS_HANDBOOK_PAGE_IMAGE_DATA;
+  const imageData = pageImageMap[pageKey] ?? product?.imageData ?? null;
   return {
     brand,
     pdfIndex: entry.pdfPage,

@@ -64,21 +64,24 @@ export type HandbookActiveNavState = {
 
 const PLACEHOLDER_DATA_PENDING = '数据待补全';
 
-function matrixHasProductName(name: string): boolean {
-  const t = name.trim();
-  return ZEISS_PRICE_MATRIX.some((p) => p.productName.trim() === t);
-}
-
 /**
  * 状态自愈：先按物理页解析 AnchorID，再反查矩阵 / 插件 B 缺口。
- * - `p:` 必须在 `ZEISS_PRICE_MATRIX` 中存在且不在「导航缺矩阵」集合；
+ * - `p:` 必须在当前品牌价目矩阵中存在且不在「导航缺矩阵」集合；
  * - `s:` 在当前物理页落在「价目/标题断层」页集合时标记 warning。
+ * @param options.matrixProducts 非蔡司品牌时传入该品牌 `products[]`（默认蔡司 `ZEISS_PRICE_MATRIX`）
  */
 export function resolveActiveHandbookNavState(
   items: readonly HandbookSeriesNavItem[],
   currentPage0: number,
   gaps: readonly SchemaGapItem[],
+  options?: { matrixProducts?: readonly { productName: string }[] },
 ): HandbookActiveNavState {
+  const matrix = options?.matrixProducts ?? ZEISS_PRICE_MATRIX;
+  const matrixHasProductName = (name: string): boolean => {
+    const t = name.trim();
+    return matrix.some((p) => p.productName.trim() === t);
+  };
+
   const anchorId = items.length === 0 ? '' : getActiveHandbookNavId(items, currentPage0);
   if (!anchorId) {
     return { anchorId: '', dataStatus: 'pending' };

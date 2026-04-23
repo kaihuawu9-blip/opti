@@ -23,13 +23,14 @@ import type { ReactPageFlipProps, ReactPageFlipRef } from '@/components/catalog/
 import { playHandbookPaperRustle } from '@/lib/catalog/handbookPaperSound';
 import {
   getPageData,
-  buildHandbookSeriesNavItems,
-  ZEISS_HANDBOOK_PAGE_MAP,
+  buildHandbookSeriesNavItemsForBrand,
+  getHandbookPageCount,
   type DigitalHandbookBrand,
   type HandbookPageData,
   type HandbookSeriesNavItem,
 } from '@/data/zeissHandbookPageMap';
 import { embeddedHandbookPageCount } from '@/data/zeissPriceMatrix';
+import { ESSILOR_PRICE_MATRIX } from '@/data/essilorPriceMatrix';
 import {
   buildCashierPayloadFromPage,
   dispatchHandbookAddToCart,
@@ -108,21 +109,24 @@ function formatHandbookPhysicalLine(
   return a === b ? `第 ${a} / 共 ${totalPages}` : `第 ${a}–${b} / 共 ${totalPages}`;
 }
 
-const BRAND_ROW: { id: DigitalHandbookBrand; name: string; sub: string; disabled?: boolean; primary?: boolean }[] = [
-  { id: 'zeiss', name: '蔡司', sub: 'ZEISS', primary: true },
-  { id: 'essilor', name: '依视路', sub: 'Essilor', disabled: true },
-  { id: 'hoya', name: '豪雅', sub: 'HOYA', disabled: true },
-];
-
 function BrandSwitcher({
   brand,
   onChange,
   className = '',
+  enableEssilor,
+  enableHoya,
 }: {
   brand: DigitalHandbookBrand;
   onChange: (b: DigitalHandbookBrand) => void;
   className?: string;
+  enableEssilor: boolean;
+  enableHoya: boolean;
 }) {
+  const row: { id: DigitalHandbookBrand; name: string; sub: string; disabled?: boolean; primary?: boolean }[] = [
+    { id: 'zeiss', name: '蔡司', sub: 'ZEISS', primary: true },
+    { id: 'essilor', name: '依视路', sub: 'Essilor', disabled: !enableEssilor },
+    { id: 'hoya', name: '豪雅', sub: 'HOYA', disabled: !enableHoya },
+  ];
   return (
     <div
       className={[
@@ -132,7 +136,7 @@ function BrandSwitcher({
       role="tablist"
       aria-label="品牌"
     >
-      {BRAND_ROW.map((b) => {
+      {row.map((b) => {
         const active = !b.disabled && brand === b.id;
         return (
           <button
@@ -287,21 +291,33 @@ export function ZeissDigitalHandbook() {
 
   useEffect(() => {
     let cancelled = false;
-    if (brand !== 'zeiss') {
-      queueMicrotask(() => {
-        if (!cancelled) startTransition(() => setZeissManifest(null));
-      });
+    if (brand === 'zeiss') {
+      fetch('/api/catalog/zeiss-manifest/')
+        .then((r) => r.json())
+        .then((j: { manifest?: ZeissHandbookManifest }) => {
+          if (cancelled || !j?.manifest?.pages?.length) return;
+          startTransition(() => setZeissManifest(j.manifest!));
+        })
+        .catch(() => {});
       return () => {
         cancelled = true;
       };
     }
-    fetch('/api/catalog/zeiss-manifest/')
-      .then((r) => r.json())
-      .then((j: { manifest?: ZeissHandbookManifest }) => {
-        if (cancelled || !j?.manifest?.pages?.length) return;
-        setZeissManifest(j.manifest);
-      })
-      .catch(() => {});
+    if (brand === 'essilor') {
+      fetch('/api/catalog/essilor-manifest/')
+        .then((r) => r.json())
+        .then((j: { manifest?: ZeissHandbookManifest }) => {
+          if (cancelled || !j?.manifest) return;
+          startTransition(() => setZeissManifest(j.manifest));
+        })
+        .catch(() => {});
+      return () => {
+        cancelled = true;
+      };
+    }
+    queueMicrotask(() => {
+      if (!cancelled) startTransition(() => setZeissManifest(null));
+    });
     return () => {
       cancelled = true;
     };
@@ -388,7 +404,9 @@ export function ZeissDigitalHandbook() {
     };
   }, [fullscreenOpen]);
 
-  const total = brand === 'zeiss' ? ZEISS_HANDBOOK_PAGE_MAP.length : 0;
+  const total = useMemo(() => getHandbookPageCount(brand), [brand]);
+  const essilorPagesReady = getHandbookPageCount('essilor') > 0;
+  const hoyaPagesReady = getHandbookPageCount('hoya') > 0;
 
   /** 与 bookFrame Ref ResizeObserver 同步；无观测值时回退 dims / 80vh */
   const previewNavHeight = useMemo(() => {
@@ -400,12 +418,20 @@ export function ZeissDigitalHandbook() {
     return bookVisualH > 0 ? `${bookVisualH}px` : `min(80vh, ${fsDims.pageH}px)`;
   }, [bookVisualH, fullscreenOpen, fsDims.pageH]);
 
-  const seriesNav = useMemo(() => buildHandbookSeriesNavItems(), []);
+  const seriesNav = useMemo(() => buildHandbookSeriesNavItemsForBrand(brand), [brand]);
 
   /** 插件 B：AnchorID 反查矩阵 + 当前页断层 → dataStatus / 占位文案（状态自愈） */
   const activeNav = useMemo(() => {
-    if (brand !== 'zeiss' || total <= 0) return HANDBOOK_EMPTY_ACTIVE_NAV;
-    return resolveActiveHandbookNavState(seriesNav, currentPage, dataIntegrityGaps);
+    if (total <= 0) return HANDBOOK_EMPTY_ACTIVE_NAV;
+    if (brand === 'zeiss') {
+      return resolveActiveHandbookNavState(seriesNav, currentPage, dataIntegrityGaps);
+    }
+    if (brand === 'essilor') {
+      return resolveActiveHandbookNavState(seriesNav, currentPage, [], {
+        matrixProducts: ESSILOR_PRICE_MATRIX,
+      });
+    }
+    return HANDBOOK_EMPTY_ACTIVE_NAV;
   }, [brand, total, seriesNav, currentPage, dataIntegrityGaps]);
 
   const handleBrand = useCallback((b: DigitalHandbookBrand) => {
@@ -414,9 +440,7 @@ export function ZeissDigitalHandbook() {
     setCurrentPage(0);
     setPreviewStart(0);
     setPreviewResync((k) => k + 1);
-    if (b !== 'zeiss') {
-      setFullscreenOpen(false);
-    }
+    setFullscreenOpen(false);
   }, [brand]);
 
   const onFlip = useCallback(
@@ -600,20 +624,20 @@ export function ZeissDigitalHandbook() {
     () =>
       Array.from({ length: total }, (_, idx) => {
         const pdfN = idx + 1;
-        const pd = getPageData(pdfN, 'zeiss');
+        const pd = getPageData(pdfN, brand);
         return (
           <ZeissHandbookPage
-            key={`pg-${pdfN}`}
+            key={`pg-${brand}-${pdfN}`}
             pageNumber={pdfN}
             title={pd?.title ?? `第 ${pdfN} 页`}
             imageData={pd?.imageData ?? null}
           />
         );
       }),
-    [total],
+    [total, brand],
   );
 
-  if (brand !== 'zeiss') {
+  if (total === 0) {
     return (
       <div className="relative isolate mx-auto w-full max-w-[min(1400px,calc(100vw-1rem))]">
         <div className="pointer-events-none absolute inset-0 rounded-[2rem] bg-gradient-to-br from-[#0059A3]/8 via-transparent to-slate-900/40 blur-3xl" />
@@ -627,22 +651,18 @@ export function ZeissDigitalHandbook() {
             className="relative rounded-2xl border border-white/10 bg-slate-950/35 p-6 shadow-[0_20px_50px_rgba(0,0,0,0.45)] backdrop-blur-2xl"
           >
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-              <BrandSwitcher brand={brand} onChange={handleBrand} />
+              <BrandSwitcher
+                brand={brand}
+                onChange={handleBrand}
+                enableEssilor={essilorPagesReady}
+                enableHoya={hoyaPagesReady}
+              />
               <p className="text-xs text-white/45">多品牌价目与翻页将逐接入</p>
             </div>
             <p className="text-sm text-white/60">
-              依视路、豪雅等品牌的数字化价目与 3D 手册能力即将上线。当前请切换回「蔡司」查看完整矩阵与价目联动。
+              当前品牌在 <code className="rounded bg-black/30 px-1">HANDBOOK_BRAND_REGISTRY</code> 中尚无物理页表。
+              请切换至已挂载手册的品牌（如蔡司、依视路钻晶），或补全该品牌的 <code className="rounded bg-black/30 px-1">*HandbookPageMap</code>。
             </p>
-            {brand === 'essilor' ? (
-              <div
-                role="status"
-                className="mt-4 rounded-lg border border-amber-500/40 bg-amber-950/30 px-3 py-2 text-[12px] font-medium leading-snug text-amber-100/95"
-              >
-                Matrix V1.1：依视路已登记 <code className="rounded bg-black/30 px-1">MATRIX_BRAND_REGISTRY</code>
-                ，<code className="rounded bg-black/30 px-1">essilorHandbookPageMap</code> 为空 — 数据待补全（与插件 B
-                多品牌占位一致；启动自检会输出 Multi-brand 告警）。
-              </div>
-            ) : null}
           </motion.div>
         </AnimatePresence>
       </div>
@@ -710,7 +730,12 @@ export function ZeissDigitalHandbook() {
         <div ref={previewShellRef} className="relative w-full max-w-[min(100%,900px)] xl:max-w-[min(100%,720px+11rem)]">
           <div className="mb-2 flex flex-col gap-2 px-1 max-xl:px-0 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 flex-wrap items-center gap-2.5">
-              <BrandSwitcher brand={brand} onChange={handleBrand} />
+              <BrandSwitcher
+                brand={brand}
+                onChange={handleBrand}
+                enableEssilor={essilorPagesReady}
+                enableHoya={hoyaPagesReady}
+              />
               {total > 0 ? (
                 <motion.span
                   key={currentPage}
@@ -818,7 +843,7 @@ export function ZeissDigitalHandbook() {
             </div>
           </div>
           <p className="mt-2 text-center text-[10px] text-white/40">翻页时单击书角或拖拽；右侧系列与价目主档、内嵌图与物理页经 getPageData 同步</p>
-          {process.env.NODE_ENV === 'development' && embeddedHandbookPageCount() === 0 ? (
+          {process.env.NODE_ENV === 'development' && brand === 'zeiss' && embeddedHandbookPageCount() === 0 ? (
             <p className="mt-1 text-center text-[10px] text-amber-200/50">
               内嵌图未写入：可运行 <code className="text-white/70">npm run catalog:embed-handbook-to-matrix</code> 将 PDF
               页压入 2026_price_matrix.json
@@ -889,7 +914,13 @@ export function ZeissDigitalHandbook() {
                         <p id={modalId} className="sr-only">
                           蔡司价目册全屏预览
                         </p>
-                        <BrandSwitcher brand={brand} onChange={handleBrand} className="shrink-0" />
+                        <BrandSwitcher
+                          brand={brand}
+                          onChange={handleBrand}
+                          className="shrink-0"
+                          enableEssilor={essilorPagesReady}
+                          enableHoya={hoyaPagesReady}
+                        />
                         {total > 0 ? (
                           <motion.span
                             key={currentPage}

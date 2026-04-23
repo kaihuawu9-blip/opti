@@ -24,6 +24,13 @@ import { useAuth } from '@/components/AuthProvider';
 import { useAppNavigate } from '@/lib/useAppNavigate';
 import { roleNameMap } from '@/lib/permissions';
 import type { PrintOrder } from '@/components/PrintTemplate';
+import type { EyewearReceiptPayload, ReceiptMeta } from '@/lib/api/dataAdapter';
+import {
+  tryBuildEyewearReceiptFromMatrixCart,
+  runCashierAdapterDemoMissingPd,
+  runCashierAdapterDemoInvalidSphereStep,
+  type MatrixThermalReceiptBuildResult,
+} from '@/lib/api/cashierMatrixReceiptBridge';
 import { ReceiptPrintBundle } from '@/components/cashier/ReceiptPrintBundle';
 import { resolveStoreDisplayName } from '@/lib/storeDisplayName';
 import { ReceiptDesktopPrinterBar } from '@/components/ReceiptDesktopPrinterBar';
@@ -461,6 +468,10 @@ type LastOrder = {
   meituanVoucher?: string;
   /** 结算成功后构造并注入打印模板的订单对象 */
   orderObject: PrintOrder;
+  /** 价目矩阵 SKU 校价后的行业小票载荷（热敏 / 兼容打印优先消费） */
+  thermalReceiptPayload?: EyewearReceiptPayload | null;
+  /** strict 适配失败原因（不阻断结算，仅提示） */
+  thermalReceiptErrors?: string[];
 };
 
 type OrderLookupRow = {
@@ -803,6 +814,8 @@ export default function CashierPage() {
   /** 平板视口（max-xl）：右侧结算轨 Slide-over */
   const [checkoutDrawerOpen, setCheckoutDrawerOpen] = useState(false);
   const [successToast, setSuccessToast] = useState<string | null>(null);
+  /** 数据海关 / 行业小票载荷生成反馈（琥珀色） */
+  const [matrixReceiptToast, setMatrixReceiptToast] = useState<string | null>(null);
   const voiceMediaRecorderRef = useRef<MediaRecorder | null>(null);
   const voiceChunksRef = useRef<BlobPart[]>([]);
   const voiceStreamRef = useRef<MediaStream | null>(null);
@@ -1384,7 +1397,13 @@ export default function CashierPage() {
   useEffect(() => {
     const off = onHandbookAddToCart((payload) => {
       const base = toCashierLensProduct(payload);
-      addToCart(base as unknown as Product);
+      addToCart(base as unknown as Product, {
+        zeissMatrixRxRef: {
+          productName: payload.productName,
+          index: payload.index,
+          coating: payload.coating,
+        },
+      });
     });
     return off;
   }, [addToCart]);
@@ -2414,6 +2433,20 @@ export default function CashierPage() {
     return true;
   };
 
+  const scheduleThermalReceiptFeedback = (r: MatrixThermalReceiptBuildResult) => {
+    window.setTimeout(() => {
+      if (r.payload) {
+        setMatrixReceiptToast(
+          'StandardEye：行业小票载荷已生成（价目矩阵 SKU 已校价），打印将优先使用专票版式。',
+        );
+        window.setTimeout(() => setMatrixReceiptToast(null), 4200);
+      } else if (r.errors.length > 0) {
+        setMatrixReceiptToast(`数据海关：${r.errors.join('；')}（仍可使用销售小票打印）`);
+        window.setTimeout(() => setMatrixReceiptToast(null), 6800);
+      }
+    }, 0);
+  };
+
   /**
    * 落库销售并扣库存。
    * @param skipOptionalPaymentLog 为 true 时不写 payment_transactions（已由扫码流程写入，或用户选择不记流水）
@@ -2469,6 +2502,18 @@ export default function CashierPage() {
           tintInfo: item.tint_info || null,
         })),
       };
+      const thermalMeta: ReceiptMeta = {
+        storeName: String(settledOrderObject.store_name || '').trim() || '门店',
+        orderNo: localSaleNo,
+        createdAt: String(settledOrderObject.created_at || ''),
+        customerName: customerName.trim(),
+        customerPhone: customerPhone.trim(),
+      };
+      const thermalBuild = tryBuildEyewearReceiptFromMatrixCart({
+        cart: saleCart,
+        meta: thermalMeta,
+        getFinalUnitPrice,
+      });
       setLastOrder({
         store: stores.find((s) => s.id === selectedStoreId)?.name,
         customer: { name: customerName.trim(), phone: customerPhone.trim() },
@@ -2481,7 +2526,10 @@ export default function CashierPage() {
         paymentMethod: pm,
         meituanVoucher: pm === 'meituan_douyin' ? meituanVoucherSnap : undefined,
         orderObject: settledOrderObject,
+        thermalReceiptPayload: thermalBuild.payload,
+        thermalReceiptErrors: thermalBuild.errors.length ? thermalBuild.errors : undefined,
       });
+      scheduleThermalReceiptFeedback(thermalBuild);
       setShowReceipt(true);
       setCart([]);
       setUnitPriceDraftByLine({});
@@ -2674,6 +2722,19 @@ export default function CashierPage() {
       })),
     };
 
+    const thermalMetaCloud: ReceiptMeta = {
+      storeName: String(settledOrderObject.store_name || '').trim() || '门店',
+      orderNo: saleNo,
+      createdAt: String(settledOrderObject.created_at || ''),
+      customerName: customerName.trim(),
+      customerPhone: customerPhone.trim(),
+    };
+    const thermalBuildCloud = tryBuildEyewearReceiptFromMatrixCart({
+      cart: saleCart,
+      meta: thermalMetaCloud,
+      getFinalUnitPrice,
+    });
+
     setLastOrder({
       store: stores.find((s) => s.id === selectedStoreId)?.name,
       customer: { name: customerName.trim(), phone: customerPhone.trim() },
@@ -2686,7 +2747,10 @@ export default function CashierPage() {
       paymentMethod: pm,
       meituanVoucher: pm === 'meituan_douyin' ? meituanVoucherSnap : undefined,
       orderObject: settledOrderObject,
+      thermalReceiptPayload: thermalBuildCloud.payload,
+      thermalReceiptErrors: thermalBuildCloud.errors.length ? thermalBuildCloud.errors : undefined,
     });
+    scheduleThermalReceiptFeedback(thermalBuildCloud);
     setShowReceipt(true);
     setCart([]);
     setUnitPriceDraftByLine({});
@@ -2794,7 +2858,9 @@ export default function CashierPage() {
   };
 
   const handleManualReceiptPrint = useCallback(async () => {
-    if (!lastOrder?.orderObject || receiptPrinting) return;
+    if (!lastOrder || receiptPrinting) return;
+    const receiptForPrint = lastOrder.thermalReceiptPayload ?? lastOrder.orderObject;
+    if (!receiptForPrint) return;
     setReceiptPrinting(true);
     try {
       const hasElectronBridge =
@@ -2804,7 +2870,7 @@ export default function CashierPage() {
       const isCoarsePointer =
         typeof window !== 'undefined' && Boolean(window.matchMedia?.('(pointer: coarse)').matches);
       if (!hasElectronBridge && supportsWebBluetooth && isCoarsePointer) {
-        await printReceiptViaWebBluetooth(lastOrder.orderObject);
+        await printReceiptViaWebBluetooth(receiptForPrint);
         return;
       }
       if (!hasElectronBridge && isCoarsePointer && !supportsWebBluetooth) {
@@ -2815,7 +2881,7 @@ export default function CashierPage() {
         printCashierBundleReact();
         return;
       }
-      await printReceiptWithElectronPreference(lastOrder.orderObject);
+      await printReceiptWithElectronPreference(receiptForPrint);
     } catch (e) {
       console.error('手动打印失败:', e);
       const msg = e instanceof Error ? e.message : String(e);
@@ -2826,7 +2892,9 @@ export default function CashierPage() {
   }, [lastOrder, receiptPrinting, printCashierBundleReact]);
 
   const handleBluetoothReceiptPrint = useCallback(async () => {
-    if (!lastOrder?.orderObject || receiptBtPrinting) return;
+    if (!lastOrder || receiptBtPrinting) return;
+    const receiptForPrint = lastOrder.thermalReceiptPayload ?? lastOrder.orderObject;
+    if (!receiptForPrint) return;
     setReceiptBtPrinting(true);
     try {
       if (typeof window !== 'undefined' && !window.isSecureContext) {
@@ -2838,7 +2906,7 @@ export default function CashierPage() {
         window.alert(noBt);
         return;
       }
-      await printReceiptViaWebBluetooth(lastOrder.orderObject);
+      await printReceiptViaWebBluetooth(receiptForPrint);
     } catch (e) {
       console.error('蓝牙打印失败:', e);
       const msg = e instanceof Error ? e.message : String(e);
@@ -3113,6 +3181,19 @@ export default function CashierPage() {
             {successToast}
           </motion.div>
         ) : null}
+        {matrixReceiptToast ? (
+          <motion.div
+            key="cashier-matrix-receipt-toast"
+            role="status"
+            initial={{ opacity: 0, y: -12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ type: 'spring', stiffness: 420, damping: 32 }}
+            className="fixed top-[3.25rem] left-1/2 z-[55] max-w-[min(94vw,26rem)] -translate-x-1/2 rounded-lg bg-amber-700 px-3 py-2 text-center text-xs font-semibold leading-snug text-white shadow-lg"
+          >
+            {matrixReceiptToast}
+          </motion.div>
+        ) : null}
       </AnimatePresence>
       <div className="flex flex-col gap-2.5 sm:flex-row sm:justify-between sm:items-center">
         <div className="flex flex-col gap-1 min-w-0">
@@ -3146,15 +3227,35 @@ export default function CashierPage() {
             固定模板（全部重选）
           </button>
           {TEST_ONE_CLICK_CHECKOUT_ENABLED ? (
-            <button
-              type="button"
-              onClick={() => handleTestOneClickCheckout()}
-              disabled={paying || checkoutSubmitting}
-              title="自动填入测试客人与一条测试商品，现金结算并打开小票预览（不落 SKU 库存）"
-              className="min-h-[44px] px-3 py-2 text-sm rounded-lg border border-amber-300 bg-amber-50 text-amber-950 font-semibold hover:bg-amber-100 disabled:opacity-50"
-            >
-              测试一键出单
-            </button>
+            <>
+              <button
+                type="button"
+                onClick={() => handleTestOneClickCheckout()}
+                disabled={paying || checkoutSubmitting}
+                title="自动填入测试客人与一条测试商品，现金结算并打开小票预览（不落 SKU 库存）"
+                className="min-h-[44px] px-3 py-2 text-sm rounded-lg border border-amber-300 bg-amber-50 text-amber-950 font-semibold hover:bg-amber-100 disabled:opacity-50"
+              >
+                测试一键出单
+              </button>
+              <button
+                type="button"
+                onClick={() => window.alert(runCashierAdapterDemoMissingPd())}
+                disabled={paying || checkoutSubmitting}
+                title="触发 MissingFieldError：无瞳距 PD"
+                className="min-h-[44px] px-2 py-2 text-xs rounded-lg border border-rose-200 bg-rose-50 text-rose-900 font-semibold hover:bg-rose-100 disabled:opacity-50"
+              >
+                模拟 PD 缺失
+              </button>
+              <button
+                type="button"
+                onClick={() => window.alert(runCashierAdapterDemoInvalidSphereStep())}
+                disabled={paying || checkoutSubmitting}
+                title="触发 InvalidFieldError：球镜非 0.25 步进"
+                className="min-h-[44px] px-2 py-2 text-xs rounded-lg border border-rose-200 bg-rose-50 text-rose-900 font-semibold hover:bg-rose-100 disabled:opacity-50"
+              >
+                模拟步进错误
+              </button>
+            </>
           ) : null}
           <span className="text-sm text-gray-500">当前门店：</span>
           <select

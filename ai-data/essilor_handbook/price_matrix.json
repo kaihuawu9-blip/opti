@@ -1,0 +1,96 @@
+{
+  "_source": "essilor-handbook-v1.3-seed",
+  "_effective": { "from": "2026-04-24", "to": "2027-04-24" },
+  "_currency": "CNY",
+  "_unit": "片",
+  "_extractedAt": "2026-04-24T12:00:00.000Z",
+  "handbookPageImageData": {},
+  "products": [
+    {
+      "brand": "ESSILOR",
+      "productName": "钻晶A4单光",
+      "englishName": "Crizal Rock / A4 (seed)",
+      "lensType": "SingleVision",
+      "lensCategory": "单光",
+      "catalog_page_reference": { "pdfIndex": 2, "printedPage": 1 },
+      "description": "依视路钻晶系列 · 首批收割样例（价目为占位参考，可随合同替换）",
+      "series": [
+        {
+          "name": "标配",
+          "rows": [
+            {
+              "index": 1.56,
+              "coating": "钻晶A4膜",
+              "coatingCode": "A4",
+              "retailYuan": 688,
+              "tintable": false
+            },
+            {
+              "index": 1.6,
+              "coating": "钻晶A4膜",
+              "coatingCode": "A4",
+              "retailYuan": 988,
+              "tintable": false
+            },
+            {
+              "index": 1.67,
+              "coating": "钻晶A4膜",
+              "coatingCode": "A4",
+              "retailYuan": 1488,
+              "tintable": false
+            }
+          ]
+        }
+      ],
+      "powerRanges": {
+        "1.6": {
+          "sphere_d": { "min": -12, "max": 6 },
+          "cylinder_d": { "min": -6, "max": 6 },
+          "source": "essilor-v1.3-seed"
+        }
+      }
+    },
+    {
+      "brand": "ESSILOR",
+      "productName": "钻晶膜岩单光",
+      "lensType": "SingleVision",
+      "lensCategory": "单光",
+      "catalog_page_reference": { "pdfIndex": 3, "printedPage": 2 },
+      "series": [
+        {
+          "name": "标配",
+          "rows": [
+            {
+              "index": 1.56,
+              "coating": "钻晶膜岩",
+              "coatingCode": "ROCK",
+              "retailYuan": 788,
+              "tintable": false
+            },
+            {
+              "index": 1.6,
+              "coating": "钻晶膜岩",
+              "coatingCode": "ROCK",
+              "retailYuan": 1088,
+              "tintable": false
+            },
+            {
+              "index": 1.67,
+              "coating": "钻晶膜岩",
+              "coatingCode": "ROCK",
+              "retailYuan": 1588,
+              "tintable": false
+            }
+          ]
+        }
+      ],
+      "powerRanges": {
+        "1.6": {
+          "sphere_d": { "min": -12, "max": 6 },
+          "cylinder_d": { "min": -6, "max": 6 },
+          "source": "essilor-v1.3-seed"
+        }
+      }
+    }
+  ]
+}

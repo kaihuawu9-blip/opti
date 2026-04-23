@@ -24,6 +24,12 @@ export const MATRIX_BRAND_REGISTRY: readonly MatrixBrandRegistryEntry[] = Object
     label: '依视路',
     handbookPageMapFile: 'src/data/essilorHandbookPageMap.ts',
     /** 占位 JSON：自检仅登记路径，不强制解析为空文件 */
-    priceMatrixJsonFile: 'ai-data/essilor_handbook/price_matrix.stub.json',
+    priceMatrixJsonFile: 'ai-data/essilor_handbook/price_matrix.json',
+  },
+  {
+    brandKey: 'HOYA',
+    label: '豪雅',
+    handbookPageMapFile: 'src/data/hoyaHandbookPageMap.ts',
+    priceMatrixJsonFile: 'ai-data/hoya_handbook/price_matrix.stub.json',
   },
 ]);

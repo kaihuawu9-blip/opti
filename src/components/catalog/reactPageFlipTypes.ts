@@ -2,7 +2,7 @@
  * react-pageflip 默认导出在 dynamic + 严格 TS 下会丢失泛型与 ref 类型。
  * 此处用显式契约描述引擎句柄与 props，供 ZeissDigitalHandbook 使用。
  */
-import type { CSSProperties, ReactNode } from 'react';
+import type { CSSProperties, ReactNode, Ref } from 'react';
 
 /** 与库内 St/PageFlip 实例对齐的最小可调 API */
 export type PageFlipEngine = {
@@ -19,6 +19,7 @@ export type ReactPageFlipRef = {
 
 /** 本项目中实际传入 HTMLFlipBook 的 props 子集（其余透传由库忽略） */
 export type ReactPageFlipProps = {
+  ref?: Ref<ReactPageFlipRef | null>;
   children?: ReactNode;
   className?: string;
   style?: CSSProperties;

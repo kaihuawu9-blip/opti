@@ -8,6 +8,7 @@
 
 import { MATRIX_BRAND_REGISTRY } from '@/data/matrixBrandRegistry';
 import { ESSILOR_HANDBOOK_PAGE_MAP } from '@/data/essilorHandbookPageMap';
+import { HOYA_HANDBOOK_PAGE_MAP } from '@/data/hoyaHandbookPageMap';
 import {
   ZEISS_HANDBOOK_PAGE_IMAGE_DATA,
   ZEISS_PRICE_MATRIX,
@@ -79,6 +80,12 @@ export function runMatrixSelfCheckProtocol(): MatrixSelfCheckResult {
   if (MATRIX_BRAND_REGISTRY.some((b) => b.brandKey === 'ESSILOR') && ESSILOR_HANDBOOK_PAGE_MAP.length === 0) {
     warnings.push(
       `${BANNER}[Multi-brand/V1.1] ESSILOR 已登记 MATRIX_BRAND_REGISTRY，但 essilorHandbookPageMap 为空 — 手册与插件 B 为「数据待补全」占位态`,
+    );
+  }
+
+  if (MATRIX_BRAND_REGISTRY.some((b) => b.brandKey === 'HOYA') && HOYA_HANDBOOK_PAGE_MAP.length === 0) {
+    warnings.push(
+      `${BANNER}[Multi-brand/V1.2] HOYA 已登记 MATRIX_BRAND_REGISTRY，但 hoyaHandbookPageMap 为空 — 手册与插件 B 为「数据待补全」占位态`,
     );
   }
 
