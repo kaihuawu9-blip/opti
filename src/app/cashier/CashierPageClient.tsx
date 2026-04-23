@@ -14,6 +14,7 @@ import {
   ClipboardList,
   Glasses,
   Camera,
+  Image as ImageIcon,
   Mic,
   PanelRight,
   Library,
@@ -46,6 +47,7 @@ import { CUSTOM_COMBO_CATEGORY, isCustomComboLine, isLensProduct, isRxComplete }
 import { ReadonlyCartBlock } from '@/components/cashier/ReadonlyCartBlock';
 import { QuickCheckoutList } from '@/components/cashier/QuickCheckoutList';
 import { DraggableCashierModal } from '@/components/cashier/DraggableCashierModal';
+import { WebCameraCaptureModal } from '@/components/WebCameraCaptureModal';
 import { CartLineOperations } from '@/components/cashier/CartLineOperations';
 import '@/styles/Print.css';
 import { CASHIER_OPEN_CHECKOUT_DRAWER_EVENT } from '@/lib/cashierCheckoutEvents';
@@ -82,6 +84,58 @@ function snapshotCartForSale(items: CartItem[]): CartItem[] {
       left: { ...item.rx.left },
     },
   }));
+}
+
+type CustomAddOcrExtract = Awaited<ReturnType<typeof runServerCashierCustomAddOcr>>;
+
+/**
+ * 镜片包装 OCR：将 `/api/ocr` custom_add（分类「镜片」）结果填入「自由填报」品牌/系列/折射率/膜层。
+ */
+function applyLensPackagingOcrToManualFields(
+  r: CustomAddOcrExtract,
+  set: {
+    setLensManualBrand: (v: string) => void;
+    setLensManualSeries: (v: string) => void;
+    setLensManualIndex: (v: string) => void;
+    setLensManualCoating: (v: string) => void;
+  },
+) {
+  const { ocrMode, productName, modelLine, brand, model, size, color } = r;
+  const ml = (modelLine || '').trim();
+  if (ocrMode === 'temple' && (brand || model)) {
+    set.setLensManualBrand((brand || '').trim());
+    set.setLensManualSeries((model || productName || '').trim());
+    const sz = (size || '').trim();
+    set.setLensManualIndex(/\d+\.\d{2}/.test(sz) ? sz : '');
+    set.setLensManualCoating((color || ml || '').trim());
+    return;
+  }
+  const pn = (productName || '').trim();
+  const segs = pn.split(/\s*·\s*/).map((s) => s.trim()).filter(Boolean);
+  if (segs.length >= 4) {
+    set.setLensManualBrand(segs[0].replace(/镜片\s*$/u, '').trim());
+    set.setLensManualSeries(segs[1]);
+    set.setLensManualIndex(segs[2]);
+    set.setLensManualCoating(segs.slice(3).join(' · '));
+  } else if (segs.length === 3) {
+    set.setLensManualBrand(segs[0].replace(/镜片\s*$/u, '').trim());
+    set.setLensManualSeries(segs[1]);
+    set.setLensManualIndex(segs[2]);
+    set.setLensManualCoating(ml || '');
+  } else if (segs.length === 2) {
+    set.setLensManualBrand(segs[0].replace(/镜片\s*$/u, '').trim());
+    set.setLensManualSeries(segs[1]);
+    const mlSegs = ml.split(/\s*·\s*/).map((s) => s.trim()).filter(Boolean);
+    if (mlSegs.length >= 2) {
+      set.setLensManualIndex(mlSegs[0]);
+      set.setLensManualCoating(mlSegs.slice(1).join(' · '));
+    } else {
+      set.setLensManualIndex(ml);
+    }
+  } else if (pn) {
+    set.setLensManualBrand(pn.replace(/镜片\s*$/u, '').trim());
+    if (ml) set.setLensManualSeries(ml);
+  }
 }
 
 /**
@@ -706,9 +760,19 @@ export default function CashierPage() {
   const [customProductOcrEvidenceUrl, setCustomProductOcrEvidenceUrl] = useState<string | null>(null);
   /** 自定义商品名称「相机眼」OCR 进行中（仅调 /api/ocr，与库存列表/图片接口无关） */
   const [customAddNameOcrBusy, setCustomAddNameOcrBusy] = useState(false);
-  /** 与 label htmlFor 同源：原生 file 控件才是相机/相册入口（移动端易唤起后置相机） */
-  const customAddOcrCaptureId = useId();
-  const customAddOcrFileInputRef = useRef<HTMLInputElement>(null);
+  /** 相册选图：隐藏 file；拍照走 `WebCameraCaptureModal`（getUserMedia），避免桌面端仅弹出「选取文件」 */
+  const customAddOcrGalleryId = useId();
+  const lensPackagingOcrGalleryId = useId();
+  const customAddOcrGalleryRef = useRef<HTMLInputElement>(null);
+  const lensPackagingOcrGalleryRef = useRef<HTMLInputElement>(null);
+  const [cashierOcrWebCamOpen, setCashierOcrWebCamOpen] = useState(false);
+  /** true = 镜片包装 OCR；false = 自定义商品（镜框等）名称 OCR */
+  const [cashierOcrWebCamForLens, setCashierOcrWebCamForLens] = useState(false);
+
+  useEffect(() => {
+    if (productInfoModalCategory === null) setCashierOcrWebCamOpen(false);
+  }, [productInfoModalCategory]);
+
   /** 镜片自定义：品牌（原「蔡司」位，自填其它品牌）+ 系列/折射率/膜层 */
   const [lensManualBrand, setLensManualBrand] = useState('');
   const [lensManualSeries, setLensManualSeries] = useState('');
@@ -1601,6 +1665,65 @@ export default function CashierPage() {
     [runCustomAddNameOcrFromBlob],
   );
 
+  const runLensPackagingOcrFromBlob = useCallback(async (blob: Blob) => {
+    setCustomAddNameOcrBusy(true);
+    setCustomProductOcrEvidenceUrl(null);
+    try {
+      const extracted = await runServerCashierCustomAddOcr(blob, 'lens_box.jpg', '镜片');
+      const ev =
+        typeof extracted.evidenceUrl === 'string' && extracted.evidenceUrl.trim()
+          ? extracted.evidenceUrl.trim()
+          : null;
+      setCustomProductOcrEvidenceUrl(ev);
+      applyLensPackagingOcrToManualFields(extracted, {
+        setLensManualBrand,
+        setLensManualSeries,
+        setLensManualIndex,
+        setLensManualCoating,
+      });
+      const hasAny =
+        extracted.productName?.trim() ||
+        extracted.modelLine?.trim() ||
+        extracted.brand?.trim() ||
+        extracted.model?.trim();
+      if (!hasAny) {
+        window.alert(`未识别到可用的镜片信息。原文节选：${(extracted.rawText ?? '').slice(0, 160)}`);
+      }
+    } catch (e) {
+      window.alert(e instanceof Error ? e.message : String(e));
+    } finally {
+      setCustomAddNameOcrBusy(false);
+    }
+  }, []);
+
+  const onLensPackagingOcrFileInputChange = useCallback(
+    async (e: ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      e.target.value = '';
+      if (!file) return;
+      try {
+        const blob = await compressImageFileToJpegBlob(file, { maxBytes: 1_800_000 });
+        await runLensPackagingOcrFromBlob(blob);
+      } catch (err) {
+        window.alert(err instanceof Error ? err.message : String(err));
+      }
+    },
+    [runLensPackagingOcrFromBlob],
+  );
+
+  const handleCashierOcrWebCamCapture = useCallback(
+    async (blob: Blob) => {
+      const file = new File([blob], 'capture.jpg', { type: 'image/jpeg' });
+      const jpegBlob = await compressImageFileToJpegBlob(file, { maxBytes: 1_800_000 });
+      if (cashierOcrWebCamForLens) {
+        await runLensPackagingOcrFromBlob(jpegBlob);
+      } else {
+        await runCustomAddNameOcrFromBlob(jpegBlob);
+      }
+    },
+    [cashierOcrWebCamForLens, runLensPackagingOcrFromBlob, runCustomAddNameOcrFromBlob],
+  );
+
   const createCustomProductAndAddToCart = useCallback(async () => {
     if (showLensSkuUi) {
       if (lensPriceMode === 'catalog') {
@@ -2151,7 +2274,7 @@ export default function CashierPage() {
     if (profile && profile.role !== 'owner') {
       if (!profile.store_id) {
         window.alert(
-          '当前账号未绑定所属门店，无法保存销售与扣库存。请管理员在「权限管理」或数据库 user_profiles 中为该账号设置 store_id 后重新登录。',
+          '当前账号未绑定所属门店，无法保存销售与扣库存。请联系部署管理员，在数据库 user_profiles 中为该账号设置 store_id 后重新登录。',
         );
         return false;
       }
@@ -2828,7 +2951,7 @@ export default function CashierPage() {
           若侧栏菜单中看不到「收银台」，可在侧栏菜单设置中勾选显示；若入口可见但仍提示无权限，请按下方说明开通 <code className="text-[11px]">cashier.view</code>。
         </p>
         <p className="text-xs text-amber-800/90">
-          若已开启正式登录（<code className="text-[11px]">NEXT_PUBLIC_ENABLE_AUTH=true</code>），请管理员在「权限管理」中为该角色开启{' '}
+          若已开启正式登录（<code className="text-[11px]">NEXT_PUBLIC_ENABLE_AUTH=true</code>），请部署管理员在数据库 / 策略中为该角色开启{' '}
           <code className="text-[11px]">cashier.view</code>。
         </p>
         <button
@@ -3546,6 +3669,52 @@ export default function CashierPage() {
                       </div>
                     ) : (
                       <div className="space-y-2">
+                        <div className="rounded-lg border border-blue-100 bg-blue-50/50 px-2 py-2 space-y-1.5">
+                          <p className="text-[10px] font-semibold text-blue-900">镜片包装 · 拍照识别（选填）</p>
+                          <div className="flex flex-wrap items-center gap-1">
+                            <input
+                              ref={lensPackagingOcrGalleryRef}
+                              id={lensPackagingOcrGalleryId}
+                              type="file"
+                              accept="image/*"
+                              disabled={customAddNameOcrBusy || customProductBusy}
+                              className="sr-only"
+                              tabIndex={-1}
+                              aria-hidden
+                              onChange={(e) => void onLensPackagingOcrFileInputChange(e)}
+                            />
+                            <button
+                              type="button"
+                              disabled={customAddNameOcrBusy || customProductBusy}
+                              onClick={() => {
+                                const el = lensPackagingOcrGalleryRef.current;
+                                if (el) el.value = '';
+                                lensPackagingOcrGalleryRef.current?.click();
+                              }}
+                              className="inline-flex items-center gap-0.5 rounded-md border border-blue-200 bg-white px-2 py-0.5 text-[10px] font-medium text-blue-800 hover:bg-blue-50 disabled:opacity-50"
+                            >
+                              <ImageIcon className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                              相册选图
+                            </button>
+                            <button
+                              type="button"
+                              disabled={customAddNameOcrBusy || customProductBusy}
+                              onClick={() => {
+                                setCashierOcrWebCamForLens(true);
+                                setCashierOcrWebCamOpen(true);
+                              }}
+                              className="inline-flex items-center gap-0.5 rounded-md border border-blue-200 bg-white px-2 py-0.5 text-[10px] font-medium text-blue-800 hover:bg-blue-50 disabled:opacity-50"
+                              title="打开实时摄像头抓拍（非系统选文件）"
+                            >
+                              <Camera className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                              拍照识别
+                            </button>
+                          </div>
+                          <p className="text-[9px] text-gray-600 leading-snug">
+                            「相册选图」为本机文件；「拍照识别」为<strong>实时摄像头</strong>。走本机{' '}
+                            <code className="text-[9px]">/api/ocr</code>，结果填入下方四格，请核对。
+                          </p>
+                        </div>
                         <div className="space-y-1.5">
                           <input
                             value={lensManualBrand}
@@ -3593,48 +3762,55 @@ export default function CashierPage() {
                 ) : (
                   <>
                     <div className="block text-[11px] text-gray-600">
-                      <span className="block">商品名称</span>
-                      <div className="relative mt-0.5">
-                        <input
-                          value={customProductName}
-                          onChange={(e) => setCustomProductName(e.target.value)}
-                          placeholder="商品名称（必填，可拍照识别包装或镜腿）"
-                          className="w-full text-sm border border-gray-200 rounded-lg py-1.5 pl-2 pr-11"
-                        />
-                        <input
-                          ref={customAddOcrFileInputRef}
-                          id={customAddOcrCaptureId}
-                          type="file"
-                          accept="image/*"
-                          capture="environment"
-                          disabled={customAddNameOcrBusy || customProductBusy}
-                          className="sr-only"
-                          tabIndex={-1}
-                          aria-hidden
-                          onChange={(e) => void onCustomAddOcrFileInputChange(e)}
-                        />
-                        {/*
-                          相机眼：用 label htmlFor 触发原生 file，无 onClick；不得接库存图片 API。
-                          全部分类（镜框/套餐/其他…）在「非镜片价目表」路径下均走同一 OCR，后端 intent=custom_add + Paddle。
-                        */}
-                        <label
-                          htmlFor={customAddOcrCaptureId}
-                          onPointerDownCapture={() => {
-                            if (customAddNameOcrBusy || customProductBusy) return;
-                            const el = customAddOcrFileInputRef.current;
-                            if (el) el.value = '';
-                          }}
-                          className={`absolute right-1 top-1/2 -translate-y-1/2 rounded-full p-2 text-blue-600 hover:bg-gray-100 ${
-                            customAddNameOcrBusy || customProductBusy
-                              ? 'pointer-events-none opacity-50'
-                              : 'cursor-pointer'
-                          }`}
-                          title="拍照识别（按文字自动选用镜腿或通用品名解析）"
-                          aria-label="拍照或选择图片以识别商品名称"
-                        >
-                          <Camera className="h-5 w-5" aria-hidden />
-                        </label>
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <span>商品名称</span>
+                        <div className="flex flex-wrap items-center gap-1">
+                          <input
+                            ref={customAddOcrGalleryRef}
+                            id={customAddOcrGalleryId}
+                            type="file"
+                            accept="image/*"
+                            disabled={customAddNameOcrBusy || customProductBusy}
+                            className="sr-only"
+                            tabIndex={-1}
+                            aria-hidden
+                            onChange={(e) => void onCustomAddOcrFileInputChange(e)}
+                          />
+                          <button
+                            type="button"
+                            disabled={customAddNameOcrBusy || customProductBusy}
+                            onClick={() => {
+                              const el = customAddOcrGalleryRef.current;
+                              if (el) el.value = '';
+                              customAddOcrGalleryRef.current?.click();
+                            }}
+                            className="inline-flex items-center gap-0.5 rounded-md border border-blue-200 bg-white px-2 py-0.5 text-[10px] font-medium text-blue-800 hover:bg-blue-50 disabled:opacity-50"
+                            title="从相册选图识别（镜框包装/镜腿等）"
+                          >
+                            <ImageIcon className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                            相册
+                          </button>
+                          <button
+                            type="button"
+                            disabled={customAddNameOcrBusy || customProductBusy}
+                            onClick={() => {
+                              setCashierOcrWebCamForLens(false);
+                              setCashierOcrWebCamOpen(true);
+                            }}
+                            className="inline-flex items-center gap-0.5 rounded-md border border-blue-200 bg-white px-2 py-0.5 text-[10px] font-medium text-blue-800 hover:bg-blue-50 disabled:opacity-50"
+                            title="打开实时摄像头抓拍（非系统选文件）"
+                          >
+                            <Camera className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                            拍照
+                          </button>
+                        </div>
                       </div>
+                      <input
+                        value={customProductName}
+                        onChange={(e) => setCustomProductName(e.target.value)}
+                        placeholder="商品名称（必填，可拍照识别包装或镜腿）"
+                        className="mt-0.5 w-full text-sm border border-gray-200 rounded-lg py-1.5 px-2"
+                      />
                       {customProductOcrEvidenceUrl ? (
                         <p className="mt-1 text-[10px] text-emerald-800 leading-snug">
                           OCR 原图已存证，将随本商品写入库存与购物车：
@@ -4377,6 +4553,13 @@ export default function CashierPage() {
             </div>
           </div>
       </AppModal>
+
+      <WebCameraCaptureModal
+        open={cashierOcrWebCamOpen}
+        onClose={() => setCashierOcrWebCamOpen(false)}
+        title={cashierOcrWebCamForLens ? '镜片包装 · 摄像头拍照' : '自定义商品 · 摄像头拍照'}
+        onCapture={handleCashierOcrWebCamCapture}
+      />
     </div>
   );
 }

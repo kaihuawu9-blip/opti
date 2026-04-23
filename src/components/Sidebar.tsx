@@ -9,7 +9,6 @@ import {
   LayoutDashboard,
   Search,
   Wrench,
-  Bot,
   Store,
   Settings,
   Landmark,
@@ -23,9 +22,6 @@ import {
   Wallet,
   Library,
   Microscope,
-  Shield,
-  BookOpen,
-  Box,
 } from 'lucide-react';
 import { useAuth } from '@/components/AuthProvider';
 import { useDeviceLayout } from '@/contexts/DeviceLayoutContext';
@@ -137,7 +133,6 @@ const Sidebar = ({ onRequestNavCollapse, tabletStaffRail = false, bossTabletRail
       { name: '客户查询', href: '/customers', icon: Search, visible: hasPermission('customers.view') },
       { name: '价格手册', href: '/catalog', icon: Library, visible: hasPermission('cashier.view') },
       { name: '光学实验室', href: '/lens-physics', icon: Microscope, visible: hasPermission('cashier.view') },
-      { name: '科普', href: '/kepu', icon: BookOpen, visible: hasPermission('cashier.view') },
     ],
     [hasPermission],
   );
@@ -152,25 +147,12 @@ const Sidebar = ({ onRequestNavCollapse, tabletStaffRail = false, bossTabletRail
 
   const otherNavItems = useMemo(
     (): NavItem[] => [
-      {
-        name: '权限管理',
-        href: '/admin',
-        icon: Shield,
-        visible: !isStaff && hasPermission('admin.view'),
-      },
-      {
-        name: '镜架3D上传',
-        href: '/admin/frames/upload',
-        icon: Box,
-        visible: !isStaff && hasPermission('admin.view'),
-      },
-      { name: 'AI入口', href: '/ai', icon: Bot, visible: true },
       { name: 'AI试戴', href: '/test/try-on', icon: Sparkles, visible: true },
       { name: '线上运营', href: '/online', icon: Store, visible: true },
       { name: '工具', href: '/tools', icon: Wrench, visible: true },
       { name: '关于', href: '/about', icon: Info, visible: true },
     ],
-    [hasPermission, isStaff],
+    [],
   );
 
   const navItems = useMemo(
@@ -244,7 +226,6 @@ const Sidebar = ({ onRequestNavCollapse, tabletStaffRail = false, bossTabletRail
       '/customers',
       '/catalog',
       '/lens-physics',
-      '/kepu',
     ] as const;
     const store = configurableItems.filter((i) => storeCluster.includes(i.href as (typeof storeCluster)[number]));
     const finance = configurableItems.filter((i) => financeHrefSet.has(i.href));

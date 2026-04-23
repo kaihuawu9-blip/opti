@@ -6,6 +6,7 @@ import { useAppNavigate } from '@/lib/useAppNavigate';
 import { toChineseErrorMessage } from '@/lib/userMessages';
 import { Plus, Pencil, Trash2, Search, Filter, X, AlertTriangle, Upload, Sparkles, Camera, ImageIcon } from 'lucide-react';
 import { DraggableCashierModal } from '@/components/cashier/DraggableCashierModal';
+import { WebCameraCaptureModal } from '@/components/WebCameraCaptureModal';
 import { useAuth } from '@/components/AuthProvider';
 import {
   IMPORT_LENS_BRANDS,
@@ -158,8 +159,13 @@ export default function InventoryPage() {
   const [inventoryEntryOcrBusy, setInventoryEntryOcrBusy] = useState(false);
   const [inventoryEntryOcrHint, setInventoryEntryOcrHint] = useState<string | null>(null);
   const [inventoryEntryEvidenceUrl, setInventoryEntryEvidenceUrl] = useState<string | null>(null);
-  const inventoryEntryCameraId = useId();
   const inventoryEntryGalleryId = useId();
+  const inventoryEntryGalleryInputRef = useRef<HTMLInputElement>(null);
+  const [inventoryWebCamOpen, setInventoryWebCamOpen] = useState(false);
+
+  useEffect(() => {
+    if (!showForm) setInventoryWebCamOpen(false);
+  }, [showForm]);
 
   /** 镜架图上传 OSS（与混元 3D 测试脚本一致：records/admin-frames/&lt;时间戳&gt;_frame.jpg） */
   type FrameUploadMeta = { objectKey: string; imageUrl: string; contentMd5: string };
@@ -1553,26 +1559,16 @@ export default function InventoryPage() {
                 <div>
                   <p className="text-sm font-semibold text-gray-900">入库拍照识别（选填）</p>
                   <p className="mt-1 text-[11px] text-gray-600 leading-snug">
-                    拍摄镜片包装或镜框：服务端在 <code className="text-[10px]">public/inventory_ref</code> 存档后 OCR
-                    + AI 异步回填；未识别项请在<strong>下方</strong>手填采购价、零售价与折射率。
+                    「相册选图」从本机选文件；「拍照识别」打开<strong>实时摄像头</strong>（非系统选文件框）。服务端在{' '}
+                    <code className="text-[10px]">public/inventory_ref</code> 存档后 OCR + AI 回填；未识别项请在
+                    <strong>下方</strong>手填采购价、零售价与折射率。
                   </p>
                 </div>
                 <input
+                  ref={inventoryEntryGalleryInputRef}
                   id={inventoryEntryGalleryId}
                   type="file"
                   accept="image/*"
-                  className="hidden"
-                  onChange={(e) => {
-                    const f = e.target.files?.[0];
-                    e.target.value = '';
-                    if (f) void processInventoryEntryOcrFile(f);
-                  }}
-                />
-                <input
-                  id={inventoryEntryCameraId}
-                  type="file"
-                  accept="image/*"
-                  capture="environment"
                   className="hidden"
                   onChange={(e) => {
                     const f = e.target.files?.[0];
@@ -1590,15 +1586,17 @@ export default function InventoryPage() {
                     <ImageIcon className="w-4 h-4 shrink-0" />
                     相册选图
                   </label>
-                  <label
-                    htmlFor={inventoryEntryCameraId}
+                  <button
+                    type="button"
+                    disabled={inventoryEntryOcrBusy}
+                    onClick={() => setInventoryWebCamOpen(true)}
                     className={`inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-emerald-300 bg-white px-3 py-2 text-sm text-gray-800 hover:bg-emerald-50 ${
                       inventoryEntryOcrBusy ? 'pointer-events-none opacity-50' : ''
                     }`}
                   >
                     <Camera className="w-4 h-4 shrink-0" />
                     拍照识别
-                  </label>
+                  </button>
                   {inventoryEntryEvidenceUrl ? (
                     <button
                       type="button"
@@ -1670,7 +1668,34 @@ export default function InventoryPage() {
               </div>
 
               <div>
-                <label className="block text-sm text-gray-600 mb-1">商品名称</label>
+                <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+                  <label className="block text-sm text-gray-600">商品名称</label>
+                  {(formData.category === '镜框' || formData.category === '套餐') && (
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span className="text-[11px] text-gray-500">镜框拍照识别</span>
+                      <button
+                        type="button"
+                        disabled={inventoryEntryOcrBusy}
+                        onClick={() => {
+                          inventoryEntryGalleryInputRef.current?.click();
+                        }}
+                        className="inline-flex items-center gap-1 rounded-lg border border-emerald-300 bg-white px-2 py-1 text-xs text-gray-800 hover:bg-emerald-50 disabled:opacity-50"
+                      >
+                        <ImageIcon className="h-3.5 w-3.5 shrink-0" />
+                        相册
+                      </button>
+                      <button
+                        type="button"
+                        disabled={inventoryEntryOcrBusy}
+                        onClick={() => setInventoryWebCamOpen(true)}
+                        className="inline-flex items-center gap-1 rounded-lg border border-emerald-300 bg-white px-2 py-1 text-xs text-gray-800 hover:bg-emerald-50 disabled:opacity-50"
+                      >
+                        <Camera className="h-3.5 w-3.5 shrink-0" />
+                        拍照
+                      </button>
+                    </div>
+                  )}
+                </div>
                 <input
                   value={formData.name}
                   onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
@@ -2135,6 +2160,16 @@ export default function InventoryPage() {
             </div>
             </div>
       </DraggableCashierModal>
+
+      <WebCameraCaptureModal
+        open={inventoryWebCamOpen}
+        onClose={() => setInventoryWebCamOpen(false)}
+        title="入库 · 摄像头拍照"
+        onCapture={async (blob) => {
+          const file = new File([blob], 'stock_entry.jpg', { type: 'image/jpeg' });
+          await processInventoryEntryOcrFile(file);
+        }}
+      />
     </div>
   );
 }

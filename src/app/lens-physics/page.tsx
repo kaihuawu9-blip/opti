@@ -13,6 +13,7 @@ import {
   EdgeThicknessComparison,
 } from '@/components/vision-lab/EdgeThicknessVisualizer';
 import { LensCutter } from '@/components/optical-lab/LensCutter';
+import { OptometryMatrix } from '@/components/vision-lab/OptometryMatrix';
 import { LensType } from '@/lib/edge-thickness-calculator';
 import { PHYSICS_IRON_RULES } from '@/lib/physics-rules';
 import { useAuth } from '@/components/AuthProvider';
@@ -182,6 +183,8 @@ export default function LensPhysicsPage() {
           )}
         </div>
       </div>
+
+      <OptometryMatrix />
       
       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-8">
         <h2 className="text-xl font-bold text-gray-900 mb-4">技术说明</h2>
