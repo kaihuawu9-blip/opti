@@ -12,7 +12,7 @@ alwaysApply: true
 ## 1. 物理绝对映射（Physical Supremacy）
 
 - 侧栏索引签的 **唯一真值**：`physicalTabVerified === true` 且 `pageKind === 'series_entry'`（由 PDF 右缘凸起扫描 pipeline 或人工对图写入页表）。
-- 侧栏展示文案 **仅** `physicalTabLabel`（与实物凸起印字 1:1）。**禁止**用 `title`、`productName` 回填冒充凸标。
+- 侧栏展示文案 **仅** `physicalTabLabel`（与实物凸起印字 1:1）。**禁止**用 `title`、`productName` 回填冒充凸标；禁止在 `physicalTabLabel` 内写页码区间（如 p1–p8）、括号英文（如 MiyoSmart）、冗长描述。
 - `getPageData`：未验证的 `series_entry` 必须降格为 `standard`，防止假凸标污染 UI。
 
 ## 2. 导航去智能化（Anti-Smart Navigation）

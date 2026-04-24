@@ -81,6 +81,8 @@ describe('Matrix Protocol V1.1 — 物理凸标 tab: anchor', () => {
       {
         id: 'tab:10',
         label: '智锐',
+        physicalTabVerified: true,
+        physicalTabLabel: '智锐',
         section: 'smartlife-series-opening',
         startPage0: 9,
         printedPage: null,
@@ -164,6 +166,12 @@ describe('Matrix Protocol V1.3 — HOYA 豪雅专项', () => {
     expect(p2?.imageUrl).toBe('/catalog/hoya/p2.jpg');
     const p8 = getPageData(8, 'hoya');
     expect(p8?.dataAnchor).toBe('新乐学');
+    // vOffsetPercent 由离线全域雷达扫描产出（`catalog:harvest-hoya-tabs`），仅断言「在合理区间」
+    expect(p8?.vOffsetPercent).toBeTypeOf('number');
+    expect(p8!.vOffsetPercent!).toBeGreaterThanOrEqual(0);
+    expect(p8!.vOffsetPercent!).toBeLessThan(100);
+    // 右缘占位页（`colorBlockScore < 0.35`）不写 hOffsetPercent，热区水平贴右缘
+    expect(p8?.hOffsetPercent).toBeNull();
     expect(p8?.product?.productName).toBe('新乐学');
     expect(p8?.imageUrl).toBe('/catalog/hoya/p8.jpg');
     const flat = p8?.product?.series?.flatMap((s) => s.rows) ?? [];
@@ -174,7 +182,14 @@ describe('Matrix Protocol V1.3 — HOYA 豪雅专项', () => {
     for (const it of nav) {
       expect(it.label).not.toMatch(/智锐|睐光|蔡司镜架|智锐系列|单光延伸|内页 p/);
     }
-    expect(nav.some((it) => it.id === 'p:新乐学' && it.navTabTone === 'hoya-orange')).toBe(true);
+    const miyo = nav.find((it) => it.id === 'p:新乐学');
+    expect(miyo?.navTabTone).toBe('hoya-orange');
+    expect(miyo?.physicalTabVerified).toBe(true);
+    expect(miyo?.physicalTabLabel).toBe('新乐学');
+    expect(miyo?.vOffsetPercent).toBeTypeOf('number');
+    expect(miyo!.vOffsetPercent!).toBeGreaterThanOrEqual(0);
+    expect(miyo!.vOffsetPercent!).toBeLessThan(100);
+    expect(miyo?.label).toBe('新乐学');
     expect(nav.some((it) => it.id === 'p:豪雅智御中近')).toBe(true);
     const state = resolveActiveHandbookNavState(nav, 7, [], {
       matrixProducts: HOYA_PRICE_MATRIX,

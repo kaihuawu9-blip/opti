@@ -2,7 +2,7 @@
 
 /** StandardEye V1.3：物理凸标侧栏孪生 UI；点击仅 `startPage0`，无智能跳转。 */
 
-import { useLayoutEffect, useRef } from 'react';
+import { useLayoutEffect, useMemo, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type {
   DigitalHandbookBrand,
@@ -12,6 +12,10 @@ import type {
 import type { HandbookActiveNavState } from '@/lib/catalog/dataIntegrityValidator';
 
 const ZEISS_BLUE = '#0066B3';
+
+/** 竖排凸标：偏宋黑 / 黑体，略紧字距，接近实物印刷 */
+const PHYSICAL_EMBOSSED_FONT =
+  "font-[SimHei,SimSun,'Noto_Sans_SC','Source_Han_Sans_SC',sans-serif] font-bold tabular-nums";
 
 const NAV_SCROLL_STYLES =
   'zeiss-nav-scroll ' +
@@ -34,9 +38,7 @@ type Props = {
   useTwoColumn?: boolean;
   integrityWarnIds?: ReadonlySet<string>;
   activeNav?: HandbookActiveNavState | null;
-  /** 凸出标签配色策略 */
   brand?: DigitalHandbookBrand;
-  /** `physical-tabs`：模拟实体手册右侧凸出索引签 */
   navLayout?: NavLayout;
 };
 
@@ -116,7 +118,7 @@ function resolvePhysicalTabSurface(
 }
 
 /**
- * 右侧「系列」快速跳转：实体手册仿真为凸出标签（`physical-tabs`），经典模式保留原双列栅格。
+ * 右侧手册导航：physical-tabs 仅渲染已验证凸标（`physicalTabLabel` 原文）；classic 为栅格列表（如依视路）。
  */
 export function ZeissSeriesNavList({
   items,
@@ -134,12 +136,23 @@ export function ZeissSeriesNavList({
   const useTwoColumn =
     navLayout === 'classic' && useTwoColProp && !compact && items.length > 6;
 
+  const physicalEmbossedItems = useMemo(
+    () =>
+      items.filter(
+        (it) =>
+          it.physicalTabVerified === true &&
+          typeof it.physicalTabLabel === 'string' &&
+          it.physicalTabLabel.trim().length > 0,
+      ),
+    [items],
+  );
+
   useLayoutEffect(() => {
     const root = scrollRef.current;
     if (!root) return;
     const el = root.querySelector<HTMLElement>('[data-zeiss-nav-active="true"]');
     el?.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'smooth' });
-  }, [activeId, items.length, activeNav?.anchorId, activeNav?.dataStatus]);
+  }, [activeId, items.length, activeNav?.anchorId, activeNav?.dataStatus, navLayout, physicalEmbossedItems.length]);
 
   if (navLayout === 'physical-tabs') {
     return (
@@ -156,8 +169,18 @@ export function ZeissSeriesNavList({
           .join(' ')}
         aria-label="系列索引（物理标签）"
       >
-        <div className="flex flex-col gap-1 pr-0.5 pt-0.5">
-          {items.map((it) => {
+        {/**
+         * physical-tabs 分支已不在蔡司/豪雅主 UI 使用（热区已迁入 `ZeissHandbookPage`）。
+         * 若将来再挂载本侧栏：
+         *   - `top` 必须 = `vOffsetPercent%`（与页内热区绝对水平对齐，禁止 flex 均分）。
+         *   - 当 `hOffsetPercent < 90`（内嵌/摺痕）时**隐藏**该侧栏项，避免与页内热区重复出现。
+         */}
+        <div className="relative min-h-full w-full pr-0.5 pb-3 pt-0.5">
+          {physicalEmbossedItems.map((it) => {
+            const hp = it.hOffsetPercent;
+            const isInsideHot = typeof hp === 'number' && Number.isFinite(hp) && hp < 90;
+            if (isInsideHot) return null;
+            const tabText = it.physicalTabLabel!.trim();
             const active = it.id === activeId;
             const integrityWarn = Boolean(integrityWarnIds?.has(it.id));
             const surf = resolvePhysicalTabSurface(brand, it.navTabTone, active);
@@ -173,6 +196,7 @@ export function ZeissSeriesNavList({
               anchorStatus === 'validated' ? '物理索引签已校验' : '',
               anchorStatus === 'warning' ? '当前锚点数据待补全' : '',
             ].filter(Boolean);
+            const topPct = Math.min(96, Math.max(4, it.vOffsetPercent ?? 50));
             return (
               <motion.button
                 key={it.id}
@@ -181,19 +205,20 @@ export function ZeissSeriesNavList({
                 data-handbook-anchor-status={anchorStatus}
                 title={titleParts.length ? titleParts.join(' · ') : undefined}
                 onClick={() => onSelect(it)}
-                layout
                 initial={false}
                 whileHover={{ x: -2 }}
                 whileTap={{ scale: 0.99 }}
                 transition={{ type: 'spring', stiffness: 420, damping: 28 }}
                 className={[
-                  'group/tab relative z-0 ml-auto flex w-[min(100%,2.75rem)] min-w-[2.5rem] flex-col items-center rounded-l-xl rounded-r-none border-y border-l py-2.5',
-                  'border-r-0 px-1',
+                  'group/tab absolute right-0 z-0 flex w-[min(100%,2.05rem)] min-w-[1.85rem] max-w-[2.15rem] flex-col items-center rounded-l-xl rounded-r-none border-y border-l py-2',
+                  'border-r-0 px-0.5',
                   surf.text,
                   integrityWarn ? 'ring-1 ring-red-500/70 ring-inset' : '',
                   active ? 'z-10 scale-[1.02]' : 'z-0',
                 ].join(' ')}
                 style={{
+                  top: `${topPct}%`,
+                  transform: 'translateY(-50%)',
                   background: surf.bg,
                   borderColor: 'rgba(255,255,255,0.12)',
                   boxShadow: surf.shadow,
@@ -209,28 +234,20 @@ export function ZeissSeriesNavList({
                 />
                 <span
                   className={[
-                    'flex min-h-[3.25rem] max-h-[11rem] items-center justify-center text-center text-[12px] font-semibold leading-tight tracking-wide [writing-mode:vertical-rl] [text-orientation:mixed]',
-                    compact ? 'text-[11px]' : '',
+                    PHYSICAL_EMBOSSED_FONT,
+                    'flex min-h-[3rem] max-h-[10.5rem] items-center justify-center text-center',
+                    'text-[12px] leading-[1.75] tracking-[0.18em] [writing-mode:vertical-rl] [text-orientation:mixed]',
+                    compact ? 'text-[11px] tracking-[0.16em]' : '',
                   ]
                     .filter(Boolean)
                     .join(' ')}
                 >
-                  {it.label}
+                  {tabText}
                 </span>
-                {it.printedPage != null ? (
-                  <span
-                    className={[
-                      'mt-1 block text-[9px] tabular-nums [writing-mode:horizontal-tb]',
-                      active ? 'opacity-50' : 'opacity-40',
-                    ].join(' ')}
-                  >
-                    P{it.printedPage}
-                  </span>
-                ) : null}
                 {showDataPending ? (
                   <span
                     role="status"
-                    className="mt-1 block rounded-md border border-amber-500/40 bg-amber-950/35 px-1.5 py-1 text-[10px] font-semibold leading-tight text-amber-100/95"
+                    className="mt-1 block rounded-md border border-amber-500/40 bg-amber-950/35 px-1 py-0.5 text-[9px] font-semibold leading-tight text-amber-100/95 [writing-mode:horizontal-tb]"
                   >
                     {pendingMsg}
                   </span>
@@ -318,16 +335,6 @@ export function ZeissSeriesNavList({
               <span className="line-clamp-3 pl-1 text-[14px] font-medium leading-snug tracking-tight text-white/90">
                 {it.label}
               </span>
-              {it.printedPage != null ? (
-                <span
-                  className={[
-                    'mt-0.5 block pl-1 text-[10px] tabular-nums',
-                    active ? 'text-white/32' : 'text-white/22',
-                  ].join(' ')}
-                >
-                  印 P{it.printedPage}
-                </span>
-              ) : null}
               {showDataPending ? (
                 <span
                   role="status"

@@ -17,7 +17,7 @@ import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Maximize2, ShoppingCart, X } from 'lucide-react';
 import '@/styles/page-flip.css';
-import { ZeissHandbookPage } from '@/components/catalog/ZeissHandbookPage';
+import { ZeissHandbookPage, type ZeissHandbookPhysicalTabHit } from '@/components/catalog/ZeissHandbookPage';
 import { HandbookSidebar } from '@/components/catalog/HandbookSidebar';
 import type { ReactPageFlipProps, ReactPageFlipRef } from '@/components/catalog/reactPageFlipTypes';
 import { playHandbookPaperRustle } from '@/lib/catalog/handbookPaperSound';
@@ -26,6 +26,7 @@ import {
   buildHandbookSeriesNavItemsForBrand,
   getHandbookPageCount,
   type DigitalHandbookBrand,
+  type HandbookNavTabTone,
   type HandbookPageData,
   type HandbookSeriesNavItem,
 } from '@/data/zeissHandbookPageMap';
@@ -59,6 +60,19 @@ import {
 
 const HANDBOOK_EMPTY_ACTIVE_NAV: HandbookActiveNavState = { anchorId: '', dataStatus: 'pending' };
 
+/** 物理标签页 Active：右缘约 20% 透明度品牌色（热区高亮，与旧侧栏色系对齐） */
+function physicalTabOverlayActiveTint(
+  brand: DigitalHandbookBrand,
+  tone: HandbookNavTabTone | undefined,
+): string {
+  const t = tone ?? (brand === 'zeiss' ? 'zeiss-deep-blue' : 'neutral');
+  if (brand === 'zeiss' || t === 'zeiss-deep-blue') return 'rgba(0,102,179,0.2)';
+  if (t === 'hoya-orange') return 'rgba(194,65,12,0.2)';
+  if (t === 'hoya-blue') return 'rgba(3,105,161,0.2)';
+  if (t === 'hoya-purple') return 'rgba(109,40,217,0.2)';
+  return 'rgba(71,85,105,0.2)';
+}
+
 function loadReactPageFlip(): Promise<ComponentType<ReactPageFlipProps>> {
   return import('react-pageflip').then((m) => m.default as ComponentType<ReactPageFlipProps>);
 }
@@ -76,11 +90,14 @@ function subscribeNoop(onStoreChange: () => void): () => void {
   return () => {};
 }
 
-/** 全屏双页对开：单页高度约 80vh，3:4 单页横排两页，水平不溢出 */
+/** 成品图为 3:4 人工预裁，3D 纸张比例直接锁定，不做任何动态裁剪推算 */
+const PAGE_RATIO_H_OVER_W = 4 / 3;
+
+/** 全屏双页对开：单页高度约 80vh，按 `PAGE_RATIO_H_OVER_W` 计算单页宽度，水平溢出时等比缩放 */
 function computeSpreadPageDims(vw: number, vh: number): { pageW: number; pageH: number } {
   const maxPageH = vh * 0.8;
   let pageH = maxPageH;
-  let pageW = (pageH * 3) / 4;
+  let pageW = pageH / PAGE_RATIO_H_OVER_W;
   const spreadW = pageW * 2;
   const maxSpreadW = vw * 0.96;
   if (spreadW > maxSpreadW) {
@@ -374,8 +391,7 @@ export function ZeissDigitalHandbook() {
   useLayoutEffect(() => {
     const el = previewShellRef.current;
     if (!el) return;
-    const ar = { w: 3, h: 4 };
-    const ratioHOverW = ar.h / ar.w;
+    const ratioHOverW = PAGE_RATIO_H_OVER_W;
     const ro = new ResizeObserver((entries) => {
       const cr = entries[0]?.contentRect;
       if (!cr?.width) return;
@@ -651,6 +667,40 @@ export function ZeissDigitalHandbook() {
       Array.from({ length: total }, (_, idx) => {
         const pdfN = idx + 1;
         const pd = getPageData(pdfN, brand);
+        const navItem = seriesNav.find(
+          (it) =>
+            it.physicalTabVerified === true &&
+            it.startPage0 === pdfN - 1 &&
+            Boolean(it.physicalTabLabel?.trim()),
+        );
+        const vFromNav =
+          typeof navItem?.vOffsetPercent === 'number' && Number.isFinite(navItem.vOffsetPercent)
+            ? navItem.vOffsetPercent
+            : null;
+        const v = vFromNav ?? pd?.vOffsetPercent ?? null;
+        const hFromNav =
+          typeof navItem?.hOffsetPercent === 'number' && Number.isFinite(navItem.hOffsetPercent)
+            ? navItem.hOffsetPercent
+            : null;
+        const h = hFromNav ?? pd?.hOffsetPercent ?? null;
+        const tabLabel = (navItem?.physicalTabLabel ?? navItem?.label ?? '').trim();
+        // 双页对开（全屏，`showCover=false` + `usePortrait=false`）：奇数 pdfN 落在左页 → 溢出向左。
+        // 预览 portrait 单页：标签永远右溢。
+        const side: 'right' | 'left' = fullscreenOpen && pdfN % 2 === 1 ? 'left' : 'right';
+        const physicalTabHit: ZeissHandbookPhysicalTabHit | undefined =
+          navItem && v != null
+            ? {
+                vOffsetPercent: v,
+                hOffsetPercent: typeof h === 'number' && Number.isFinite(h) ? h : undefined,
+                side,
+                active: navItem.id === activeNav.anchorId,
+                ariaLabel: tabLabel || navItem.id,
+                tooltipLabel: tabLabel || navItem.label,
+                physicalTabLabel: tabLabel || undefined,
+                onSelect: () => flipToNavItem(navItem),
+                activeHighlightColor: physicalTabOverlayActiveTint(brand, navItem.navTabTone),
+              }
+            : undefined;
         return (
           <ZeissHandbookPage
             key={`pg-${brand}-${pdfN}`}
@@ -658,10 +708,11 @@ export function ZeissDigitalHandbook() {
             title={pd?.title ?? `第 ${pdfN} 页`}
             imageData={pd?.imageData ?? null}
             imageUrl={pd?.imageUrl ?? null}
+            physicalTabHit={physicalTabHit}
           />
         );
       }),
-    [total, brand],
+    [total, brand, seriesNav, activeNav.anchorId, flipToNavItem, fullscreenOpen],
   );
 
   useEffect(() => {
@@ -710,19 +761,13 @@ export function ZeissDigitalHandbook() {
     );
   }
 
-  /** 与中间 3D 书本可视区域同高：预览用 px，全屏用 min(80vh, 单页 px)；侧栏最大 80vh */
-  const tabsBlock = (compact: boolean, bookHeightCss: string) => (
+  /** 仅依视路：classic 栅格侧栏（蔡司/豪雅已改为页内右缘热区，不再渲染 SeriesNavList） */
+  const essilorSeriesNavBlock = (compact: boolean, bookHeightCss: string) => (
     <div
       className="pointer-events-auto flex h-full w-full min-h-0 max-w-[15.5rem] flex-col overflow-hidden rounded-2xl border border-white/10 bg-slate-950/40 p-1.5 shadow-[0_12px_40px_rgba(0,0,0,0.42)] backdrop-blur-2xl"
       style={{ height: bookHeightCss, maxHeight: bookHeightCss }}
     >
-      <p className="mb-1 shrink-0 px-1 text-[9px] font-semibold uppercase tracking-[0.2em] text-white/38">物理索引</p>
-      {brand === 'zeiss' && seriesNav.length === 0 ? (
-        <p className="mb-1 shrink-0 px-1.5 text-[10px] leading-snug text-white/40">
-          侧栏唯一触发源：<code className="rounded bg-black/30 px-0.5">physicalTabVerified</code>；标签文案必须填{' '}
-          <code className="rounded bg-black/30 px-0.5">physicalTabLabel</code>（禁止用内页 title 顶替）。无自动跳价目页。
-        </p>
-      ) : null}
+      <p className="mb-1 shrink-0 px-1 text-[9px] font-semibold uppercase tracking-[0.2em] text-white/38">系列索引</p>
       <div className="min-h-0 flex-1 overflow-hidden">
         <HandbookSidebar
           items={seriesNav}
@@ -734,7 +779,7 @@ export function ZeissDigitalHandbook() {
           className="h-full"
           integrityWarnIds={integrityWarnNavIds}
           brand={brand}
-          navLayout="physical-tabs"
+          navLayout="classic"
         />
       </div>
     </div>
@@ -742,7 +787,7 @@ export function ZeissDigitalHandbook() {
 
   const spreadGutter = (strong: boolean) => (
     <div
-      className="pointer-events-none absolute inset-y-1 left-1/2 z-[120] w-[min(22px,3.2%)] -translate-x-1/2"
+      className="pointer-events-none absolute inset-y-1 left-1/2 z-[120] w-[min(30px,3.5%)] -translate-x-1/2"
       style={{
         background: strong
           ? 'linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.22) 32%, rgba(0,0,0,0.5) 50%, rgba(255,255,255,0.1) 50.2%, rgba(0,0,0,0.32) 68%, rgba(0,0,0,0) 100%)'
@@ -763,6 +808,40 @@ export function ZeissDigitalHandbook() {
     />
   );
 
+  /**
+   * 外挂阶梯（Edge Rail）：双页模式下左右各一条，视觉上像纸张边缘「微微凸起的阶梯」，
+   * 为页内感应条（`ZeissHandbookPage` 的透明 Hit Layer）提供「物理位」的背景装饰。
+   * 不捕获事件、不跟翻页动画 —— 只是舞台道具。
+   */
+  const edgeRail = (side: 'left' | 'right') => {
+    const isLeft = side === 'left';
+    const stairs =
+      'linear-gradient(90deg, ' +
+      (isLeft
+        ? 'rgba(0,0,0,0.32) 0%, rgba(0,0,0,0.18) 28%, rgba(255,255,255,0.06) 52%, rgba(0,0,0,0.14) 72%, rgba(0,0,0,0.42) 100%'
+        : 'rgba(0,0,0,0.42) 0%, rgba(0,0,0,0.14) 28%, rgba(255,255,255,0.06) 48%, rgba(0,0,0,0.18) 72%, rgba(0,0,0,0.32) 100%') +
+      ')';
+    return (
+      <div
+        aria-hidden
+        className={[
+          'pointer-events-none absolute inset-y-3 z-[5] w-[min(18px,2.4%)]',
+          isLeft ? 'left-[-2px]' : 'right-[-2px]',
+        ].join(' ')}
+        style={{
+          background: stairs,
+          borderTopLeftRadius: isLeft ? 6 : 0,
+          borderBottomLeftRadius: isLeft ? 6 : 0,
+          borderTopRightRadius: isLeft ? 0 : 6,
+          borderBottomRightRadius: isLeft ? 0 : 6,
+          boxShadow: isLeft
+            ? 'inset -1px 0 0 rgba(255,255,255,0.08), -2px 0 10px rgba(0,0,0,0.35)'
+            : 'inset 1px 0 0 rgba(255,255,255,0.08), 2px 0 10px rgba(0,0,0,0.35)',
+        }}
+      />
+    );
+  };
+
   return (
     <div ref={shellRef} className="relative isolate mx-auto w-full max-w-[min(1400px,calc(100vw-1rem))]">
       <div className="pointer-events-none absolute inset-0 rounded-[2rem] bg-gradient-to-br from-[#0059A3]/10 via-transparent to-slate-900/40 blur-3xl" />
@@ -774,9 +853,21 @@ export function ZeissDigitalHandbook() {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -6 }}
           transition={{ duration: 0.22 }}
-          className="relative flex w-full flex-col items-center gap-6 xl:flex-row xl:items-center xl:justify-center xl:gap-8"
+          className={[
+            'relative flex w-full flex-col items-center gap-6',
+            brand === 'essilor' ? 'xl:flex-row xl:items-center xl:justify-center xl:gap-8' : '',
+          ]
+            .filter(Boolean)
+            .join(' ')}
         >
-        <div ref={previewShellRef} className="relative w-full max-w-[min(100%,900px)] xl:max-w-[min(100%,720px+11rem)]">
+        <div
+          ref={previewShellRef}
+          className={
+            brand === 'essilor'
+              ? 'relative w-full max-w-[min(100%,900px)] xl:max-w-[min(100%,720px+11rem)]'
+              : 'relative w-full max-w-[min(100%,min(1200px,calc(100vw-1.5rem)))]'
+          }
+        >
           <div className="mb-2 flex flex-col gap-2 px-1 max-xl:px-0 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 flex-wrap items-center gap-2.5">
               <BrandSwitcher
@@ -855,6 +946,7 @@ export function ZeissDigitalHandbook() {
                 className="relative z-[15] w-full [filter:drop-shadow(0_20px_40px_rgba(0,0,0,0.45))_drop-shadow(0_6px_18px_rgba(0,89,163,0.1))]"
               >
                 {spreadGutter(false)}
+                {edgeRail('right')}
                 {rightPageTurnShade('pointer-events-none absolute inset-y-2 right-0 z-[100] w-[14%] max-w-[48px] rounded-r-lg')}
                 <HTMLFlipBook
                   key={previewKey}
@@ -891,7 +983,11 @@ export function ZeissDigitalHandbook() {
               </div>
             </div>
           </div>
-          <p className="mt-2 text-center text-[10px] text-white/40">翻页时单击书角或拖拽；右侧系列与价目主档、内嵌图与物理页经 getPageData 同步</p>
+          <p className="mt-2 text-center text-[10px] text-white/40">
+            {brand === 'essilor'
+              ? '翻页时单击书角或拖拽；右侧系列与价目主档、内嵌图与物理页经 getPageData 同步'
+              : '翻页时单击书角或拖拽；有物理凸标的页可在画面右缘热区跳转（vOffsetPercent 对齐），价目与物理页经 getPageData 同步'}
+          </p>
           {process.env.NODE_ENV === 'development' && brand === 'zeiss' && embeddedHandbookPageCount() === 0 ? (
             <p className="mt-1 text-center text-[10px] text-amber-200/50">
               内嵌图未写入：可运行 <code className="text-white/70">npm run catalog:embed-handbook-to-matrix</code> 将 PDF
@@ -901,14 +997,16 @@ export function ZeissDigitalHandbook() {
           <p className="mt-1 hidden text-center text-[10px] text-white/35 xl:block">{pageStatusText}</p>
         </div>
 
-        <div
-          className="pointer-events-none z-40 flex w-full max-w-[min(100%,16rem)] max-h-[80vh] flex-col items-stretch self-center max-xl:static max-xl:max-w-full max-xl:items-stretch max-xl:px-0 xl:sticky xl:top-6 xl:w-[15.5rem]"
-          style={{ height: previewNavHeight, maxHeight: `min(80vh, ${previewNavHeight})`, minHeight: 0 }}
-        >
-          <div className="pointer-events-auto h-full w-full min-h-0 max-xl:max-w-md">
-            {tabsBlock(true, previewNavHeight)}
+        {brand === 'essilor' ? (
+          <div
+            className="pointer-events-none z-40 flex w-full max-w-[min(100%,16rem)] max-h-[80vh] flex-col items-stretch self-center max-xl:static max-xl:max-w-full max-xl:items-stretch max-xl:px-0 xl:sticky xl:top-6 xl:w-[15.5rem]"
+            style={{ height: previewNavHeight, maxHeight: `min(80vh, ${previewNavHeight})`, minHeight: 0 }}
+          >
+            <div className="pointer-events-auto h-full w-full min-h-0 max-xl:max-w-md">
+              {essilorSeriesNavBlock(true, previewNavHeight)}
+            </div>
           </div>
-        </div>
+        ) : null}
         </motion.div>
       </AnimatePresence>
 
@@ -1006,7 +1104,13 @@ export function ZeissDigitalHandbook() {
                         </button>
                       </div>
 
-                      <div className="flex min-h-0 flex-1 flex-col items-stretch justify-center gap-3 overflow-hidden p-2 sm:p-3 md:flex-row md:items-stretch md:gap-4 md:p-4">
+                      <div
+                        className={
+                          brand === 'essilor'
+                            ? 'flex min-h-0 flex-1 flex-col items-stretch justify-center gap-3 overflow-hidden p-2 sm:p-3 md:flex-row md:items-stretch md:gap-4 md:p-4'
+                            : 'flex min-h-0 flex-1 flex-col items-stretch justify-center overflow-hidden p-2 sm:p-3 md:p-4'
+                        }
+                      >
                         <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-2">
                           {integrityPageBroken ? (
                             <div
@@ -1038,6 +1142,8 @@ export function ZeissDigitalHandbook() {
                             ref={fsBookFrameRef}
                             className="relative z-[20] w-full max-h-[80vh] [filter:drop-shadow(0_32px_64px_rgba(0,0,0,0.55))]"
                           >
+                            {edgeRail('left')}
+                            {edgeRail('right')}
                             <HTMLFlipBook
                               key={fsKey}
                               ref={fsRef}
@@ -1073,16 +1179,18 @@ export function ZeissDigitalHandbook() {
                           </div>
                           </div>
                         </div>
-                        <div
-                          className="h-full min-h-0 shrink-0 self-stretch pr-0 md:pr-1 md:block"
-                          style={{
-                            height: fsNavHeight,
-                            maxHeight: fsNavHeight,
-                            minHeight: 0,
-                          }}
-                        >
-                          {tabsBlock(false, fsNavHeight)}
-                        </div>
+                        {brand === 'essilor' ? (
+                          <div
+                            className="h-full min-h-0 shrink-0 self-stretch pr-0 md:pr-1 md:block"
+                            style={{
+                              height: fsNavHeight,
+                              maxHeight: fsNavHeight,
+                              minHeight: 0,
+                            }}
+                          >
+                            {essilorSeriesNavBlock(false, fsNavHeight)}
+                          </div>
+                        ) : null}
                       </div>
                       <p className="shrink-0 border-t border-white/10 px-4 py-2 text-center text-[10px] text-white/40 md:text-left">
                         {productHint ? (
@@ -1129,7 +1237,7 @@ export function ZeissDigitalHandbook() {
               {formatDataIntegrityBossSummary(dataIntegrityGaps)}
             </p>
             <p className="mt-3 text-[11px] leading-snug text-white/45">
-              侧栏红框：导航项在 JSON 矩阵中缺同名 productName。翻页时红色顶栏：该物理页有价目位或系列标题线索但未绑定矩阵。可在补齐后刷新；点「知道了」后本版本不再弹窗。
+              导航项在 JSON 矩阵中缺同名 productName 时会在数据完整性报告中标出。翻页时红色顶栏：该物理页有价目位或系列标题线索但未绑定矩阵。可在补齐后刷新；点「知道了」后本版本不再弹窗。
             </p>
             <button
               type="button"

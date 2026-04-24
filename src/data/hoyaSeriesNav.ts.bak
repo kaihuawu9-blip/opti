@@ -66,8 +66,8 @@ export const HOYA_SERIES_MENU = Object.freeze([
     tabAccent: 'blue',
     physicalTabVerified: true,
     physicalTabLabel: '新明锐',
-    vOffsetPercent: 16.6168,
-    hOffsetPercent: 78.1382,
+    vOffsetPercent: 19,
+    hOffsetPercent: 82,
   },
   {
     kind: 'product',

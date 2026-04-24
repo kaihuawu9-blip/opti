@@ -8,8 +8,8 @@
  * 2. **UI 行为锁定**：`HandbookSeriesNavItem.id = tab:{pdfPage}`，`startPage0 = pdfPage - 1`；无 `jumpTarget`、无自动翻向价目页。
  * 3. **数据解耦**：`productName` / `section` / 矩阵 / `runSchemaCompletenessScan` 与物理侧栏独立；`getPageData` 对未验证的
  *    `series_entry` 降格为 `standard`，防止假凸标污染 UI。
- * 4. **扫描辅助规范**：蔡司裁切见 `handbookPhysicalLabelScan.ts`；豪雅圆角/色带见
- *    `hoyaPhysicalTabScanParams.ts`；**不得**在运行时用其推断导航目标。
+ * 4. **扫描辅助规范**：全週邊凸标几何扫描见 `handbookPhysicalLabelScan.ts`（左/中/右三带 + `hOffsetPercent`/`vOffsetPercent`）；
+ *    豪雅圆角/色带见 `hoyaPhysicalTabScanParams.ts`；**不得**在运行时用扫描结果自动推断导航目标（仍以页表为准）。
  *
  * 打开图手册时建议从 `/api/catalog/zeiss-manifest` 拉取图片清单（物理页序与 `pdfPage` 一致），再与本表合并。
  */
@@ -30,7 +30,11 @@ import {
   HOYA_HANDBOOK_PAGE_IMAGE_DATA,
   findHoyaProductMatrix,
 } from '@/data/hoyaPriceMatrix';
-import { buildHoyaSeriesNavigationItems } from '@/data/hoyaSeriesNav';
+import {
+  buildHoyaSeriesNavigationItems,
+  HOYA_PHYSICAL_TAB_H_OFFSET_PERCENT_BY_PDF_PAGE,
+  HOYA_PHYSICAL_TAB_V_OFFSET_PERCENT_BY_PDF_PAGE,
+} from '@/data/hoyaSeriesNav';
 
 export type HandbookSection =
   | 'cover-brand'
@@ -87,6 +91,19 @@ export interface HandbookPageEntry {
    * 进入侧栏时必填，否则该项丢弃。
    */
   physicalTabLabel?: string;
+  /**
+   * 已验证凸标页：凸起在**整页可视高度**上的垂直锚点（0–100，自顶向下，通常为凸标块几何中心）。
+   *
+   * StandardEye「视觉即真理」法案：侧栏与页内透明命中层必须同时读取本字段，
+   * 用 `top: ${vOffsetPercent}%` + `translateY(-50%)` 绝对定位；**禁止** 以 `justify-between`
+   * / `flex-1` / `gap` 在运行时均分撑开代替物理坐标，亦禁止用 `title` 推断位置。
+   */
+  vOffsetPercent?: number;
+  /**
+   * 凸标中心相对整页宽（0–100，自左向右）。内嵌式 / 摺痕侧标签必填；缺省时热区回退为右缘条带。
+   * 与 `handbookPhysicalLabelScan.scanPhysicalTabCandidatesFromImageData` 输出的 `hOffsetPercent` 同源。
+   */
+  hOffsetPercent?: number;
   seriesAliasKey?: string;
   /** 快速翻阅权重 0–1；marketing 等页在 runtime 可与 OCR 评估合并取 min */
   quickNavWeight?: number;
@@ -247,6 +264,13 @@ export type HandbookSeriesNavItem = {
   physicalTabVerified?: boolean;
   /** 实体凸标印字 1:1（无页码、无括号英文、无营销长句） */
   physicalTabLabel?: string;
+  /**
+   * 与 `HandbookPageEntry.vOffsetPercent` 同源（0–100，% from top）；
+   * 页内右缘热区（`ZeissHandbookPage`）与（依视路）classic 侧栏共用；缺省时 UI 回退到 50%，应补录。
+   */
+  vOffsetPercent?: number;
+  /** 凸标中心水平位置（0–100）；缺省则热区贴右缘（仅 v 对齐） */
+  hOffsetPercent?: number;
   seriesAliasKey?: string;
   navTabTone?: HandbookNavTabTone;
 };
@@ -290,6 +314,8 @@ export function buildZeissPhysicalTabNavItems(
       label,
       physicalTabVerified: true,
       physicalTabLabel: label,
+      vOffsetPercent: e.vOffsetPercent,
+      hOffsetPercent: e.hOffsetPercent,
       section: e.section,
       startPage0: e.pdfPage - 1,
       printedPage: e.printedPage ?? null,
@@ -456,6 +482,10 @@ export interface HandbookPageData {
   seriesAliasKey: string | null;
   /** 快速翻阅权重（静态表 × OCR 评估可取 min） */
   quickNavWeight: number;
+  /** 凸标垂直锚点（0–100，% from top）；豪雅可由菜单表注入，蔡司来自页表 `vOffsetPercent` */
+  vOffsetPercent: number | null;
+  /** 凸标中心水平锚点（0–100，% from left）；缺省为 null（UI 右缘回退） */
+  hOffsetPercent: number | null;
 }
 
 /** 品牌适配接口：新品牌只需实现此契约 */
@@ -574,6 +604,22 @@ export function getPageData(
   const physicalTabLabel = entry.physicalTabLabel?.trim() || null;
   const seriesAliasKey =
     pageKind === 'series_entry' && physicalTabVerified ? entry.seriesAliasKey?.trim() || null : null;
+  let vOffsetPercent: number | null =
+    typeof entry.vOffsetPercent === 'number' && Number.isFinite(entry.vOffsetPercent)
+      ? entry.vOffsetPercent
+      : null;
+  if (vOffsetPercent == null && brand === 'hoya') {
+    const v = HOYA_PHYSICAL_TAB_V_OFFSET_PERCENT_BY_PDF_PAGE[entry.pdfPage];
+    if (typeof v === 'number' && Number.isFinite(v)) vOffsetPercent = v;
+  }
+  let hOffsetPercent: number | null =
+    typeof entry.hOffsetPercent === 'number' && Number.isFinite(entry.hOffsetPercent)
+      ? entry.hOffsetPercent
+      : null;
+  if (hOffsetPercent == null && brand === 'hoya') {
+    const hx = HOYA_PHYSICAL_TAB_H_OFFSET_PERCENT_BY_PDF_PAGE[entry.pdfPage];
+    if (typeof hx === 'number' && Number.isFinite(hx)) hOffsetPercent = hx;
+  }
   return {
     brand,
     pdfIndex: entry.pdfPage,
@@ -593,6 +639,8 @@ export function getPageData(
     physicalTabLabel,
     seriesAliasKey,
     quickNavWeight: quickBase,
+    vOffsetPercent,
+    hOffsetPercent,
   };
 }
 
