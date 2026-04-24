@@ -1,17 +1,41 @@
 'use client';
 
-/** StandardEye V1.3：物理凸标侧栏孪生 UI；点击仅 `startPage0`，无智能跳转。 */
+/** StandardEye V1.3：手册物理导航；豪雅为右页横向书签（方案 B：负 right + overflow 解锁 + 视口/页盒缩放同步）。 */
 
-import { useLayoutEffect, useMemo, useRef } from 'react';
+import { useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { motion } from 'framer-motion';
+import { buildHoyaSeriesNavigationItems, hoyaRailTopPercentForPdfPage } from '@/data/hoyaSeriesNav';
 import type {
   DigitalHandbookBrand,
   HandbookNavTabTone,
   HandbookSeriesNavItem,
 } from '@/data/zeissHandbookPageMap';
 import type { HandbookActiveNavState } from '@/lib/catalog/dataIntegrityValidator';
+import { acquireHoyaBookmarkOverflowParents } from '@/components/catalog/hoyaBookmarkOverflowParents';
 
 const ZEISS_BLUE = '#0066B3';
+
+function subscribeVisualViewportScale(cb: () => void): () => void {
+  if (typeof window === 'undefined') return () => {};
+  const vv = window.visualViewport;
+  if (!vv) return () => {};
+  vv.addEventListener('resize', cb);
+  vv.addEventListener('scroll', cb);
+  return () => {
+    vv.removeEventListener('resize', cb);
+    vv.removeEventListener('scroll', cb);
+  };
+}
+
+function getVisualViewportScale(): number {
+  if (typeof window === 'undefined') return 1;
+  const s = window.visualViewport?.scale;
+  return typeof s === 'number' && Number.isFinite(s) && s > 0 ? s : 1;
+}
+
+function useVisualViewportScale(): number {
+  return useSyncExternalStore(subscribeVisualViewportScale, getVisualViewportScale, () => 1);
+}
 
 /** 竖排凸标：偏宋黑 / 黑体，略紧字距，接近实物印刷 */
 const PHYSICAL_EMBOSSED_FONT =
@@ -46,79 +70,41 @@ function shortLabel(label: string): boolean {
   return label.trim().length <= 10;
 }
 
+/** 扁平实色，与 PDF 色块一致；无阴影、无渐变。 */
 function resolvePhysicalTabSurface(
   brand: DigitalHandbookBrand,
   tone: HandbookNavTabTone | undefined,
   active: boolean,
-): { bg: string; text: string; shadow: string } {
+): { bg: string; text: string } {
   const t = tone ?? (brand === 'zeiss' ? 'zeiss-deep-blue' : 'neutral');
   if (brand === 'zeiss' || t === 'zeiss-deep-blue') {
     return active
-      ? {
-          bg: 'linear-gradient(180deg,#004a8c 0%,#003566 100%)',
-          text: 'text-white',
-          shadow: '4px 0 18px rgba(0,0,0,0.35)',
-        }
-      : {
-          bg: 'linear-gradient(180deg,#003056 0%,#002040 100%)',
-          text: 'text-white/88',
-          shadow: '3px 0 12px rgba(0,0,0,0.28)',
-        };
+      ? { bg: '#003D78', text: 'text-white' }
+      : { bg: '#002A48', text: 'text-white/88' };
   }
   if (t === 'hoya-orange') {
     return active
-      ? {
-          bg: 'linear-gradient(180deg,#c2410c 0%,#9a3412 100%)',
-          text: 'text-white',
-          shadow: '4px 0 18px rgba(0,0,0,0.32)',
-        }
-      : {
-          bg: 'linear-gradient(180deg,#9a3412 0%,#7c2d12 100%)',
-          text: 'text-white/90',
-          shadow: '3px 0 12px rgba(0,0,0,0.26)',
-        };
+      ? { bg: '#B0380C', text: 'text-white' }
+      : { bg: '#8B2E0E', text: 'text-white/90' };
   }
   if (t === 'hoya-blue') {
     return active
-      ? {
-          bg: 'linear-gradient(180deg,#0369a1 0%,#075985 100%)',
-          text: 'text-white',
-          shadow: '4px 0 18px rgba(0,0,0,0.32)',
-        }
-      : {
-          bg: 'linear-gradient(180deg,#075985 0%,#0c4a6e 100%)',
-          text: 'text-white/90',
-          shadow: '3px 0 12px rgba(0,0,0,0.26)',
-        };
+      ? { bg: '#055F94', text: 'text-white' }
+      : { bg: '#085985', text: 'text-white/90' };
   }
   if (t === 'hoya-purple') {
     return active
-      ? {
-          bg: 'linear-gradient(180deg,#6d28d9 0%,#5b21b6 100%)',
-          text: 'text-white',
-          shadow: '4px 0 18px rgba(0,0,0,0.32)',
-        }
-      : {
-          bg: 'linear-gradient(180deg,#5b21b6 0%,#4c1d95 100%)',
-          text: 'text-white/90',
-          shadow: '3px 0 12px rgba(0,0,0,0.26)',
-        };
+      ? { bg: '#5E21A8', text: 'text-white' }
+      : { bg: '#4C1D8F', text: 'text-white/90' };
   }
   return active
-    ? {
-        bg: 'linear-gradient(180deg,rgba(55,65,81,0.95) 0%,rgba(30,41,59,0.98) 100%)',
-        text: 'text-white',
-        shadow: '4px 0 14px rgba(0,0,0,0.28)',
-      }
-    : {
-        bg: 'linear-gradient(180deg,rgba(40,48,64,0.9) 0%,rgba(24,32,48,0.95) 100%)',
-        text: 'text-white/80',
-        shadow: '2px 0 10px rgba(0,0,0,0.22)',
-      };
+    ? { bg: '#374151', text: 'text-white' }
+    : { bg: '#2A3341', text: 'text-white/80' };
 }
 
 /**
- * 右侧手册导航：physical-tabs 仅渲染已验证凸标（`physicalTabLabel` 原文）；classic 为栅格列表（如依视路）。
+ * physical-tabs：豪雅为右缘横向书签，`top` 由 `hoyaRailTopPercentForPdfPage`（相对页容器高度，顶边对齐）；
+ * 蔡司为竖排凸标 + `vOffsetPercent`；classic 为栅格列表（依视路）。
  */
 export function ZeissSeriesNavList({
   items,
@@ -136,127 +122,141 @@ export function ZeissSeriesNavList({
   const useTwoColumn =
     navLayout === 'classic' && useTwoColProp && !compact && items.length > 6;
 
-  const physicalEmbossedItems = useMemo(
-    () =>
-      items.filter(
-        (it) =>
-          it.physicalTabVerified === true &&
-          typeof it.physicalTabLabel === 'string' &&
-          it.physicalTabLabel.trim().length > 0,
-      ),
-    [items],
-  );
+  const vvScale = useVisualViewportScale();
+  const [pageBoxH, setPageBoxH] = useState(0);
 
   useLayoutEffect(() => {
+    if (navLayout !== 'physical-tabs' || brand !== 'hoya') return;
+    const nav = scrollRef.current;
+    if (!nav) return;
+    const releaseOverflow = acquireHoyaBookmarkOverflowParents(nav);
+    return () => releaseOverflow();
+  }, [brand, navLayout, activeId]);
+
+  useLayoutEffect(() => {
+    if (navLayout !== 'physical-tabs' || brand !== 'hoya') return;
+    const nav = scrollRef.current;
+    const box = nav?.offsetParent as HTMLElement | null | undefined;
+    if (!box) return;
+    const ro = new ResizeObserver((entries) => {
+      const h = entries[0]?.contentRect?.height ?? 0;
+      const rounded = Math.round(h);
+      if (rounded > 0) setPageBoxH(rounded);
+    });
+    ro.observe(box);
+    const h0 = Math.round(box.getBoundingClientRect().height);
+    if (h0 > 0) setPageBoxH(h0);
+    return () => ro.disconnect();
+  }, [brand, navLayout, activeId]);
+
+  useLayoutEffect(() => {
+    if (navLayout === 'physical-tabs') return;
     const root = scrollRef.current;
     if (!root) return;
     const el = root.querySelector<HTMLElement>('[data-zeiss-nav-active="true"]');
     el?.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'smooth' });
-  }, [activeId, items.length, activeNav?.anchorId, activeNav?.dataStatus, navLayout, physicalEmbossedItems.length]);
+  }, [activeId, items.length, activeNav?.anchorId, activeNav?.dataStatus, navLayout]);
 
   if (navLayout === 'physical-tabs') {
+    /** 豪雅：与 `HOYA_PHYSICAL_PAGE_ANCHORS` 全量同源，禁止依赖外层对 `items` 的裁剪。 */
+    const physicalItems = brand === 'hoya' ? buildHoyaSeriesNavigationItems() : items;
+
+    const hoyaNavFontPx =
+      brand === 'hoya' && pageBoxH > 0
+        ? Math.max(10, Math.min(16, Math.round(pageBoxH * 0.021)))
+        : undefined;
+
     return (
-      <div
+      <nav
         ref={scrollRef}
         role="navigation"
-        className={[
-          'flex h-full min-h-0 w-full flex-col overflow-y-auto overflow-x-hidden pl-1.5',
-          'rounded-xl bg-gradient-to-b from-white/[0.05] to-transparent',
-          NAV_SCROLL_STYLES,
-          className,
-        ]
-          .filter(Boolean)
-          .join(' ')}
         aria-label="系列索引（物理标签）"
+        className="pointer-events-none h-full min-h-0"
+        style={{
+          position: 'absolute',
+          right: brand === 'hoya' ? -30 * vvScale : 0,
+          top: 0,
+          bottom: 0,
+          width: brand === 'hoya' ? 'min(10rem, 46%)' : 50,
+          zIndex: 50,
+          ...(brand === 'hoya' && hoyaNavFontPx
+            ? { fontSize: `${hoyaNavFontPx}px` }
+            : brand === 'hoya'
+              ? { fontSize: '12px' }
+              : {}),
+        }}
       >
-        {/**
-         * physical-tabs 分支已不在蔡司/豪雅主 UI 使用（热区已迁入 `ZeissHandbookPage`）。
-         * 若将来再挂载本侧栏：
-         *   - `top` 必须 = `vOffsetPercent%`（与页内热区绝对水平对齐，禁止 flex 均分）。
-         *   - 当 `hOffsetPercent < 90`（内嵌/摺痕）时**隐藏**该侧栏项，避免与页内热区重复出现。
-         */}
-        <div className="relative min-h-full w-full pr-0.5 pb-3 pt-0.5">
-          {physicalEmbossedItems.map((it) => {
-            const hp = it.hOffsetPercent;
-            const isInsideHot = typeof hp === 'number' && Number.isFinite(hp) && hp < 90;
-            if (isInsideHot) return null;
-            const tabText = it.physicalTabLabel!.trim();
-            const active = it.id === activeId;
-            const integrityWarn = Boolean(integrityWarnIds?.has(it.id));
-            const surf = resolvePhysicalTabSurface(brand, it.navTabTone, active);
-            const anchorStatus =
-              active && activeNav && it.id === activeNav.anchorId ? activeNav.dataStatus : undefined;
-            const pendingMsg =
-              active && activeNav && it.id === activeNav.anchorId && activeNav.dataStatus === 'warning'
-                ? activeNav.placeholderMessage
+        {physicalItems.map((it) => {
+          const topCss =
+            brand === 'hoya'
+              ? `${hoyaRailTopPercentForPdfPage(it.startPage0 + 1)}%`
+              : typeof it.vOffsetPercent === 'number' && Number.isFinite(it.vOffsetPercent)
+                ? `${it.vOffsetPercent}%`
                 : '';
-            const showDataPending = Boolean(pendingMsg);
-            const titleParts = [
-              integrityWarn ? '数据完整性提示' : '',
-              anchorStatus === 'validated' ? '物理索引签已校验' : '',
-              anchorStatus === 'warning' ? '当前锚点数据待补全' : '',
-            ].filter(Boolean);
-            const topPct = Math.min(96, Math.max(4, it.vOffsetPercent ?? 50));
-            return (
-              <motion.button
-                key={it.id}
-                type="button"
-                data-zeiss-nav-active={active ? 'true' : undefined}
-                data-handbook-anchor-status={anchorStatus}
-                title={titleParts.length ? titleParts.join(' · ') : undefined}
-                onClick={() => onSelect(it)}
-                initial={false}
-                whileHover={{ x: -2 }}
-                whileTap={{ scale: 0.99 }}
-                transition={{ type: 'spring', stiffness: 420, damping: 28 }}
+          if (!topCss) return null;
+
+          const tabText = (it.physicalTabLabel?.trim() || it.label).trim() || it.id;
+          const active = it.id === activeId;
+          const integrityWarn = Boolean(integrityWarnIds?.has(it.id));
+          const surf = resolvePhysicalTabSurface(brand, it.navTabTone, active);
+          const anchorStatus =
+            active && activeNav && it.id === activeNav.anchorId ? activeNav.dataStatus : undefined;
+          const titleParts = [integrityWarn ? '数据完整性提示' : ''].filter(Boolean);
+          const isHoyaRail = brand === 'hoya';
+          return (
+            <button
+              key={it.id}
+              type="button"
+              data-zeiss-nav-active={active ? 'true' : undefined}
+              data-handbook-anchor-status={anchorStatus}
+              title={titleParts.length ? titleParts.join(' · ') : undefined}
+              onClick={() => onSelect(it)}
+              className={[
+                'box-border cursor-pointer text-left pointer-events-auto',
+                isHoyaRail
+                  ? [
+                      'm-0 flex items-center justify-end border border-r-0 border-black/30 pr-2',
+                      'rounded-l-xl rounded-r-none',
+                      'py-[0.35em] pl-[0.55em]',
+                      'shadow-[-5px_2px_14px_rgba(0,0,0,0.32)]',
+                      'whitespace-nowrap',
+                    ].join(' ')
+                  : 'rounded-[1px] rounded-r-none border border-black/25 border-r-0 px-0.5 py-1.5',
+                surf.text,
+                !isHoyaRail && integrityWarn ? 'outline outline-1 outline-red-500/80 -outline-offset-1' : '',
+              ]
+                .filter(Boolean)
+                .join(' ')}
+              style={{
+                position: 'absolute',
+                right: 0,
+                top: topCss,
+                width: isHoyaRail ? 'max-content' : '100%',
+                maxWidth: isHoyaRail ? '100%' : undefined,
+                background: surf.bg,
+                zIndex: 10,
+                ...(isHoyaRail
+                  ? { maxHeight: '2.4em' }
+                  : { margin: 0, minHeight: 44 }),
+              }}
+            >
+              <span
                 className={[
-                  'group/tab absolute right-0 z-0 flex w-[min(100%,2.05rem)] min-w-[1.85rem] max-w-[2.15rem] flex-col items-center rounded-l-xl rounded-r-none border-y border-l py-2',
-                  'border-r-0 px-0.5',
-                  surf.text,
-                  integrityWarn ? 'ring-1 ring-red-500/70 ring-inset' : '',
-                  active ? 'z-10 scale-[1.02]' : 'z-0',
-                ].join(' ')}
-                style={{
-                  top: `${topPct}%`,
-                  transform: 'translateY(-50%)',
-                  background: surf.bg,
-                  borderColor: 'rgba(255,255,255,0.12)',
-                  boxShadow: surf.shadow,
-                }}
+                  PHYSICAL_EMBOSSED_FONT,
+                  isHoyaRail
+                    ? 'box-border block text-right text-[0.85em] leading-tight tracking-wide'
+                    : 'box-border block text-center text-[12px] leading-[1.75] tracking-[0.18em] [writing-mode:vertical-rl] [text-orientation:mixed]',
+                  compact && !isHoyaRail ? 'text-[11px] tracking-[0.16em]' : '',
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
               >
-                <span
-                  className={[
-                    'pointer-events-none absolute right-0 top-1/2 hidden h-[72%] w-px -translate-y-1/2 sm:block',
-                    active ? 'opacity-100' : 'opacity-0',
-                  ].join(' ')}
-                  style={{ background: ZEISS_BLUE, opacity: active ? 0.35 : 0 }}
-                  aria-hidden
-                />
-                <span
-                  className={[
-                    PHYSICAL_EMBOSSED_FONT,
-                    'flex min-h-[3rem] max-h-[10.5rem] items-center justify-center text-center',
-                    'text-[12px] leading-[1.75] tracking-[0.18em] [writing-mode:vertical-rl] [text-orientation:mixed]',
-                    compact ? 'text-[11px] tracking-[0.16em]' : '',
-                  ]
-                    .filter(Boolean)
-                    .join(' ')}
-                >
-                  {tabText}
-                </span>
-                {showDataPending ? (
-                  <span
-                    role="status"
-                    className="mt-1 block rounded-md border border-amber-500/40 bg-amber-950/35 px-1 py-0.5 text-[9px] font-semibold leading-tight text-amber-100/95 [writing-mode:horizontal-tb]"
-                  >
-                    {pendingMsg}
-                  </span>
-                ) : null}
-              </motion.button>
-            );
-          })}
-        </div>
-      </div>
+                {tabText}
+              </span>
+            </button>
+          );
+        })}
+      </nav>
     );
   }
 

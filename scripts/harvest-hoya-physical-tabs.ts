@@ -8,11 +8,11 @@
  *   3) 候选 `remapQuadrantCandidateToFullPage` 映回整页；
  *   4) 当 `pdfPage` 命中 `HOYA_SERIES_MENU` 时，取菜单 `physicalTabLabel` 作为规范 label（模糊匹配再校验）；
  *      未在菜单的页**仅**入候选报表，不会自动加项避免误塞；
- *   5) 将已落实的行写回 `src/data/hoyaSeriesNav.ts`（仅改 `vOffsetPercent` / `hOffsetPercent`；`id`/`label`/`tabAccent`/`section` 保留）。
+ *   5) 将已落实的行写回 `src/lib/catalog/hoyaPhysicalTabScanParams.ts`（仅改 `vOffsetPercent` / `hOffsetPercent`；`id`/`label`/`tabAccent`/`section` 保留）。
  *
  * 运行：
  *   npx tsx scripts/harvest-hoya-physical-tabs.ts            # 只产出候选 JSON（默认 dry-run）
- *   npx tsx scripts/harvest-hoya-physical-tabs.ts --apply    # 真正写回 hoyaSeriesNav.ts（自动生成 .bak）
+ *   npx tsx scripts/harvest-hoya-physical-tabs.ts --apply    # 真正写回 hoyaPhysicalTabScanParams.ts（自动生成 .bak）
  */
 
 import fs from 'node:fs/promises';
@@ -30,7 +30,7 @@ import { HOYA_SERIES_MENU } from '@/data/hoyaSeriesNav';
 
 const ROOT = process.cwd();
 const PAGES_DIR = path.join(ROOT, 'public', 'catalog', 'hoya');
-const NAV_FILE = path.join(ROOT, 'src', 'data', 'hoyaSeriesNav.ts');
+const NAV_FILE = path.join(ROOT, 'src', 'lib', 'catalog', 'hoyaPhysicalTabScanParams.ts');
 const HARVEST_OUT_DIR = path.join(ROOT, 'harvest');
 const HARVEST_JSON = path.join(HARVEST_OUT_DIR, 'hoya-physical-tabs.candidates.json');
 const TOTAL_PAGES = 74;
@@ -161,28 +161,23 @@ function fmtFloat(n: number): string {
 const COLOR_BLOCK_MIN_FOR_H = 0.35;
 
 function applyHarvestToNavSource(src: string, hMap: Map<number, Extract<HarvestRow, { ok: true }>>): string {
+  /** `HOYA_PHYSICAL_PAGE_ANCHORS` 字面块：`id` / `label` / `pdfPage` 序固定（行首可有缩进） */
   const blockRe =
-    /\{\s*kind:\s*'(?:section|product)',\s*id:\s*'([^']+)',\s*pdfPage:\s*(\d+),[\s\S]*?\n\s*\},\n/g;
-  return src.replace(blockRe, (block, _id: string, pdfPageStr: string) => {
+    /\s*\{\s*\n\s*id:\s*'[^']+',\s*\n\s*label:\s*'[^']*',\s*\n\s*pdfPage:\s*(\d+),\s*\n([\s\S]*?)\n\s*\},\n/g;
+  return src.replace(blockRe, (block, pdfPageStr: string) => {
     const pdfPage = Number(pdfPageStr);
     const h = hMap.get(pdfPage);
     if (!h) return block;
 
     const writeH = h.colorBlockScore >= COLOR_BLOCK_MIN_FOR_H;
 
-    // 以首行 `kind:` 前导空白作为块内字段缩进，避免 indent 错位
-    const indentMatch = block.match(/\n?(\s*)kind:/);
-    const indent = indentMatch ? indentMatch[1] : '    ';
+    const indentMatch = block.match(/\n(\s*)vOffsetPercent:/);
+    const indent = indentMatch ? indentMatch[1]! : '    ';
 
     let next = block;
     const vLineRe = /^\s*vOffsetPercent:\s*([\d.-]+),\s*\n/m;
     if (vLineRe.test(next)) {
       next = next.replace(vLineRe, `${indent}vOffsetPercent: ${fmtFloat(h.vOffsetPercent)},\n`);
-    } else {
-      next = next.replace(
-        /^(\s*)physicalTabLabel:\s*'[^']+',\s*\n/m,
-        (line) => `${line}${indent}vOffsetPercent: ${fmtFloat(h.vOffsetPercent)},\n`,
-      );
     }
 
     const hLineRe = /^\s*hOffsetPercent:\s*([\d.-]+),\s*\n/m;
@@ -219,7 +214,7 @@ async function main() {
   console.log(`候选报表：${path.relative(ROOT, HARVEST_JSON)}  (命中 ${okCount}/${TOTAL_PAGES})`);
 
   if (!DO_APPLY) {
-    console.log('(dry-run) 未写回 hoyaSeriesNav.ts；加 --apply 生效。');
+    console.log('(dry-run) 未写回 hoyaPhysicalTabScanParams.ts；加 --apply 生效。');
     return;
   }
 
@@ -230,7 +225,7 @@ async function main() {
   await fs.writeFile(NAV_FILE + '.bak', tsSource, 'utf8');
   const next = applyHarvestToNavSource(tsSource, hMap);
   if (next === tsSource) {
-    console.log('未产生修改（可能菜单块解析未命中；请检查 hoyaSeriesNav.ts 对齐）。');
+    console.log('未产生修改（可能锚点块解析未命中；请检查 hoyaPhysicalTabScanParams.ts 对齐）。');
     return;
   }
   await fs.writeFile(NAV_FILE, next, 'utf8');

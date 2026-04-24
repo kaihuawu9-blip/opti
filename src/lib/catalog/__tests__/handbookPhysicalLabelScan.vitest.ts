@@ -354,7 +354,7 @@ describe('buildZeissPhysicalTabNavItems', () => {
 describe('hoyaPhysicalTabScanParams', () => {
   it('HOYA 菜单 id 与系列色先验表一致', () => {
     expect(HOYA_PHYSICAL_TAB_COLOR_BY_MENU_ID['p:新乐学']).toBe('orange');
-    expect(HOYA_PHYSICAL_TAB_COLOR_BY_MENU_ID['p:Eyvia单光']).toBe('blue');
+    expect(HOYA_PHYSICAL_TAB_COLOR_BY_MENU_ID['p:新明锐']).toBe('blue');
   });
 });
 

@@ -17,6 +17,7 @@ import {
 import { ESSILOR_PRICE_MATRIX } from '@/data/essilorPriceMatrix';
 import { HOYA_PRICE_MATRIX } from '@/data/hoyaPriceMatrix';
 import hoyaHandbookMeta from '@/data/hoyaHandbookPageCount.json';
+import { hoyaRailTopPercentForPdfPage } from '@/data/hoyaSeriesNav';
 import { adaptOcrToOrderItemStrict } from '@/lib/api/dataAdapter';
 
 describe('Matrix Protocol V1.1 — IndexAutoCalibrator (插件 A)', () => {
@@ -168,20 +169,18 @@ describe('Matrix Protocol V1.3 — HOYA 豪雅专项', () => {
     const p8 = getPageData(8, 'hoya');
     expect(p8?.physicalAnchorPage).toBe(false);
     expect(p8?.dataAnchor).toBe('新乐学');
-    // vOffsetPercent 由离线全域雷达扫描产出（`catalog:harvest-hoya-tabs`），仅断言「在合理区间」
-    expect(p8?.vOffsetPercent).toBeTypeOf('number');
-    expect(p8!.vOffsetPercent!).toBeGreaterThanOrEqual(0);
-    expect(p8!.vOffsetPercent!).toBeLessThan(100);
-    // 右缘占位页（`colorBlockScore < 0.35`）不写 hOffsetPercent，热区水平贴右缘
+    /** 物理锚点已迁至 `HOYA_PHYSICAL_PAGE_ANCHORS` 新 pdfPage；p8 仅价目内容，无轨上 v 注入 */
+    expect(p8?.vOffsetPercent).toBeNull();
     expect(p8?.hOffsetPercent).toBeNull();
     expect(p8?.product?.productName).toBe('新乐学');
-    expect(p8?.isManualTrimmed).toBe(true);
+    expect(p8?.isManualTrimmed).toBeFalsy();
     expect(p8?.imageUrl).toBe('/catalog/hoya/pages/p8.jpg');
     const flat = p8?.product?.series?.flatMap((s) => s.rows) ?? [];
     expect(flat.some((r) => Number(r.retailYuan) === 3980)).toBe(true);
     expect(flat.some((r) => Number(r.retailYuan) === 4980)).toBe(true);
     expect(HOYA_PRICE_MATRIX.some((p) => p.productName === '新乐学')).toBe(true);
     const nav = buildHandbookSeriesNavItemsForBrand('hoya');
+    expect(nav).toHaveLength(7);
     for (const it of nav) {
       expect(it.label).not.toMatch(/智锐|睐光|蔡司镜架|智锐系列|单光延伸|内页 p/);
     }
@@ -190,21 +189,31 @@ describe('Matrix Protocol V1.3 — HOYA 豪雅专项', () => {
     expect(miyo?.isManualTrimmed).toBe(true);
     expect(miyo?.physicalTabVerified).toBe(true);
     expect(miyo?.physicalTabLabel).toBe('新乐学');
-    expect(miyo?.vOffsetPercent).toBeTypeOf('number');
-    expect(miyo!.vOffsetPercent!).toBeGreaterThanOrEqual(0);
-    expect(miyo!.vOffsetPercent!).toBeLessThan(100);
+    expect(miyo?.startPage0).toBe(10);
+    expect(miyo?.vOffsetPercent).toBeCloseTo(hoyaRailTopPercentForPdfPage(11), 5);
     expect(miyo?.label).toBe('新乐学');
-    expect(nav.some((it) => it.id === 'p:豪雅智御中近')).toBe(true);
-    const state = resolveActiveHandbookNavState(nav, 7, [], {
+    expect(nav.map((it) => it.id).sort()).toEqual(
+      [
+        'p:优适',
+        'p:手机镜',
+        'p:悦驾',
+        'p:新乐学',
+        'p:新明锐',
+        'p:新纵横',
+        'p:新智悦',
+      ].sort(),
+    );
+    const state = resolveActiveHandbookNavState(nav, 10, [], {
       matrixProducts: HOYA_PRICE_MATRIX,
     });
     expect(state.anchorId).toBe('p:新乐学');
     expect(state.dataStatus).toBe('validated');
-    const stZ = resolveActiveHandbookNavState(nav, 26, [], {
+    /** 物理轨首项：页 0 时仍落在排序首条（新乐学） */
+    const stIntro = resolveActiveHandbookNavState(nav, 0, [], {
       matrixProducts: HOYA_PRICE_MATRIX,
     });
-    expect(stZ.anchorId).toBe('p:豪雅智御中近');
-    expect(stZ.dataStatus).toBe('validated');
+    expect(stIntro.anchorId).toBe('p:新乐学');
+    expect(['validated', 'warning']).toContain(stIntro.dataStatus);
   });
 
   it('数据海关 strict 命中豪雅价目矩阵 SKU', () => {

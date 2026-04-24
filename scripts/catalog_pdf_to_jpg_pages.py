@@ -10,7 +10,7 @@ Catalog PDF → p{n}.jpg（Matrix V1.3 · 资源自愈）
 
 规则:
   - 在指定目录下查找首个 *.pdf（忽略大小写）
-  - 输出同级目录 p1.jpg … pN.jpg（覆盖已存在同名文件）
+  - 输出子目录 pages/p1.jpg … pages/pN.jpg（覆盖已存在同名文件）
   - 默认 DPI 175（72 * zoom）；可用 --dpi 150–200
   - 结束时打印一行 JSON: {"pages":N,"dir":"...","pdf":"..."}
 """
@@ -45,6 +45,8 @@ def main() -> int:
     if not out_dir.is_dir():
         print(f"ERROR: not a directory: {out_dir}", file=sys.stderr)
         return 2
+    pages_dir = out_dir / "pages"
+    pages_dir.mkdir(parents=True, exist_ok=True)
     pdf_path = find_pdf(out_dir)
     try:
         import fitz  # PyMuPDF
@@ -60,7 +62,7 @@ def main() -> int:
     for i in range(n):
         page = doc.load_page(i)
         pix = page.get_pixmap(matrix=mat, alpha=False)
-        out_path = out_dir / f"p{i + 1}.jpg"
+        out_path = pages_dir / f"p{i + 1}.jpg"
         # PyMuPDF：优先 output=jpeg；旧版回退 tobytes
         try:
             pix.save(out_path.as_posix(), output="jpeg", jpg_quality=88)
@@ -68,15 +70,17 @@ def main() -> int:
             out_path.write_bytes(pix.tobytes("jpeg", jpg_quality=88))
     doc.close()
 
-    rel = str(out_dir.relative_to(root)).replace("\\", "/")
-    if "hoya" in rel.lower():
+    rel_brand = str(out_dir.relative_to(root)).replace("\\", "/")
+    rel_pages = str(pages_dir.relative_to(root)).replace("\\", "/")
+    if "hoya" in rel_brand.lower():
         meta_path = root / "src" / "data" / "hoyaHandbookPageCount.json"
         meta_path.write_text(
             json.dumps(
                 {
                     "pages": n,
                     "total": n,
-                    "dir": rel,
+                    "dir": rel_brand,
+                    "pagesDir": rel_pages,
                     "pdf": pdf_path.name,
                     "generatedAt": datetime.now(timezone.utc)
                     .isoformat()
@@ -92,7 +96,7 @@ def main() -> int:
 
     print(
         json.dumps(
-            {"pages": n, "dir": rel, "pdf": pdf_path.name},
+            {"pages": n, "dir": rel_brand, "pagesDir": rel_pages, "pdf": pdf_path.name},
             ensure_ascii=False,
         )
     )

@@ -1,197 +1,111 @@
 /**
- * 豪雅侧栏系列导航（Matrix V1.3 · 品牌隔离 + 语义化）
+ * 豪雅手册（74P）· 物理凸标与导航数据
  *
- * 每项 `pdfPage` 为实体凸起所在 PDF 页。侧栏印字 **仅** `physicalTabLabel`（1:1 凸标短名，禁止页码区间、括号英文、营销长句）。
- * `vOffsetPercent`：相对整页高度的垂直锚点（0–100，% from top），须与实物对图校准，禁止 flex 均分代替。
- * `hOffsetPercent`：凸标中心水平位置（0–100，% from left）；摺痕/内侧凸标必填；右缘可省略（热区回退贴右）。
- * `tabAccent` → 凸标色带（与 `hoyaPhysicalTabScanParams` 一致）。
+ * - **`HOYA_PHYSICAL_PAGE_ANCHORS`**：字面量源在 `@/lib/catalog/hoyaPhysicalTabScanParams`；此处再导出以兼容既有 import。
+ * - **`HOYA_PHYSICAL_TABS`**：与锚点全量一致；**禁止**按 `seriesNavRail` 等字段过滤渲染（右页书签由父级按 spread 控制显隐）。
  */
 
 import type { HandbookNavTabTone, HandbookSection, HandbookSeriesNavItem } from '@/data/zeissHandbookPageMap';
+import {
+  HOYA_HANDBOOK_PHYSICAL_PAGE_TOTAL,
+  HOYA_PHYSICAL_PAGE_ANCHORS,
+  HOYA_PHYSICAL_TABS,
+  HOYA_RAIL_VERTICAL_DENOMINATOR,
+  HOYA_RAIL_VERTICAL_OFFSET_PCT,
+  type HoyaPhysicalPageAnchor,
+} from '@/lib/catalog/hoyaPhysicalTabScanParams';
 
-const HOYA_TAB_MAP = {
-  orange: 'hoya-orange',
-  blue: 'hoya-blue',
-  purple: 'hoya-purple',
-} as const satisfies Record<string, HandbookNavTabTone>;
-
-type HoyaTabAccent = keyof typeof HOYA_TAB_MAP;
-
-type HoyaSeriesMenuRow = {
-  kind: 'section' | 'product';
-  id: string;
-  pdfPage: number;
-  section: HandbookSection;
-  tabAccent: HoyaTabAccent;
-  /** Boss 精修页已放入 `public/catalog/hoya/pages/p{pdfPage}.jpg`（或 `.png`）时为 true；与 `isHoyaManualTrimmedPdfPage` 同步 */
-  isManualTrimmed?: boolean;
-  /** 人工对图确认后方可为 true */
-  physicalTabVerified: true;
-  /** 与实体凸标印字一致（短名） */
-  physicalTabLabel: string;
-  /**
-   * 凸标在页内垂直位置（0–100，% from top）；对图校准占位，勿用等差数列冒充测量。
-   * 侧栏 / 页内透明命中层共用此值做 `top: ${n}%` + `translateY(-50%)`。
-   */
-  vOffsetPercent: number;
-  /** 全週邊扫描 / 对图写入；省略则页内热区仅垂直对齐、水平贴右缘 */
-  hOffsetPercent?: number;
+export {
+  HOYA_HANDBOOK_PHYSICAL_PAGE_TOTAL,
+  HOYA_PHYSICAL_PAGE_ANCHORS,
+  HOYA_PHYSICAL_TABS,
+  HOYA_RAIL_VERTICAL_DENOMINATOR,
+  HOYA_RAIL_VERTICAL_OFFSET_PCT,
+  type HoyaPhysicalPageAnchor,
 };
 
 /**
- * 精修页（1-based PDF 页码）：`getPageData` 默认 `/catalog/hoya/pages/p{n}.jpg`（`public/catalog/hoya/pages`），有 PNG 时组件会回退尝试 `.png`；禁用 clip-path。
- * 与 `HOYA_SERIES_MENU` 中带凸标的页对齐；增删精修页时同步改此集合。
+ * 豪雅右页书签 / 热区共用的竖直百分比（与 `ZeissSeriesNavList` 必须一致）。
+ * `top` CSS：`${hoyaRailTopPercentForPdfPage(pdfPage)}%`，顶边对齐、无 translateY。
  */
-export const HOYA_MANUAL_TRIMMED_PDF_PAGES: ReadonlySet<number> = new Set([
-  1, 8, 9, 12, 16, 20, 27, 34, 42,
-]);
+export function hoyaRailTopPercentForPdfPage(pdfPage1Based: number): number {
+  return (
+    (pdfPage1Based / HOYA_RAIL_VERTICAL_DENOMINATOR) * 100 -
+    HOYA_RAIL_VERTICAL_OFFSET_PCT
+  );
+}
+
+export const HOYA_TAB_MAP = {
+  orange: 'hoya-orange',
+  blue: 'hoya-blue',
+  purple: 'hoya-purple',
+  neutral: 'neutral',
+} as const satisfies Record<string, HandbookNavTabTone>;
+
+export type HoyaTabAccent = keyof typeof HOYA_TAB_MAP;
+
+/** @deprecated 使用 {@link HoyaPhysicalPageAnchor}；保留别名以免破坏既有类型引用 */
+export type HoyaPhysicalTabDefinition = HoyaPhysicalPageAnchor;
+
+function hoyaAnchorHOffset(m: HoyaPhysicalPageAnchor): number | undefined {
+  return 'hOffsetPercent' in m ? (m as { hOffsetPercent: number }).hOffsetPercent : undefined;
+}
+
+/** 兼容脚本 / OCR：全锚点表，字段形态与旧 `HOYA_SERIES_MENU` 一致 */
+export const HOYA_SERIES_MENU = Object.freeze(
+  HOYA_PHYSICAL_PAGE_ANCHORS.map((t) => ({
+    kind: t.kind,
+    id: t.id,
+    pdfPage: t.pdfPage,
+    section: t.section as HandbookSection,
+    tabAccent: t.tabAccent as HoyaTabAccent,
+    isManualTrimmed: t.isManualTrimmed === true ? true : undefined,
+    physicalTabVerified: true as const,
+    physicalTabLabel: t.label,
+    vOffsetPercent: hoyaRailTopPercentForPdfPage(t.pdfPage),
+    hOffsetPercent: hoyaAnchorHOffset(t),
+  })),
+);
+
+/** Boss 精修图页（1-based）；与当前物理锚点 `pdfPage` 一致 */
+export const HOYA_MANUAL_TRIMMED_PDF_PAGES: ReadonlySet<number> = new Set(
+  HOYA_PHYSICAL_PAGE_ANCHORS.map((m) => m.pdfPage),
+);
 
 export function isHoyaManualTrimmedPdfPage(pdfPage1Based: number): boolean {
   return HOYA_MANUAL_TRIMMED_PDF_PAGES.has(pdfPage1Based);
 }
 
-/** 与侧栏 `startPage0`（0-based）同步；`physicalTabLabel` 须与实物凸标一致 */
-export const HOYA_SERIES_MENU = Object.freeze([
-  {
-    kind: 'section',
-    id: 's:hoya-intro',
-    pdfPage: 1,
-    section: 'myopia-control-intro',
-    tabAccent: 'orange',
-    isManualTrimmed: true,
-    physicalTabVerified: true,
-    physicalTabLabel: '豪雅',
-    vOffsetPercent: 25,
-  },
-  {
-    kind: 'product',
-    id: 'p:新乐学',
-    pdfPage: 8,
-    section: 'price',
-    tabAccent: 'orange',
-    isManualTrimmed: true,
-    physicalTabVerified: true,
-    physicalTabLabel: '新乐学',
-    vOffsetPercent: 27.5449,
-  },
-  {
-    kind: 'product',
-    id: 'p:新明锐',
-    pdfPage: 9,
-    section: 'price',
-    tabAccent: 'blue',
-    isManualTrimmed: true,
-    physicalTabVerified: true,
-    physicalTabLabel: '新明锐',
-    vOffsetPercent: 16.6168,
-    hOffsetPercent: 78.1382,
-  },
-  {
-    kind: 'product',
-    id: 'p:Eyvia单光',
-    pdfPage: 12,
-    section: 'price',
-    tabAccent: 'blue',
-    isManualTrimmed: true,
-    physicalTabVerified: true,
-    physicalTabLabel: 'Eyvia',
-    vOffsetPercent: 32.4850,
-  },
-  {
-    kind: 'product',
-    id: 'p:Eynoa单光',
-    pdfPage: 16,
-    section: 'price',
-    tabAccent: 'orange',
-    isManualTrimmed: true,
-    physicalTabVerified: true,
-    physicalTabLabel: 'Eynoa',
-    vOffsetPercent: 25.4491,
-  },
-  {
-    kind: 'product',
-    id: 'p:Eyas2单光',
-    pdfPage: 20,
-    section: 'price',
-    tabAccent: 'blue',
-    isManualTrimmed: true,
-    physicalTabVerified: true,
-    physicalTabLabel: 'Eyas2',
-    vOffsetPercent: 36.3772,
-  },
-  {
-    kind: 'product',
-    id: 'p:豪雅智御中近',
-    pdfPage: 27,
-    section: 'price',
-    tabAccent: 'purple',
-    isManualTrimmed: true,
-    physicalTabVerified: true,
-    physicalTabLabel: '智御',
-    vOffsetPercent: 16.4671,
-    hOffsetPercent: 72.0028,
-  },
-  {
-    kind: 'section',
-    id: 's:hoya-coating',
-    pdfPage: 34,
-    section: 'coating',
-    tabAccent: 'blue',
-    isManualTrimmed: true,
-    physicalTabVerified: true,
-    physicalTabLabel: '膜层',
-    vOffsetPercent: 39.5210,
-    hOffsetPercent: 69.6756,
-  },
-  {
-    kind: 'section',
-    id: 's:hoya-lifestyle',
-    pdfPage: 42,
-    section: 'driving-intro',
-    tabAccent: 'orange',
-    isManualTrimmed: true,
-    physicalTabVerified: true,
-    physicalTabLabel: '场景',
-    vOffsetPercent: 25,
-  },
-] as const satisfies readonly HoyaSeriesMenuRow[]);
-
-/** `getPageData('hoya')` 注入用：PDF 物理页 → 凸标垂直锚点（0–100，% from top） */
 export const HOYA_PHYSICAL_TAB_V_OFFSET_PERCENT_BY_PDF_PAGE: Readonly<Record<number, number>> = Object.freeze(
-  Object.fromEntries(
-    HOYA_SERIES_MENU.filter((m) => m.physicalTabVerified).map((m) => [m.pdfPage, m.vOffsetPercent]),
-  ),
+  Object.fromEntries(HOYA_PHYSICAL_PAGE_ANCHORS.map((m) => [m.pdfPage, hoyaRailTopPercentForPdfPage(m.pdfPage)])),
 );
 
-/** 仅包含有显式 `hOffsetPercent` 的菜单行（内嵌/摺痕凸标）；右缘默认不写本表 */
 export const HOYA_PHYSICAL_TAB_H_OFFSET_PERCENT_BY_PDF_PAGE: Readonly<Record<number, number>> = Object.freeze(
   Object.fromEntries(
-    HOYA_SERIES_MENU.filter(
-      (m) =>
-        m.physicalTabVerified &&
-        typeof m.hOffsetPercent === 'number' &&
-        Number.isFinite(m.hOffsetPercent),
-    ).map((m) => [m.pdfPage, m.hOffsetPercent as number]),
+    HOYA_PHYSICAL_PAGE_ANCHORS.flatMap((m) => {
+      const h = hoyaAnchorHOffset(m);
+      return typeof h === 'number' && Number.isFinite(h) ? [[m.pdfPage, h] as [number, number]] : [];
+    }),
   ),
 );
 
-/** 该 PDF 页是否为「物理锚点页」（边缘有已登记凸起标签，才触发保护性出血裁剪） */
 export function isHoyaPhysicalAnchorPdfPage(pdfPage1Based: number): boolean {
-  return HOYA_SERIES_MENU.some((m) => m.physicalTabVerified && m.pdfPage === pdfPage1Based);
+  return HOYA_PHYSICAL_PAGE_ANCHORS.some((m) => m.pdfPage === pdfPage1Based);
 }
 
+/** 手册 UI：豪雅物理书签数据 = 全量 `HOYA_PHYSICAL_PAGE_ANCHORS`（右页由 `ZeissDigitalHandbook` 决定是否挂载） */
 export function buildHoyaSeriesNavigationItems(): HandbookSeriesNavItem[] {
-  return HOYA_SERIES_MENU.filter((m) => m.physicalTabVerified).map((m) => ({
+  return HOYA_PHYSICAL_TABS.map((m) => ({
     id: m.id,
-    label: m.physicalTabLabel,
+    label: m.label,
     physicalTabVerified: true,
-    physicalTabLabel: m.physicalTabLabel,
-    vOffsetPercent: m.vOffsetPercent,
-    hOffsetPercent: m.hOffsetPercent,
-    section: m.section,
+    physicalTabLabel: m.label,
+    vOffsetPercent: hoyaRailTopPercentForPdfPage(m.pdfPage),
+    hOffsetPercent: hoyaAnchorHOffset(m),
+    section: m.section as HandbookSection,
     startPage0: m.pdfPage - 1,
     printedPage: null,
-    navTabTone: HOYA_TAB_MAP[m.tabAccent],
+    navTabTone: HOYA_TAB_MAP[m.tabAccent as HoyaTabAccent],
     isManualTrimmed: m.isManualTrimmed === true ? true : undefined,
   })).sort((a, b) => a.startPage0 - b.startPage0);
 }

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * 资源自愈：public/catalog/[品牌]/ 下首个 PDF → 同级 p1.jpg … pN.jpg
+ * 资源自愈：public/catalog/[品牌]/ 下首个 PDF → `pages/p1.jpg` … `pages/pN.jpg`
  * （与 Zeiss export 同源：pdf-to-img + sharp；无需系统 Poppler / Python）
  *
  * 用法：
@@ -46,32 +46,42 @@ async function main() {
   const catalogDir = path.isAbsolute(dir) ? dir : path.join(ROOT, dir);
   await fs.mkdir(catalogDir, { recursive: true });
   const pdfPath = await findPdf(catalogDir);
+  const pagesDir = path.join(catalogDir, 'pages');
+  await fs.mkdir(pagesDir, { recursive: true });
   const scale = Math.max(1, Math.min(4, dpi / 72));
   const document = await pdf(pdfPath, { scale });
   let i = 0;
   for await (const buf of document) {
     i += 1;
-    const outPath = path.join(catalogDir, `p${i}.jpg`);
+    const outPath = path.join(pagesDir, `p${i}.jpg`);
     const jpg = await sharp(buf).jpeg({ quality: 88, mozjpeg: true }).toBuffer();
     await fs.writeFile(outPath, jpg);
     if (i % 10 === 0) process.stdout.write(`  ${i} 页…\n`);
   }
   if (i === 0) throw new Error('PDF 无页面');
-  const rel = path.relative(ROOT, catalogDir).split(path.sep).join('/');
+  const relPages = path.relative(ROOT, pagesDir).split(path.sep).join('/');
+  const relBrand = path.relative(ROOT, catalogDir).split(path.sep).join('/');
   const pdfName = path.basename(pdfPath);
   const metaPath = path.join(ROOT, 'src', 'data', 'hoyaHandbookPageCount.json');
   await fs.writeFile(
     metaPath,
     `${JSON.stringify(
-      { pages: i, total: i, dir: rel, pdf: pdfName, generatedAt: new Date().toISOString() },
+      {
+        pages: i,
+        total: i,
+        dir: relBrand,
+        pagesDir: relPages,
+        pdf: pdfName,
+        generatedAt: new Date().toISOString(),
+      },
       null,
       2,
     )}\n`,
     'utf8',
   );
-  console.log(`\n完成：共 ${i} 页 → ${catalogDir}（${pdfName}）`);
+  console.log(`\n完成：共 ${i} 页 → ${pagesDir}（${pdfName}）`);
   console.log(`已写入 ${path.relative(ROOT, metaPath)}`);
-  console.log(JSON.stringify({ pages: i, dir: rel, pdf: pdfName }));
+  console.log(JSON.stringify({ pages: i, dir: relBrand, pagesDir: relPages, pdf: pdfName }));
 }
 
 main().catch((e) => {

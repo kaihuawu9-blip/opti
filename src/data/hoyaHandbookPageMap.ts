@@ -22,6 +22,8 @@ type HoyaPageCountMeta = {
   pages?: number;
   total?: number;
   dir?: string;
+  /** 栅格化 JPG 所在目录（相对仓库根），与 `dir` 区分 */
+  pagesDir?: string;
   pdf?: string;
   generatedAt?: string;
 };

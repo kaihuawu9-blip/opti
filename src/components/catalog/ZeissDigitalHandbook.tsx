@@ -18,13 +18,9 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Maximize2, ShoppingCart, X } from 'lucide-react';
 import '@/styles/page-flip.css';
 import { HandbookFlipPageShell } from '@/components/catalog/HandbookFlipPageShell';
-import {
-  HandbookPhysicalTabColumn,
-  buildPhysicalTabColumnItems,
-  type PhysicalTabColumnItem,
-} from '@/components/catalog/HandbookPhysicalTabColumn';
 import { ZeissHandbookPage, type ZeissHandbookPhysicalTabHit } from '@/components/catalog/ZeissHandbookPage';
 import { HandbookSidebar } from '@/components/catalog/HandbookSidebar';
+import { ZeissSeriesNavList } from '@/components/catalog/ZeissSeriesNavList';
 import type { ReactPageFlipProps, ReactPageFlipRef } from '@/components/catalog/reactPageFlipTypes';
 import { playHandbookPaperRustle } from '@/lib/catalog/handbookPaperSound';
 import {
@@ -709,43 +705,41 @@ export function ZeissDigitalHandbook() {
             : undefined;
 
         const useBodyTabRack = brand === 'hoya' && Boolean(pd?.isManualTrimmed);
+        /** 全屏双页：奇数 pdf 为左页，不挂物理书签；预览单页：恒为右缘（side 已为 right） */
+        const showHoyaPhysicalBookmarks = brand === 'hoya' && side === 'right';
 
         return (
           <HandbookFlipPageShell key={`pg-${brand}-${pdfN}`}>
-            <ZeissHandbookPage
-              pageNumber={pdfN}
-              title={pd?.title ?? `第 ${pdfN} 页`}
-              imageData={pd?.imageData ?? null}
-              imageUrl={pd?.imageUrl ?? null}
-              physicalTabHit={useBodyTabRack ? undefined : physicalTabHit}
-              physicalAnchorPage={pd?.physicalAnchorPage ?? false}
-              anchorPreservationInsetPct={pd?.anchorPreservationInsetPct ?? null}
-              isManualTrimmed={pd?.isManualTrimmed ?? false}
-            />
+            <div
+              className="relative h-full min-h-0 w-full !overflow-visible [container-type:size]"
+              data-stf-handbook-page-box="1"
+            >
+              <ZeissHandbookPage
+                pageNumber={pdfN}
+                title={pd?.title ?? `第 ${pdfN} 页`}
+                imageData={pd?.imageData ?? null}
+                imageUrl={pd?.imageUrl ?? null}
+                physicalTabHit={useBodyTabRack ? undefined : physicalTabHit}
+                physicalAnchorPage={pd?.physicalAnchorPage ?? false}
+                anchorPreservationInsetPct={pd?.anchorPreservationInsetPct ?? null}
+                isManualTrimmed={pd?.isManualTrimmed ?? false}
+              />
+              {showHoyaPhysicalBookmarks ? (
+                <ZeissSeriesNavList
+                  items={seriesNav}
+                  activeId={activeNav.anchorId}
+                  onSelect={flipToNavItem}
+                  brand="hoya"
+                  navLayout="physical-tabs"
+                  activeNav={activeNav}
+                  integrityWarnIds={integrityWarnNavIds}
+                />
+              ) : null}
+            </div>
           </HandbookFlipPageShell>
         );
       }),
-    [total, brand, seriesNav, activeNav.anchorId, fullscreenOpen],
-  );
-
-  /** 豪雅：右侧固定竖向导航 items（仅 physicalTabVerified 项） */
-  const physicalTabColumnItems = useMemo<PhysicalTabColumnItem[]>(() => {
-    if (brand !== 'hoya') return [];
-    return buildPhysicalTabColumnItems(seriesNav);
-  }, [brand, seriesNav]);
-
-  const flipToColumnItem = useCallback(
-    (it: PhysicalTabColumnItem) => {
-      const ref = fullscreenOpen ? fsRef : previewRef;
-      const pf = ref.current?.pageFlip?.();
-      if (!pf) return;
-      try {
-        pf.flip(it.startPage0);
-      } catch {
-        /* ignore */
-      }
-    },
-    [fullscreenOpen],
+    [total, brand, seriesNav, activeNav, flipToNavItem, fullscreenOpen, integrityWarnNavIds],
   );
 
   useEffect(() => {
@@ -960,6 +954,7 @@ export function ZeissDigitalHandbook() {
 
           <div
             className="group relative"
+            style={total > 0 ? { minHeight: dims.h } : undefined}
             title="使用上方「全屏沉浸」进入双页对开；此处可正常翻页"
           >
             <div
@@ -970,25 +965,44 @@ export function ZeissDigitalHandbook() {
               </span>
             </div>
             <div
-              className="origin-top transition-transform max-xl:scale-[0.98]"
-              style={{ perspective: '2200px' }}
+              className={[
+                'origin-top transition-transform max-xl:scale-[0.98]',
+                total > 0 ? 'h-full min-h-full' : '',
+                brand === 'hoya' ? '!overflow-visible' : '',
+              ]
+                .filter(Boolean)
+                .join(' ')}
+              style={{
+                perspective: '2200px',
+                ...(total > 0 ? { minHeight: dims.h } : {}),
+              }}
             >
               <div
                 className="pointer-events-none absolute -bottom-6 left-1/2 z-0 h-20 w-[min(90%,800px)] -translate-x-1/2 rounded-[100%] bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0.5)_0%,transparent_72%)] opacity-70 blur-2xl"
                 aria-hidden
               />
-              <div className="relative flex items-stretch justify-center gap-1.5">
               <div
                 ref={previewBookFrameRef}
-                className="relative z-[15] w-full [filter:drop-shadow(0_20px_40px_rgba(0,0,0,0.45))_drop-shadow(0_6px_18px_rgba(0,89,163,0.1))]"
+                data-stf-handbook-book-frame="1"
+                className={[
+                  'relative z-[15] h-full min-h-full w-full [filter:drop-shadow(0_20px_40px_rgba(0,0,0,0.45))_drop-shadow(0_6px_18px_rgba(0,89,163,0.1))]',
+                  brand === 'hoya' ? '!overflow-visible' : '',
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
+                style={total > 0 ? { height: dims.h, minHeight: dims.h } : undefined}
               >
                 {spreadGutter(false)}
-                {edgeRail('right')}
-                {rightPageTurnShade('pointer-events-none absolute inset-y-2 right-0 z-[100] w-[14%] max-w-[48px] rounded-r-lg')}
+                {brand !== 'hoya' ? edgeRail('right') : null}
+                {brand !== 'hoya'
+                  ? rightPageTurnShade(
+                      'pointer-events-none absolute inset-y-2 right-0 z-[100] w-[14%] max-w-[48px] rounded-r-lg',
+                    )
+                  : null}
                 <HTMLFlipBook
                   key={previewKey}
                   ref={previewRef}
-                  className="mx-auto"
+                  className={['mx-auto', brand === 'hoya' ? '!overflow-visible' : ''].filter(Boolean).join(' ')}
                   style={{ width: dims.w, minHeight: dims.h }}
                   width={dims.w}
                   height={dims.h}
@@ -1017,15 +1031,6 @@ export function ZeissDigitalHandbook() {
                 >
                   {bookCommonPages}
                 </HTMLFlipBook>
-              </div>
-              {brand === 'hoya' && physicalTabColumnItems.length > 0 ? (
-                <HandbookPhysicalTabColumn
-                  items={physicalTabColumnItems}
-                  activeStartPage0={currentPage}
-                  heightCss={`${dims.h}px`}
-                  onSelect={flipToColumnItem}
-                />
-              ) : null}
               </div>
             </div>
           </div>
@@ -1101,7 +1106,10 @@ export function ZeissDigitalHandbook() {
                       aria-hidden
                     />
                     <div
-                      className="relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-white/[0.12] bg-slate-950/40 shadow-[0_0_0_1px_rgba(255,255,255,0.06),0_32px_80px_rgba(0,0,0,0.65)] backdrop-blur-2xl"
+                      className={[
+                        'relative flex min-h-0 flex-1 flex-col rounded-2xl border border-white/[0.12] bg-slate-950/40 shadow-[0_0_0_1px_rgba(255,255,255,0.06),0_32px_80px_rgba(0,0,0,0.65)] backdrop-blur-2xl',
+                        brand === 'hoya' ? '!overflow-visible' : 'overflow-hidden',
+                      ].join(' ')}
                     >
                       <div className="flex shrink-0 min-w-0 items-center gap-2 border-b border-white/10 bg-black/20 px-3 py-2.5 sm:gap-3 sm:px-5">
                         <p id={modalId} className="sr-only">
@@ -1154,10 +1162,19 @@ export function ZeissDigitalHandbook() {
                         className={
                           brand === 'essilor'
                             ? 'flex min-h-0 flex-1 flex-col items-stretch justify-center gap-3 overflow-hidden p-2 sm:p-3 md:flex-row md:items-stretch md:gap-4 md:p-4'
-                            : 'flex min-h-0 flex-1 flex-col items-stretch justify-center overflow-hidden p-2 sm:p-3 md:p-4'
+                            : brand === 'hoya'
+                              ? 'flex min-h-0 flex-1 flex-col items-stretch justify-center !overflow-visible p-2 sm:p-3 md:p-4'
+                              : 'flex min-h-0 flex-1 flex-col items-stretch justify-center overflow-hidden p-2 sm:p-3 md:p-4'
                         }
                       >
-                        <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-2">
+                        <div
+                          className={[
+                            'flex min-h-0 min-w-0 flex-1 flex-col gap-2',
+                            brand === 'hoya' ? '!overflow-visible' : '',
+                          ]
+                            .filter(Boolean)
+                            .join(' ')}
+                        >
                           {integrityPageBroken ? (
                             <div
                               role="alert"
@@ -1180,23 +1197,42 @@ export function ZeissDigitalHandbook() {
                             </div>
                           ) : null}
                           <div
-                            className="relative flex min-h-0 min-w-0 flex-1 items-center justify-center [perspective:2400px] max-md:min-h-[48vh]"
+                            className={[
+                              'relative flex min-w-0 flex-1 items-center justify-center [perspective:2400px] max-md:min-h-[48vh]',
+                              brand === 'hoya' && total > 0 ? 'h-full min-h-full' : '',
+                              brand === 'hoya' ? '' : 'min-h-0',
+                            ]
+                              .filter(Boolean)
+                              .join(' ')}
+                            style={
+                              brand === 'hoya' && total > 0 ? { minHeight: fsDims.pageH } : undefined
+                            }
                           >
                           {spreadGutter(true)}
-                          {rightPageTurnShade(
-                            'pointer-events-none absolute inset-y-3 right-2 z-[100] w-[min(8%,64px)] rounded-r-xl md:right-3',
-                          )}
-                          <div className="relative flex items-stretch justify-center gap-1.5 max-h-[80vh]">
+                          {brand !== 'hoya'
+                            ? rightPageTurnShade(
+                                'pointer-events-none absolute inset-y-3 right-2 z-[100] w-[min(8%,64px)] rounded-r-xl md:right-3',
+                              )
+                            : null}
                           <div
                             ref={fsBookFrameRef}
-                            className="relative z-[20] w-full max-h-[80vh] [filter:drop-shadow(0_32px_64px_rgba(0,0,0,0.55))]"
+                            data-stf-handbook-book-frame="1"
+                            className={[
+                              'relative z-[20] w-full max-h-[80vh] [filter:drop-shadow(0_32px_64px_rgba(0,0,0,0.55))]',
+                              brand === 'hoya' ? 'h-full min-h-full !overflow-visible' : '',
+                            ]
+                              .filter(Boolean)
+                              .join(' ')}
+                            style={brand === 'hoya' ? { height: fsDims.pageH, minHeight: fsDims.pageH } : undefined}
                           >
-                            {edgeRail('left')}
-                            {edgeRail('right')}
+                            {brand !== 'hoya' ? edgeRail('left') : null}
+                            {brand !== 'hoya' ? edgeRail('right') : null}
                             <HTMLFlipBook
                               key={fsKey}
                               ref={fsRef}
-                              className="mx-auto w-full max-w-full"
+                              className={['mx-auto w-full max-w-full', brand === 'hoya' ? '!overflow-visible' : '']
+                                .filter(Boolean)
+                                .join(' ')}
                               style={{ minHeight: fsDims.pageH, maxHeight: '80vh' }}
                               width={fsDims.pageW}
                               height={fsDims.pageH}
@@ -1225,15 +1261,6 @@ export function ZeissDigitalHandbook() {
                             >
                               {bookCommonPages}
                             </HTMLFlipBook>
-                          </div>
-                          {brand === 'hoya' && physicalTabColumnItems.length > 0 ? (
-                            <HandbookPhysicalTabColumn
-                              items={physicalTabColumnItems}
-                              activeStartPage0={currentPage}
-                              heightCss={`${fsDims.pageH}px`}
-                              onSelect={flipToColumnItem}
-                            />
-                          ) : null}
                           </div>
                           </div>
                         </div>

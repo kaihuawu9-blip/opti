@@ -11,8 +11,8 @@ import { forwardRef, useEffect, useMemo, useState } from 'react';
  * - 使用 `clip-path: polygon(...)`；无 `physicalTabHit` 时回退为 `inset(...)`。
  * - 根容器 `overflow-visible`；锚点页根背景透明，便于裁掉区域透出 3D 场景。
  * - 非锚点页：整图 `object-cover`，无 clip-path。
- * - **豪雅 `isManualTrimmed`**：页内仅整图 `object-contain`；凸标热区与「肉身」条带由
- *   `HandbookFlipPageShell` + {@link PhysicalTab}（body portal）跟随锚点矩形，绕开引擎裁剪。
+ * - **豪雅 `isManualTrimmed`**：页内仅整图 `object-contain`；物理横向书签由
+ *   `ZeissDigitalHandbook` 在页壳内 `relative h-full` 容器中挂载 {@link ZeissSeriesNavList}（仅右页），与页同翻。
  */
 export type ZeissHandbookPhysicalTabHit = {
   vOffsetPercent: number;
@@ -267,13 +267,13 @@ export const ZeissHandbookPage = forwardRef<HTMLDivElement, ZeissHandbookPagePro
         style={isManualTrimmed ? undefined : { boxShadow: PAPER_STACK_SHADOW }}
       >
         {isManualTrimmed ? (
-          <div className="hoya-manual-trim-media absolute inset-0 flex h-full w-full items-center justify-center overflow-visible">
+          <div className="hoya-manual-trim-media absolute inset-0 overflow-visible">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={imgSrc ?? undefined}
               alt={title || `手册第 ${pageNumber} 页`}
               className={[
-                'hoya-manual-trim-img pointer-events-none max-h-full max-w-full select-none object-contain transition-opacity ease-out duration-300',
+                'hoya-manual-trim-img pointer-events-none absolute left-1/2 top-1/2 max-h-full max-w-full -translate-x-1/2 -translate-y-1/2 select-none object-contain transition-opacity ease-out duration-300',
                 reveal ? 'opacity-100' : 'opacity-0',
               ].join(' ')}
               onLoad={() => setReveal(true)}
