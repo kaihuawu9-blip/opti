@@ -716,7 +716,13 @@ export function ZeissDigitalHandbook() {
       className="pointer-events-auto flex h-full w-full min-h-0 max-w-[15.5rem] flex-col overflow-hidden rounded-2xl border border-white/10 bg-slate-950/40 p-1.5 shadow-[0_12px_40px_rgba(0,0,0,0.42)] backdrop-blur-2xl"
       style={{ height: bookHeightCss, maxHeight: bookHeightCss }}
     >
-      <p className="mb-1 shrink-0 px-1 text-[9px] font-semibold uppercase tracking-[0.2em] text-white/38">系列</p>
+      <p className="mb-1 shrink-0 px-1 text-[9px] font-semibold uppercase tracking-[0.2em] text-white/38">物理索引</p>
+      {brand === 'zeiss' && seriesNav.length === 0 ? (
+        <p className="mb-1 shrink-0 px-1.5 text-[10px] leading-snug text-white/40">
+          侧栏唯一触发源：<code className="rounded bg-black/30 px-0.5">physicalTabVerified</code>；标签文案必须填{' '}
+          <code className="rounded bg-black/30 px-0.5">physicalTabLabel</code>（禁止用内页 title 顶替）。无自动跳价目页。
+        </p>
+      ) : null}
       <div className="min-h-0 flex-1 overflow-hidden">
         <HandbookSidebar
           items={seriesNav}
@@ -727,6 +733,8 @@ export function ZeissDigitalHandbook() {
           useTwoColumn={!compact}
           className="h-full"
           integrityWarnIds={integrityWarnNavIds}
+          brand={brand}
+          navLayout="physical-tabs"
         />
       </div>
     </div>

@@ -1,0 +1,6 @@
+# Opti-AI / 镜售 — Cursor 根规则（索引）
+
+- **数字化手册 · StandardEye V1.3（物理凸标、侧栏、禁止智能跳页）**  
+  → 完整条文见 **`.cursor/rules/standardeye-handbook.mdc`**（`alwaysApply: true`，以该文件为手册相关唯一详规）。
+
+其他部署与资源约定仍以 `.cursor/rules/` 下既有规则及 `AGENTS.md` 为准。

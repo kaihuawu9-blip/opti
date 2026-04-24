@@ -12,11 +12,18 @@
 
 import { ZEISS_PRICE_MATRIX } from '@/data/zeissPriceMatrix';
 import {
-  buildHandbookSeriesNavItems,
   findFirstPdfPageForProduct,
   getPageByPdfIndex,
   ZEISS_HANDBOOK_PAGE_MAP,
 } from '@/data/zeissHandbookPageMap';
+import {
+  assessHandbookMarketingIndexMeta,
+  type HandbookMarketingIndexMeta,
+} from '@/lib/catalog/handbookMarketingPage';
+import { assessZeissHandbookScanFilter, type ZeissHandbookScanFilterHit } from '@/lib/catalog/zeissHandbookScanFilter';
+
+export type { ZeissHandbookScanFilterHit } from '@/lib/catalog/zeissHandbookScanFilter';
+export type { HandbookMarketingIndexMeta } from '@/lib/catalog/handbookMarketingPage';
 
 // ─── Filename-Anchor 规约 ───────────────────────────────────────────────
 
@@ -178,7 +185,7 @@ export type CorrectedAnchor = {
   /** L1/L2 锁到的矩阵行；L3 可能仅从手册页反推 */
   productName: string | null;
   matchScore: MatchScore;
-  /** L3：`correctedPdf - physicalPdf`；L1/L2 通常为 0（页码由产品首现页决定，非偏移量） */
+  /** L3：`correctedPdf - physicalPdf`；与矩阵校准有关，**与** StandardEye 物理侧栏（`tab:{pdfPage}`）无关 */
   pageOffset: number;
 };
 
@@ -190,6 +197,10 @@ export type CalibratorResult = {
   reasons: readonly string[];
   filenameAnchor: FilenameAnchorParse | null;
   visualTextAnchor: VisualTextAnchorParse | null;
+  /** 蔡司品牌宣传等非价目挂载页：宿主应跳过矩阵逻辑页覆盖 */
+  zeissScanFilter?: ZeissHandbookScanFilterHit;
+  /** 自动索引：MarketingPage 与快速翻阅权重（与页表 quickNavWeight 取 min 由宿主决定） */
+  marketingIndexMeta?: HandbookMarketingIndexMeta;
 };
 
 /** 与 reducer 对齐的 action type（宿主侧自行 dispatch） */
@@ -409,23 +420,49 @@ export class IndexAutoCalibrator {
       pageOffset = pdf - physical;
     }
 
-    const matchScore: MatchScore = { level, score, label };
-    const confidence = confidenceFromLevel(level, pageOffset !== 0);
+    const softForZeissFilter = buildHaystackSoft(input);
+    const zeissScanFilter = assessZeissHandbookScanFilter(softForZeissFilter);
+    const marketingIndexMeta = assessHandbookMarketingIndexMeta(softForZeissFilter);
+    let outPdf = pdf;
+    let outLocked = lockedProduct;
+    let outLevel = level;
+    let outScore = score;
+    let outLabel = label;
+    let outPageOffset = pageOffset;
+    const outReasons = [...reasons];
+
+    if (zeissScanFilter) {
+      outPdf = physical;
+      outPageOffset = 0;
+      outLevel = 3;
+      outScore = 10;
+      outLabel = 'L0:zeiss-brand-promo-skip';
+      const entry = getPageByPdfIndex(physical);
+      outLocked = entry?.productName?.trim() ?? null;
+      outReasons.push(`L0:zeiss-scan-filter:${zeissScanFilter.displayLabel}`);
+    }
+
+    const matchScore: MatchScore = { level: outLevel, score: outScore, label: outLabel };
+    const confidence = confidenceFromLevel(outLevel, outPageOffset !== 0);
     const correctedAnchor: CorrectedAnchor = {
-      pdfIndex1Based: pdf,
-      productName: lockedProduct,
+      pdfIndex1Based: outPdf,
+      productName: outLocked,
       matchScore,
-      pageOffset,
+      pageOffset: outPageOffset,
     };
 
     return {
-      pdfIndex1Based: pdf,
+      pdfIndex1Based: outPdf,
       confidence,
       matchScore,
       correctedAnchor,
-      reasons,
+      reasons: outReasons,
       filenameAnchor,
       visualTextAnchor,
+      ...(zeissScanFilter ? { zeissScanFilter } : {}),
+      ...(marketingIndexMeta.isMarketingPage || marketingIndexMeta.quickNavWeight < 0.99
+        ? { marketingIndexMeta }
+        : {}),
     };
   }
 }
@@ -446,6 +483,7 @@ export const pluginA = {
 
 /** 宿主是否应用「逻辑 pdfIndex」覆盖物理页（收银 / 价目提示） */
 export function shouldApplyMatrixPdfFromCalibration(r: CalibratorResult): boolean {
+  if (r.zeissScanFilter?.action === 'SKIP_DATA_MOUNT') return false;
   if (r.matchScore.level === 1 || r.matchScore.level === 2) return true;
   if (r.matchScore.level === 3 && r.correctedAnchor.pageOffset !== 0) return true;
   return false;
@@ -489,11 +527,12 @@ function matrixNameSet(): Set<string> {
   return new Set(ZEISS_PRICE_MATRIX.map((p) => p.productName.trim()));
 }
 
+/** 价目锚点集合（物理侧栏与解耦；schema 扫描以页表为准） */
 function navProductNamesFromHandbook(): Set<string> {
-  const nav = buildHandbookSeriesNavItems();
   const out = new Set<string>();
-  for (const it of nav) {
-    if (it.id.startsWith('p:')) out.add(it.id.slice(2));
+  for (const e of ZEISS_HANDBOOK_PAGE_MAP) {
+    const n = e.productName?.trim();
+    if (e.section === 'price' && n) out.add(n);
   }
   return out;
 }
@@ -521,7 +560,7 @@ export function runSchemaCompletenessScan(): SchemaGapItem[] {
       gaps.push({
         kind: 'matrix_product_missing_handbook_nav',
         productName: name,
-        summary: `矩阵有「${name}」但侧栏导航（手册 price 首现）未出现对应 p: 项`,
+        summary: `矩阵有「${name}」但手册 price 页表中未出现该 productName 锚点`,
       });
     }
   }
@@ -531,7 +570,7 @@ export function runSchemaCompletenessScan(): SchemaGapItem[] {
       gaps.push({
         kind: 'handbook_nav_product_missing_matrix',
         productName: name,
-        summary: `导航有「${name}」但 ZEISS_PRICE_MATRIX 中无同名 productName`,
+        summary: `手册 price 页表有「${name}」但 ZEISS_PRICE_MATRIX 中无同名 productName`,
       });
     }
   }

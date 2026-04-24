@@ -1,0 +1,44 @@
+---
+description: StandardEye V1.3 — 数字化手册物理凸标优先；禁止用 productName/title 推断侧栏或自动跳页
+alwaysApply: true
+---
+
+# 手册视觉与物理导航规约（StandardEye）
+
+本规则为 **数字化价目手册 / 物理侧栏** 专用「祖宗家法」。实现或修改支付、通用 3D 引擎、与手册无关的业务时，**不要**把手册侧栏逻辑套过去；反过来，改手册时也必须遵守下文，**不许自作聪明**。
+
+适用品牌：**蔡司 / 依视路 / 豪雅** 及未来 `HANDBOOK_BRAND_REGISTRY` 中的手册品牌。动手前必读 `src/data/zeissHandbookPageMap.ts` 文件头法案。
+
+## 1. 物理绝对映射（Physical Supremacy）
+
+- 侧栏索引签的 **唯一真值**：`physicalTabVerified === true` 且 `pageKind === 'series_entry'`（由 PDF 右缘凸起扫描 pipeline 或人工对图写入页表）。
+- 侧栏展示文案 **仅** `physicalTabLabel`（与实物凸起印字 1:1）。**禁止**用 `title`、`productName` 回填冒充凸标。
+- `getPageData`：未验证的 `series_entry` 必须降格为 `standard`，防止假凸标污染 UI。
+
+## 2. 导航去智能化（Anti-Smart Navigation）
+
+- **禁止** `jumpTarget`、禁止由 `productName` 推断扉页/价目首现页、禁止自动翻到价目表。
+- 蔡司：`HandbookSeriesNavItem.id = tab:{pdfPage}`，`startPage0 = pdfPage - 1`，与 PDF 物理页绝对一致、无偏移。
+- 点击侧栏 = 只翻到 **带该物理凸标的那一页**。
+
+## 3. 数据解耦（Data vs Sidebar）
+
+- `runSchemaCompletenessScan`、价目矩阵、`productName` 锚点与物理侧栏 **独立**；不得用侧栏项反推「矩阵必须有某 productName」。
+- 依视路 / 豪雅静态菜单：每项锚定的 `pdfPage` 须为 **实体凸起所在 PDF 页**，不得为推断页。
+
+## 4. 扫描辅助（Scan-Only，不驱动运行时跳转）
+
+- 蔡司裁切与 OCR 别名提议：`src/lib/catalog/handbookPhysicalLabelScan.ts`
+- 豪雅圆角、右缘带宽、系列色先验：`src/lib/catalog/hoyaPhysicalTabScanParams.ts`  
+  上述模块 **仅** 供离线索引/写回页表；**不得**在运行时用其决定 `flip()` 目标。
+
+## 5. 实现锚点（改这些路径时对照本规则）
+
+| 区域 | 路径 |
+|------|------|
+| 页表与构建 | `src/data/zeissHandbookPageMap.ts`（`buildZeissPhysicalTabNavItems`） |
+| 手册 UI | `src/components/catalog/ZeissDigitalHandbook.tsx`、`ZeissSeriesNavList.tsx` |
+| 锚点校验 | `src/lib/catalog/dataIntegrityValidator.ts`（`tab:` → `validated`） |
+| 豪雅静态侧栏 | `src/data/hoyaSeriesNav.ts`（`pdfPage` = 凸标所在页） |
+
+仓库根目录 `.cursorrules` 仅保留简短索引；**正文以本 `.mdc` 为准**。

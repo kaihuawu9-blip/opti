@@ -5,7 +5,7 @@ import {
   STRESS_TITLE_PRESET_SAMPLES,
 } from '@/data/zeissMatrixProtocolStressSamples';
 import { resolveActiveHandbookNavState } from '@/lib/catalog/dataIntegrityValidator';
-import { pluginACalibrate } from '@/lib/catalog/indexAutoCalibrator';
+import { pluginACalibrate, shouldApplyMatrixPdfFromCalibration } from '@/lib/catalog/indexAutoCalibrator';
 import type { SchemaGapItem } from '@/lib/catalog/indexAutoCalibrator';
 import type { HandbookSeriesNavItem } from '@/data/zeissHandbookPageMap';
 import { MATRIX_BRAND_REGISTRY } from '@/data/matrixBrandRegistry';
@@ -46,6 +46,49 @@ describe('Matrix Protocol V1.1 — IndexAutoCalibrator (插件 A)', () => {
       expect(r.correctedAnchor.productName ?? '', s.id).toContain(s.expectedProductContains);
       expect(r.pdfIndex1Based, s.id).toBeGreaterThan(0);
     }
+  });
+
+  it('蔡司扫描过滤：1846 + 蔡司 → 跳过矩阵逻辑页挂载', () => {
+    const r = pluginACalibrate({
+      pdfIndex1Based: 26,
+      pageTitle: '蔡司始于1846',
+      ocrTextSnippet: '周年',
+      assetFilename: null,
+    });
+    expect(r.zeissScanFilter?.action).toBe('SKIP_DATA_MOUNT');
+    expect(r.zeissScanFilter?.displayLabel).toBe('品牌宣傳頁');
+    expect(r.pdfIndex1Based).toBe(26);
+    expect(r.matchScore.label).toBe('L0:zeiss-brand-promo-skip');
+    expect(shouldApplyMatrixPdfFromCalibration(r)).toBe(false);
+  });
+
+  it('蔡司扫描过滤：无周年叙事时仍可走 L2', () => {
+    const r = pluginACalibrate({
+      pdfIndex1Based: 1,
+      pageTitle: '臻锐单光介绍',
+      ocrTextSnippet: null,
+      assetFilename: null,
+    });
+    expect(r.zeissScanFilter).toBeUndefined();
+    expect(r.matchScore.level).toBe(2);
+    expect(shouldApplyMatrixPdfFromCalibration(r)).toBe(true);
+  });
+});
+
+describe('Matrix Protocol V1.1 — 物理凸标 tab: anchor', () => {
+  it('tab:{pdfPage} → validated（不绑价目 productName）', () => {
+    const nav: HandbookSeriesNavItem[] = [
+      {
+        id: 'tab:10',
+        label: '智锐',
+        section: 'smartlife-series-opening',
+        startPage0: 9,
+        printedPage: null,
+      },
+    ];
+    const st = resolveActiveHandbookNavState(nav, 9, []);
+    expect(st.anchorId).toBe('tab:10');
+    expect(st.dataStatus).toBe('validated');
   });
 });
 
@@ -131,6 +174,7 @@ describe('Matrix Protocol V1.3 — HOYA 豪雅专项', () => {
     for (const it of nav) {
       expect(it.label).not.toMatch(/智锐|睐光|蔡司镜架|智锐系列|单光延伸|内页 p/);
     }
+    expect(nav.some((it) => it.id === 'p:新乐学' && it.navTabTone === 'hoya-orange')).toBe(true);
     expect(nav.some((it) => it.id === 'p:豪雅智御中近')).toBe(true);
     const state = resolveActiveHandbookNavState(nav, 7, [], {
       matrixProducts: HOYA_PRICE_MATRIX,

@@ -114,6 +114,11 @@ export function resolveActiveHandbookNavState(
     return { anchorId, dataStatus: 'validated' };
   }
 
+  /** StandardEye：`tab:{pdfPage}` 仅映射已验证物理凸标页，不读 productName */
+  if (anchorId.startsWith('tab:')) {
+    return { anchorId, dataStatus: 'validated' };
+  }
+
   return { anchorId, dataStatus: 'pending' };
 }
 

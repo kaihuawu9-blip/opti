@@ -1,14 +1,17 @@
 /**
  * 蔡司 2026 手册·3D 翻页页码映射表
  *
- * 用途：
- *   - 3D 翻页组件（如 react-pageflip / 自研 FlipBook）按 pdfPage（物理页）渲染，
- *     但 UI 给到顾客的"手册 P## 跳转"、"找价格到 XX 系列"等需要用 printedPage
- *     或 productName 定位；
- *   - 本映射表同时支持「跳到某系列第一张价目页」「给定价目行反推页码」。
+ * ## StandardEye V1.3 · 核心法案（锁死，勿以 productName/标题推断侧栏）
  *
- * 打开图手册时建议从 `/api/catalog/zeiss-manifest` 拉取图片清单（已是物理页序），
- * 然后与本映射表合并即可得到"物理页 → 印刷页 → 系列"。
+ * 1. **物理绝对映射**：侧栏唯一触发源为 `physicalTabVerified === true` 且 `pageKind === 'series_entry'`；
+ *    侧栏文案 **仅** 使用 `physicalTabLabel`（视觉真值），**禁止**用 `title` 回填冒充凸标文字。
+ * 2. **UI 行为锁定**：`HandbookSeriesNavItem.id = tab:{pdfPage}`，`startPage0 = pdfPage - 1`；无 `jumpTarget`、无自动翻向价目页。
+ * 3. **数据解耦**：`productName` / `section` / 矩阵 / `runSchemaCompletenessScan` 与物理侧栏独立；`getPageData` 对未验证的
+ *    `series_entry` 降格为 `standard`，防止假凸标污染 UI。
+ * 4. **扫描辅助规范**：蔡司裁切见 `handbookPhysicalLabelScan.ts`；豪雅圆角/色带见
+ *    `hoyaPhysicalTabScanParams.ts`；**不得**在运行时用其推断导航目标。
+ *
+ * 打开图手册时建议从 `/api/catalog/zeiss-manifest` 拉取图片清单（物理页序与 `pdfPage` 一致），再与本表合并。
  */
 
 import type { ZeissProductMatrix } from '@/data/zeissPriceMatrix';
@@ -51,6 +54,12 @@ export type HandbookSection =
   /** 蔡司单光家族：P24–P26 总览/矩阵/泽锐引导（见 matrix/zeiss-handbook-sv-alignment） */
   | 'single-vision-ladder';
 
+/** 实体手册页类：标准内容 / 系列扉页（右侧竖条）/ 品牌宣傳 */
+export type HandbookPageKind = 'standard' | 'series_entry' | 'marketing';
+
+/** 侧栏「凸出标签」配色（蔡司固定深蓝；豪雅按系列变色） */
+export type HandbookNavTabTone = 'zeiss-deep-blue' | 'hoya-orange' | 'hoya-blue' | 'hoya-purple' | 'neutral';
+
 export interface HandbookPageEntry {
   /** PDF 物理页码（1-based） */
   pdfPage: number;
@@ -62,15 +71,38 @@ export interface HandbookPageEntry {
   productName?: string;
   /** 是否需要人工/OCR 补录（文本层为 CID 占位） */
   ocrRequired?: boolean;
-  /** 页面标题（用于 UI 右侧导航） */
+  /** 内页标题（目录/翻页 UI）；物理侧栏**不得**用此字段代替 `physicalTabLabel` */
   title?: string;
   /** 静态 public 路径（如豪雅 `/catalog/hoya/p1.jpg`）；无内嵌图时由 3D 页组件使用 */
   imageUrl?: string;
+  /**
+   * `series_entry`：**仅**在 PDF 右缘物理凸起标签已扫描确认后使用；须同时设 `physicalTabVerified: true`。
+   * `physicalTabLabel`：凸起印字，侧栏 1:1 展示（与 `title` 可不同）。
+   */
+  pageKind?: HandbookPageKind;
+  /** 扫描 pipeline 写入；未验证则不得标为 series_entry 侧栏项 */
+  physicalTabVerified?: boolean;
+  /**
+   * 凸起标签上的文字：须 **1:1** 还原实体印字。禁止：页码区间（如 p1–p8）、括号英文营销（如 MiyoSmart）、冗长描述句。
+   * 进入侧栏时必填，否则该项丢弃。
+   */
+  physicalTabLabel?: string;
+  seriesAliasKey?: string;
+  /** 快速翻阅权重 0–1；marketing 等页在 runtime 可与 OCR 评估合并取 min */
+  quickNavWeight?: number;
 }
 
 export const ZEISS_HANDBOOK_PAGE_MAP: readonly HandbookPageEntry[] = Object.freeze([
   // 前言（封面 / 品牌 / 产品总览）
-  { pdfPage: 1,  printedPage: null, section: 'cover-brand',            title: '封面·品牌',          ocrRequired: true },
+  {
+    pdfPage: 1,
+    printedPage: null,
+    section: 'cover-brand',
+    title: '封面·品牌',
+    ocrRequired: true,
+    pageKind: 'marketing',
+    quickNavWeight: 0.32,
+  },
   { pdfPage: 2,  printedPage: 1,    section: 'brand-matrix',           title: '品牌矩阵' },
   { pdfPage: 3,  printedPage: 2,    section: 'product-highlights',     title: '您的明智之选' },
   { pdfPage: 4,  printedPage: 3,    section: 'lens-series-overview',   title: '蔡司户外系列 / 重点推荐' },
@@ -135,7 +167,7 @@ export const ZEISS_HANDBOOK_PAGE_MAP: readonly HandbookPageEntry[] = Object.free
   { pdfPage: 51, printedPage: 42, section: 'outdoor-intro', title: '户外系列' },
   { pdfPage: 52, printedPage: 43, section: 'outdoor-intro', title: '户外系列（价目）' },
   { pdfPage: 53, printedPage: 44, section: 'outdoor-intro', title: '户外系列（价目）' },
-  { pdfPage: 54, printedPage: 45, section: 'office-intro',  title: '办公型镜片' },
+  { pdfPage: 54, printedPage: 45, section: 'office-intro', title: '办公型镜片' },
   { pdfPage: 55, printedPage: 46, section: 'office-intro',  title: '办公型镜片（价目）' },
   { pdfPage: 56, printedPage: 47, section: 'pal-intro',     title: '数码变色附加' },
   { pdfPage: 57, printedPage: 48, section: 'pal-intro',     title: '染色 / 镀膜服务' },
@@ -198,17 +230,25 @@ export function findFirstPrintedPageForProduct(productName: string): number | nu
 export type DigitalHandbookBrand = 'zeiss' | 'essilor' | 'hoya';
 
 /**
- * 系列/章节快速跳转项：由 `ZEISS_HANDBOOK_PAGE_MAP` 动态生成——
- * 有 `productName` 的价目行各一条，其余为「section 首现」一条（如封面、智锐引导等）。
+ * 物理侧栏索引签：仅含「已验证凸起标签」对应页；`startPage0 === pdfPage - 1`，无二次跳转。
  */
 export type HandbookSeriesNavItem = {
   id: string;
-  /** 侧栏与 Active 高亮用 */
+  /**
+   * 兼容字段：物理凸标模式下应与 `physicalTabLabel` 相同；依视路 classic 等仍用价目/章节短名。
+   * 侧栏「凸标仿真」渲染必须以 `physicalTabVerified` + `physicalTabLabel` 为准。
+   */
   label: string;
   section: HandbookSection;
-  /** 0-based，与 react-pageflip 页索引一致 */
+  /** 0-based，与 PDF 物理页严格一致 */
   startPage0: number;
   printedPage: number | null;
+  /** 为 true 时侧栏只展示 `physicalTabLabel` 原文 */
+  physicalTabVerified?: boolean;
+  /** 实体凸标印字 1:1（无页码、无括号英文、无营销长句） */
+  physicalTabLabel?: string;
+  seriesAliasKey?: string;
+  navTabTone?: HandbookNavTabTone;
 };
 
 const HANDBOOK_SECTION_NAV_LABEL: Record<HandbookSection, string> = {
@@ -234,40 +274,40 @@ const HANDBOOK_SECTION_NAV_LABEL: Record<HandbookSection, string> = {
 };
 
 /**
- * 构建垂直系列导航（按物理页序）：价目以 product 为主，其余 section 仅首次出现。
+ * 蔡司：仅 `pageKind === 'series_entry'` 且 `physicalTabVerified === true` 的页进入侧栏；
+ * 标签文案 **仅** `physicalTabLabel`（无则丢弃，禁止用 `title` 顶替）。
  */
-export function buildHandbookSeriesNavItems(): HandbookSeriesNavItem[] {
-  const seen = new Set<string>();
+export function buildZeissPhysicalTabNavItems(
+  pages: readonly HandbookPageEntry[] = ZEISS_HANDBOOK_PAGE_MAP,
+): HandbookSeriesNavItem[] {
   const out: HandbookSeriesNavItem[] = [];
-  for (const e of ZEISS_HANDBOOK_PAGE_MAP) {
-    if (e.productName) {
-      const key = `p:${e.productName}`;
-      if (seen.has(key)) continue;
-      seen.add(key);
-      out.push({
-        id: key,
-        label: e.productName,
-        section: e.section,
-        startPage0: e.pdfPage - 1,
-        printedPage: e.printedPage,
-      });
-      continue;
-    }
-    const sk = `s:${e.section}`;
-    if (seen.has(sk)) continue;
-    seen.add(sk);
+  for (const e of pages) {
+    if (e.pageKind !== 'series_entry' || !e.physicalTabVerified) continue;
+    const label = (e.physicalTabLabel ?? '').trim();
+    if (!label) continue;
     out.push({
-      id: sk,
-      label: HANDBOOK_SECTION_NAV_LABEL[e.section] ?? e.title,
+      id: `tab:${e.pdfPage}`,
+      label,
+      physicalTabVerified: true,
+      physicalTabLabel: label,
       section: e.section,
       startPage0: e.pdfPage - 1,
-      printedPage: e.printedPage,
+      printedPage: e.printedPage ?? null,
+      seriesAliasKey: e.seriesAliasKey,
+      navTabTone: 'zeiss-deep-blue',
     });
   }
   return out.sort((a, b) => a.startPage0 - b.startPage0);
 }
 
-/** 指定品牌的系列导航（与 `buildHandbookSeriesNavItems` 同源逻辑，读 adapter.pages） */
+/**
+ * 蔡司物理侧栏（严格模式）；无已验证凸标时返回空数组。
+ */
+export function buildHandbookSeriesNavItems(): HandbookSeriesNavItem[] {
+  return buildZeissPhysicalTabNavItems(ZEISS_HANDBOOK_PAGE_MAP);
+}
+
+/** 指定品牌侧栏：蔡司 = 物理凸标项；依视路 = 页表价目锚点；豪雅 = `buildSeriesNavigation` */
 export function buildHandbookSeriesNavItemsForBrand(
   brand: DigitalHandbookBrand = 'zeiss',
 ): HandbookSeriesNavItem[] {
@@ -276,8 +316,12 @@ export function buildHandbookSeriesNavItemsForBrand(
   if (typeof adapter.buildSeriesNavigation === 'function') {
     return adapter.buildSeriesNavigation();
   }
+  if (brand === 'zeiss') {
+    return buildZeissPhysicalTabNavItems(adapter.pages);
+  }
   const seen = new Set<string>();
   const out: HandbookSeriesNavItem[] = [];
+  const defaultTone: HandbookNavTabTone = brand === 'hoya' ? 'neutral' : 'neutral';
   for (const e of adapter.pages) {
     if (e.productName) {
       const key = `p:${e.productName}`;
@@ -289,6 +333,7 @@ export function buildHandbookSeriesNavItemsForBrand(
         section: e.section,
         startPage0: e.pdfPage - 1,
         printedPage: e.printedPage,
+        navTabTone: defaultTone,
       });
       continue;
     }
@@ -301,6 +346,7 @@ export function buildHandbookSeriesNavItemsForBrand(
       section: e.section,
       startPage0: e.pdfPage - 1,
       printedPage: e.printedPage,
+      navTabTone: defaultTone,
     });
   }
   return out.sort((a, b) => a.startPage0 - b.startPage0);
@@ -404,6 +450,12 @@ export interface HandbookPageData {
   imageData: string | null;
   /** public 静态图 URL（优先内嵌图缺失时使用，如豪雅 PDF 拆解的 p{n}.jpg） */
   imageUrl: string | null;
+  pageKind: HandbookPageKind;
+  physicalTabVerified: boolean;
+  physicalTabLabel: string | null;
+  seriesAliasKey: string | null;
+  /** 快速翻阅权重（静态表 × OCR 评估可取 min） */
+  quickNavWeight: number;
 }
 
 /** 品牌适配接口：新品牌只需实现此契约 */
@@ -416,8 +468,7 @@ export interface HandbookBrandAdapter {
   /** 图片清单 API 路径（可选，用于 UI 预读；为空则回退到 public 扫描） */
   manifestApi?: string;
   /**
-   * 若设置：侧栏系列导航**仅**走本函数，禁止与其它品牌共用 `buildHandbookSeriesNavItems` 派生逻辑
-   *（避免蔡司 `HANDBOOK_SECTION_NAV_LABEL` 污染豪雅等 UI）。
+   * 若设置：该品牌侧栏**仅**走本函数（蔡司已固定为 `buildZeissPhysicalTabNavItems`，勿在此重复实现凸标逻辑）。
    */
   buildSeriesNavigation?: () => HandbookSeriesNavItem[];
 }
@@ -514,6 +565,15 @@ export function getPageData(
   const embedded = imageData && imageData.length > 0 ? imageData : null;
   const fromEntry = entry.imageUrl?.trim();
   const publicUrl = fromEntry && fromEntry.length > 0 ? fromEntry : null;
+  let pageKind: HandbookPageKind = entry.pageKind ?? 'standard';
+  if (pageKind === 'series_entry' && !entry.physicalTabVerified) {
+    pageKind = 'standard';
+  }
+  const quickBase = entry.quickNavWeight ?? 1;
+  const physicalTabVerified = Boolean(entry.physicalTabVerified);
+  const physicalTabLabel = entry.physicalTabLabel?.trim() || null;
+  const seriesAliasKey =
+    pageKind === 'series_entry' && physicalTabVerified ? entry.seriesAliasKey?.trim() || null : null;
   return {
     brand,
     pdfIndex: entry.pdfPage,
@@ -528,6 +588,11 @@ export function getPageData(
     ocrRequired: Boolean(entry.ocrRequired),
     imageData: embedded,
     imageUrl: publicUrl,
+    pageKind,
+    physicalTabVerified,
+    physicalTabLabel,
+    seriesAliasKey,
+    quickNavWeight: quickBase,
   };
 }
 
