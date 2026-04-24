@@ -54,3 +54,49 @@
   background-size: 200% 100%;
   animation: zeissHandbookShimmer 3.2s ease-in-out infinite;
 }
+
+/* 豪雅精修页：单页槽内出现 data-hoya-manual-trim 时，该槽与 page-flip 链路透溢 */
+.stf__parent:has([data-hoya-manual-trim='1']),
+.stf__block:has([data-hoya-manual-trim='1']),
+.stf__item:has([data-hoya-manual-trim='1']) {
+  overflow: visible !important;
+  clip-path: none !important;
+  -webkit-clip-path: none !important;
+}
+
+/*
+ * 预览 / 全屏：包住 HTMLFlipBook 的书框带 .hoya-handbook-tab-bleed（brand === hoya），
+ * 向下穿透常见 stf__ / page-flip 子节点，彻底解除裁切（肉身凸标）。
+ */
+.hoya-handbook-tab-bleed,
+.hoya-handbook-tab-bleed .stf__parent,
+.hoya-handbook-tab-bleed .stf__block,
+.hoya-handbook-tab-bleed .stf__item,
+.hoya-handbook-tab-bleed .sft__wrapper,
+.hoya-handbook-tab-bleed [class*='stf__'] {
+  overflow: visible !important;
+  clip-path: none !important;
+  -webkit-clip-path: none !important;
+}
+
+/* ZeissHandbookPage：豪雅 Boss 精修页 — 禁止任何矩形裁切与「画框」感 */
+.hoya-manual-trim-page {
+  overflow: visible !important;
+  clip-path: none !important;
+  -webkit-clip-path: none !important;
+  z-index: 50;
+  box-shadow: none !important;
+  border: none !important;
+}
+.hoya-manual-trim-page .hoya-manual-trim-media {
+  overflow: visible !important;
+  clip-path: none !important;
+  -webkit-clip-path: none !important;
+  max-width: none !important;
+}
+.hoya-manual-trim-page .hoya-manual-trim-img {
+  max-width: none !important;
+  width: auto !important;
+  height: 100% !important;
+  object-fit: contain !important;
+}

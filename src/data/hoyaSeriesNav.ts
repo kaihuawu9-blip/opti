@@ -23,6 +23,8 @@ type HoyaSeriesMenuRow = {
   pdfPage: number;
   section: HandbookSection;
   tabAccent: HoyaTabAccent;
+  /** Boss 精修页已放入 `public/catalog/hoya/pages/p{pdfPage}.jpg`（或 `.png`）时为 true；与 `isHoyaManualTrimmedPdfPage` 同步 */
+  isManualTrimmed?: boolean;
   /** 人工对图确认后方可为 true */
   physicalTabVerified: true;
   /** 与实体凸标印字一致（短名） */
@@ -36,6 +38,18 @@ type HoyaSeriesMenuRow = {
   hOffsetPercent?: number;
 };
 
+/**
+ * 精修页（1-based PDF 页码）：`getPageData` 默认 `/catalog/hoya/pages/p{n}.jpg`（`public/catalog/hoya/pages`），有 PNG 时组件会回退尝试 `.png`；禁用 clip-path。
+ * 与 `HOYA_SERIES_MENU` 中带凸标的页对齐；增删精修页时同步改此集合。
+ */
+export const HOYA_MANUAL_TRIMMED_PDF_PAGES: ReadonlySet<number> = new Set([
+  1, 8, 9, 12, 16, 20, 27, 34, 42,
+]);
+
+export function isHoyaManualTrimmedPdfPage(pdfPage1Based: number): boolean {
+  return HOYA_MANUAL_TRIMMED_PDF_PAGES.has(pdfPage1Based);
+}
+
 /** 与侧栏 `startPage0`（0-based）同步；`physicalTabLabel` 须与实物凸标一致 */
 export const HOYA_SERIES_MENU = Object.freeze([
   {
@@ -44,6 +58,7 @@ export const HOYA_SERIES_MENU = Object.freeze([
     pdfPage: 1,
     section: 'myopia-control-intro',
     tabAccent: 'orange',
+    isManualTrimmed: true,
     physicalTabVerified: true,
     physicalTabLabel: '豪雅',
     vOffsetPercent: 25,
@@ -54,6 +69,7 @@ export const HOYA_SERIES_MENU = Object.freeze([
     pdfPage: 8,
     section: 'price',
     tabAccent: 'orange',
+    isManualTrimmed: true,
     physicalTabVerified: true,
     physicalTabLabel: '新乐学',
     vOffsetPercent: 27.5449,
@@ -64,6 +80,7 @@ export const HOYA_SERIES_MENU = Object.freeze([
     pdfPage: 9,
     section: 'price',
     tabAccent: 'blue',
+    isManualTrimmed: true,
     physicalTabVerified: true,
     physicalTabLabel: '新明锐',
     vOffsetPercent: 16.6168,
@@ -75,6 +92,7 @@ export const HOYA_SERIES_MENU = Object.freeze([
     pdfPage: 12,
     section: 'price',
     tabAccent: 'blue',
+    isManualTrimmed: true,
     physicalTabVerified: true,
     physicalTabLabel: 'Eyvia',
     vOffsetPercent: 32.4850,
@@ -85,6 +103,7 @@ export const HOYA_SERIES_MENU = Object.freeze([
     pdfPage: 16,
     section: 'price',
     tabAccent: 'orange',
+    isManualTrimmed: true,
     physicalTabVerified: true,
     physicalTabLabel: 'Eynoa',
     vOffsetPercent: 25.4491,
@@ -95,6 +114,7 @@ export const HOYA_SERIES_MENU = Object.freeze([
     pdfPage: 20,
     section: 'price',
     tabAccent: 'blue',
+    isManualTrimmed: true,
     physicalTabVerified: true,
     physicalTabLabel: 'Eyas2',
     vOffsetPercent: 36.3772,
@@ -105,6 +125,7 @@ export const HOYA_SERIES_MENU = Object.freeze([
     pdfPage: 27,
     section: 'price',
     tabAccent: 'purple',
+    isManualTrimmed: true,
     physicalTabVerified: true,
     physicalTabLabel: '智御',
     vOffsetPercent: 16.4671,
@@ -116,6 +137,7 @@ export const HOYA_SERIES_MENU = Object.freeze([
     pdfPage: 34,
     section: 'coating',
     tabAccent: 'blue',
+    isManualTrimmed: true,
     physicalTabVerified: true,
     physicalTabLabel: '膜层',
     vOffsetPercent: 39.5210,
@@ -127,6 +149,7 @@ export const HOYA_SERIES_MENU = Object.freeze([
     pdfPage: 42,
     section: 'driving-intro',
     tabAccent: 'orange',
+    isManualTrimmed: true,
     physicalTabVerified: true,
     physicalTabLabel: '场景',
     vOffsetPercent: 25,
@@ -169,5 +192,6 @@ export function buildHoyaSeriesNavigationItems(): HandbookSeriesNavItem[] {
     startPage0: m.pdfPage - 1,
     printedPage: null,
     navTabTone: HOYA_TAB_MAP[m.tabAccent],
+    isManualTrimmed: m.isManualTrimmed === true ? true : undefined,
   })).sort((a, b) => a.startPage0 - b.startPage0);
 }

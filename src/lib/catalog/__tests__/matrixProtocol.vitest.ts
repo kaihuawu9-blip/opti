@@ -164,9 +164,9 @@ describe('Matrix Protocol V1.3 — HOYA 豪雅专项', () => {
     expect(p2?.dataAnchor).toBeNull();
     expect(p2?.physicalAnchorPage).toBe(false);
     expect(p2?.title).toMatch(/简介/);
-    expect(p2?.imageUrl).toBe('/catalog/hoya/p2.jpg');
+    expect(p2?.imageUrl).toBe('/catalog/hoya/pages/p2.jpg');
     const p8 = getPageData(8, 'hoya');
-    expect(p8?.physicalAnchorPage).toBe(true);
+    expect(p8?.physicalAnchorPage).toBe(false);
     expect(p8?.dataAnchor).toBe('新乐学');
     // vOffsetPercent 由离线全域雷达扫描产出（`catalog:harvest-hoya-tabs`），仅断言「在合理区间」
     expect(p8?.vOffsetPercent).toBeTypeOf('number');
@@ -175,7 +175,8 @@ describe('Matrix Protocol V1.3 — HOYA 豪雅专项', () => {
     // 右缘占位页（`colorBlockScore < 0.35`）不写 hOffsetPercent，热区水平贴右缘
     expect(p8?.hOffsetPercent).toBeNull();
     expect(p8?.product?.productName).toBe('新乐学');
-    expect(p8?.imageUrl).toBe('/catalog/hoya/p8.jpg');
+    expect(p8?.isManualTrimmed).toBe(true);
+    expect(p8?.imageUrl).toBe('/catalog/hoya/pages/p8.jpg');
     const flat = p8?.product?.series?.flatMap((s) => s.rows) ?? [];
     expect(flat.some((r) => Number(r.retailYuan) === 3980)).toBe(true);
     expect(flat.some((r) => Number(r.retailYuan) === 4980)).toBe(true);
@@ -186,6 +187,7 @@ describe('Matrix Protocol V1.3 — HOYA 豪雅专项', () => {
     }
     const miyo = nav.find((it) => it.id === 'p:新乐学');
     expect(miyo?.navTabTone).toBe('hoya-orange');
+    expect(miyo?.isManualTrimmed).toBe(true);
     expect(miyo?.physicalTabVerified).toBe(true);
     expect(miyo?.physicalTabLabel).toBe('新乐学');
     expect(miyo?.vOffsetPercent).toBeTypeOf('number');

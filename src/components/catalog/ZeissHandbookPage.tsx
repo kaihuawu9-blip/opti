@@ -1,6 +1,6 @@
 'use client';
 
-import { forwardRef, useMemo, useState } from 'react';
+import { forwardRef, useEffect, useMemo, useState } from 'react';
 
 /**
  * 透明感应层（Invisible Hit Layer）：作为 Page 的 `absolute` 子元素，**不绘制任何可见像素**。
@@ -11,6 +11,8 @@ import { forwardRef, useMemo, useState } from 'react';
  * - 使用 `clip-path: polygon(...)`；无 `physicalTabHit` 时回退为 `inset(...)`。
  * - 根容器 `overflow-visible`；锚点页根背景透明，便于裁掉区域透出 3D 场景。
  * - 非锚点页：整图 `object-cover`，无 clip-path。
+ * - **豪雅 `isManualTrimmed`**：页内仅整图 `object-contain`；凸标热区与「肉身」条带由
+ *   `HandbookFlipPageShell` + {@link PhysicalTab}（body portal）跟随锚点矩形，绕开引擎裁剪。
  */
 export type ZeissHandbookPhysicalTabHit = {
   vOffsetPercent: number;
@@ -41,6 +43,11 @@ export type ZeissHandbookPageProps = {
   physicalAnchorPage?: boolean;
   /** 覆盖默认保护性 inset（%）；通常留空，由标签左右自动选默认 */
   anchorPreservationInsetPct?: AnchorPreservationInsetPct | null;
+  /**
+   * 豪雅 Boss 精修页：图在 `public/catalog/hoya/pages`（URL `/catalog/hoya/pages/…`），**禁止** clip-path / inset / object-cover 二次处理；
+   * 根与内层 `overflow-visible`，凸标随 3D 页运动溢出槽位。
+   */
+  isManualTrimmed?: boolean;
 };
 
 const PAPER_STACK_SHADOW =
@@ -131,6 +138,7 @@ export const ZeissHandbookPage = forwardRef<HTMLDivElement, ZeissHandbookPagePro
       physicalTabHit = null,
       physicalAnchorPage = false,
       anchorPreservationInsetPct = null,
+      isManualTrimmed = false,
     },
     ref,
   ) {
@@ -143,15 +151,22 @@ export const ZeissHandbookPage = forwardRef<HTMLDivElement, ZeissHandbookPagePro
           ? imageUrl
           : null;
 
+    const [trimImgSrc, setTrimImgSrc] = useState<string | null>(null);
+    useEffect(() => {
+      setTrimImgSrc(src);
+    }, [src]);
+
+    const effectivePhysicalAnchor = physicalAnchorPage && !isManualTrimmed;
+
     const insetPct = useMemo(() => {
-      if (!physicalAnchorPage) return null;
+      if (!effectivePhysicalAnchor) return null;
       if (anchorPreservationInsetPct) return anchorPreservationInsetPct;
       const side = physicalTabHit?.side ?? 'right';
       return side === 'left' ? DEFAULT_INSET_LEFT_TAB : DEFAULT_INSET_RIGHT_TAB;
-    }, [physicalAnchorPage, anchorPreservationInsetPct, physicalTabHit?.side]);
+    }, [effectivePhysicalAnchor, anchorPreservationInsetPct, physicalTabHit?.side]);
 
     const clipStyle: React.CSSProperties | undefined = useMemo(() => {
-      if (!insetPct || !physicalAnchorPage) return undefined;
+      if (!insetPct || !effectivePhysicalAnchor) return undefined;
       if (physicalTabHit) {
         const side = physicalTabHit.side ?? 'right';
         const poly = buildAnchorLShapeClipPath(insetPct, side, physicalTabHit.vOffsetPercent);
@@ -161,19 +176,12 @@ export const ZeissHandbookPage = forwardRef<HTMLDivElement, ZeissHandbookPagePro
         clipPath: `inset(${insetPct.top}% ${insetPct.right}% ${insetPct.bottom}% ${insetPct.left}% round 3px)`,
         WebkitClipPath: `inset(${insetPct.top}% ${insetPct.right}% ${insetPct.bottom}% ${insetPct.left}% round 3px)`,
       };
-    }, [insetPct, physicalAnchorPage, physicalTabHit]);
+    }, [insetPct, effectivePhysicalAnchor, physicalTabHit]);
 
-    if (!src) {
-      return (
-        <div
-          ref={ref}
-          data-density="compact"
-          className="stf__page-root relative h-full w-full overflow-hidden rounded-l-sm border border-white/[0.08] bg-gradient-to-b from-slate-900 to-[#0a0f14]"
-        />
-      );
-    }
+    const imgSrc = isManualTrimmed && trimImgSrc ? trimImgSrc : src;
 
     const renderHitLayer = () => {
+      if (isManualTrimmed) return null;
       if (!physicalTabHit) return null;
       const vp = Math.min(99.5, Math.max(0.5, physicalTabHit.vOffsetPercent));
       const hpRaw = physicalTabHit.hOffsetPercent;
@@ -224,47 +232,94 @@ export const ZeissHandbookPage = forwardRef<HTMLDivElement, ZeissHandbookPagePro
             physicalTabHit.onSelect();
           }}
           style={strip}
-          className="pointer-events-auto z-[6] cursor-pointer border-0 p-0 outline-none focus-visible:ring-1 focus-visible:ring-white/30"
+          className={[
+            'pointer-events-auto cursor-pointer border-0 p-0 outline-none focus-visible:ring-1 focus-visible:ring-white/30',
+            isManualTrimmed ? 'z-[100]' : 'z-[6]',
+          ].join(' ')}
         />
       );
     };
+
+    if (!src) {
+      return (
+        <div
+          ref={ref}
+          data-density="compact"
+          className="stf__page-root relative h-full w-full overflow-hidden rounded-l-sm border border-white/[0.08] bg-gradient-to-b from-slate-900 to-[#0a0f14]"
+        />
+      );
+    }
 
     return (
       <div
         ref={ref}
         data-density="compact"
-        data-physical-anchor={physicalAnchorPage ? '1' : '0'}
+        data-physical-anchor={effectivePhysicalAnchor ? '1' : '0'}
+        data-hoya-manual-trim={isManualTrimmed ? '1' : undefined}
         className={[
-          'stf__page-root relative h-full w-full overflow-visible rounded-l-sm border border-white/12',
-          physicalAnchorPage ? 'bg-transparent' : 'bg-[#0a0f14]',
+          'stf__page-root relative h-full w-full overflow-visible',
+          isManualTrimmed
+            ? 'hoya-manual-trim-page bg-transparent'
+            : ['rounded-l-sm border border-white/12', physicalAnchorPage ? 'bg-transparent' : 'bg-[#0a0f14]'].join(
+                ' ',
+              ),
         ].join(' ')}
-        style={{ boxShadow: PAPER_STACK_SHADOW }}
+        style={isManualTrimmed ? undefined : { boxShadow: PAPER_STACK_SHADOW }}
       >
-        <div
-          className={[
-            'absolute inset-0',
-            physicalAnchorPage ? 'overflow-visible' : 'overflow-hidden rounded-l-sm',
-          ].join(' ')}
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            key={pageNumber}
-            src={src}
-            alt={title || `手册第 ${pageNumber} 页`}
-            width={1536}
-            height={2048}
-            loading="eager"
-            decoding="sync"
-            onLoad={() => setReveal(true)}
+        {isManualTrimmed ? (
+          <div className="hoya-manual-trim-media absolute inset-0 flex h-full w-full items-center justify-center overflow-visible">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={imgSrc ?? undefined}
+              alt={title || `手册第 ${pageNumber} 页`}
+              className={[
+                'hoya-manual-trim-img pointer-events-none max-h-full max-w-full select-none object-contain transition-opacity ease-out duration-300',
+                reveal ? 'opacity-100' : 'opacity-0',
+              ].join(' ')}
+              onLoad={() => setReveal(true)}
+              onError={() => {
+                setReveal(true);
+                if (!trimImgSrc) return;
+                if (trimImgSrc.endsWith('.jpg') || trimImgSrc.endsWith('.jpeg')) {
+                  const png = trimImgSrc.replace(/\.jpe?g$/i, '.png');
+                  if (png !== trimImgSrc) setTrimImgSrc(png);
+                  return;
+                }
+                if (trimImgSrc.endsWith('.png')) {
+                  const jpg = trimImgSrc.replace(/\.png$/i, '.jpg');
+                  if (jpg !== trimImgSrc) setTrimImgSrc(jpg);
+                }
+              }}
+              draggable={false}
+            />
+          </div>
+        ) : (
+          <div
             className={[
-              'h-full w-full object-cover object-center',
-              'transition-opacity ease-out duration-300',
-              reveal ? 'opacity-100' : 'opacity-0',
+              'absolute inset-0',
+              effectivePhysicalAnchor ? 'overflow-visible' : 'overflow-hidden rounded-l-sm',
             ].join(' ')}
-            style={clipStyle}
-            draggable={false}
-          />
-        </div>
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              key={pageNumber}
+              src={imgSrc ?? undefined}
+              alt={title || `手册第 ${pageNumber} 页`}
+              width={1536}
+              height={2048}
+              loading="eager"
+              decoding="sync"
+              onLoad={() => setReveal(true)}
+              onError={() => setReveal(true)}
+              className={[
+                'h-full w-full object-cover object-center transition-opacity ease-out duration-300',
+                reveal ? 'opacity-100' : 'opacity-0',
+              ].join(' ')}
+              style={clipStyle}
+              draggable={false}
+            />
+          </div>
+        )}
         {renderHitLayer()}
       </div>
     );

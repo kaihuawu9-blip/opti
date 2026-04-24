@@ -126,6 +126,7 @@
     "electron-builder": "^26.8.1",
     "eslint": "^9",
     "eslint-config-next": "16.2.1",
+    "pdf-lib": "^1.17.1",
     "pdf-to-img": "^6.0.0",
     "pg": "^8.16.0",
     "prisma": "^5.22.0",

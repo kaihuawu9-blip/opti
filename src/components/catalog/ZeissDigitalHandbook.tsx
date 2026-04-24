@@ -17,6 +17,12 @@ import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Maximize2, ShoppingCart, X } from 'lucide-react';
 import '@/styles/page-flip.css';
+import { HandbookFlipPageShell } from '@/components/catalog/HandbookFlipPageShell';
+import {
+  HandbookPhysicalTabColumn,
+  buildPhysicalTabColumnItems,
+  type PhysicalTabColumnItem,
+} from '@/components/catalog/HandbookPhysicalTabColumn';
 import { ZeissHandbookPage, type ZeissHandbookPhysicalTabHit } from '@/components/catalog/ZeissHandbookPage';
 import { HandbookSidebar } from '@/components/catalog/HandbookSidebar';
 import type { ReactPageFlipProps, ReactPageFlipRef } from '@/components/catalog/reactPageFlipTypes';
@@ -701,20 +707,45 @@ export function ZeissDigitalHandbook() {
                 activeHighlightColor: physicalTabOverlayActiveTint(brand, navItem.navTabTone),
               }
             : undefined;
+
+        const useBodyTabRack = brand === 'hoya' && Boolean(pd?.isManualTrimmed);
+
         return (
-          <ZeissHandbookPage
-            key={`pg-${brand}-${pdfN}`}
-            pageNumber={pdfN}
-            title={pd?.title ?? `第 ${pdfN} 页`}
-            imageData={pd?.imageData ?? null}
-            imageUrl={pd?.imageUrl ?? null}
-            physicalTabHit={physicalTabHit}
-            physicalAnchorPage={pd?.physicalAnchorPage ?? false}
-            anchorPreservationInsetPct={pd?.anchorPreservationInsetPct ?? null}
-          />
+          <HandbookFlipPageShell key={`pg-${brand}-${pdfN}`}>
+            <ZeissHandbookPage
+              pageNumber={pdfN}
+              title={pd?.title ?? `第 ${pdfN} 页`}
+              imageData={pd?.imageData ?? null}
+              imageUrl={pd?.imageUrl ?? null}
+              physicalTabHit={useBodyTabRack ? undefined : physicalTabHit}
+              physicalAnchorPage={pd?.physicalAnchorPage ?? false}
+              anchorPreservationInsetPct={pd?.anchorPreservationInsetPct ?? null}
+              isManualTrimmed={pd?.isManualTrimmed ?? false}
+            />
+          </HandbookFlipPageShell>
         );
       }),
-    [total, brand, seriesNav, activeNav.anchorId, flipToNavItem, fullscreenOpen],
+    [total, brand, seriesNav, activeNav.anchorId, fullscreenOpen],
+  );
+
+  /** 豪雅：右侧固定竖向导航 items（仅 physicalTabVerified 项） */
+  const physicalTabColumnItems = useMemo<PhysicalTabColumnItem[]>(() => {
+    if (brand !== 'hoya') return [];
+    return buildPhysicalTabColumnItems(seriesNav);
+  }, [brand, seriesNav]);
+
+  const flipToColumnItem = useCallback(
+    (it: PhysicalTabColumnItem) => {
+      const ref = fullscreenOpen ? fsRef : previewRef;
+      const pf = ref.current?.pageFlip?.();
+      if (!pf) return;
+      try {
+        pf.flip(it.startPage0);
+      } catch {
+        /* ignore */
+      }
+    },
+    [fullscreenOpen],
   );
 
   useEffect(() => {
@@ -927,7 +958,10 @@ export function ZeissDigitalHandbook() {
             </div>
           ) : null}
 
-          <div className="group relative" title="使用上方「全屏沉浸」进入双页对开；此处可正常翻页">
+          <div
+            className="group relative"
+            title="使用上方「全屏沉浸」进入双页对开；此处可正常翻页"
+          >
             <div
               className="pointer-events-none absolute inset-0 z-[3] flex items-end justify-center rounded-xl bg-gradient-to-t from-black/20 via-transparent to-transparent pb-3 opacity-0 transition group-hover:opacity-100"
             >
@@ -943,6 +977,7 @@ export function ZeissDigitalHandbook() {
                 className="pointer-events-none absolute -bottom-6 left-1/2 z-0 h-20 w-[min(90%,800px)] -translate-x-1/2 rounded-[100%] bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0.5)_0%,transparent_72%)] opacity-70 blur-2xl"
                 aria-hidden
               />
+              <div className="relative flex items-stretch justify-center gap-1.5">
               <div
                 ref={previewBookFrameRef}
                 className="relative z-[15] w-full [filter:drop-shadow(0_20px_40px_rgba(0,0,0,0.45))_drop-shadow(0_6px_18px_rgba(0,89,163,0.1))]"
@@ -982,6 +1017,15 @@ export function ZeissDigitalHandbook() {
                 >
                   {bookCommonPages}
                 </HTMLFlipBook>
+              </div>
+              {brand === 'hoya' && physicalTabColumnItems.length > 0 ? (
+                <HandbookPhysicalTabColumn
+                  items={physicalTabColumnItems}
+                  activeStartPage0={currentPage}
+                  heightCss={`${dims.h}px`}
+                  onSelect={flipToColumnItem}
+                />
+              ) : null}
               </div>
             </div>
           </div>
@@ -1135,11 +1179,14 @@ export function ZeissDigitalHandbook() {
                               视觉文本锚点：价目已对齐至 pdfIndex {matrixContextPdfIndex1}（物理 {physicalPdfIndex1}）
                             </div>
                           ) : null}
-                          <div className="relative flex min-h-0 min-w-0 flex-1 items-center justify-center [perspective:2400px] max-md:min-h-[48vh]">
+                          <div
+                            className="relative flex min-h-0 min-w-0 flex-1 items-center justify-center [perspective:2400px] max-md:min-h-[48vh]"
+                          >
                           {spreadGutter(true)}
                           {rightPageTurnShade(
                             'pointer-events-none absolute inset-y-3 right-2 z-[100] w-[min(8%,64px)] rounded-r-xl md:right-3',
                           )}
+                          <div className="relative flex items-stretch justify-center gap-1.5 max-h-[80vh]">
                           <div
                             ref={fsBookFrameRef}
                             className="relative z-[20] w-full max-h-[80vh] [filter:drop-shadow(0_32px_64px_rgba(0,0,0,0.55))]"
@@ -1178,6 +1225,15 @@ export function ZeissDigitalHandbook() {
                             >
                               {bookCommonPages}
                             </HTMLFlipBook>
+                          </div>
+                          {brand === 'hoya' && physicalTabColumnItems.length > 0 ? (
+                            <HandbookPhysicalTabColumn
+                              items={physicalTabColumnItems}
+                              activeStartPage0={currentPage}
+                              heightCss={`${fsDims.pageH}px`}
+                              onSelect={flipToColumnItem}
+                            />
+                          ) : null}
                           </div>
                           </div>
                         </div>

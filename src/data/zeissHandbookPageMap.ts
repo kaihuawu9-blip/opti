@@ -34,6 +34,7 @@ import {
   buildHoyaSeriesNavigationItems,
   HOYA_PHYSICAL_TAB_H_OFFSET_PERCENT_BY_PDF_PAGE,
   HOYA_PHYSICAL_TAB_V_OFFSET_PERCENT_BY_PDF_PAGE,
+  isHoyaManualTrimmedPdfPage,
   isHoyaPhysicalAnchorPdfPage,
 } from '@/data/hoyaSeriesNav';
 
@@ -78,7 +79,7 @@ export interface HandbookPageEntry {
   ocrRequired?: boolean;
   /** 内页标题（目录/翻页 UI）；物理侧栏**不得**用此字段代替 `physicalTabLabel` */
   title?: string;
-  /** 静态 public 路径（如豪雅 `/catalog/hoya/p1.jpg`）；无内嵌图时由 3D 页组件使用 */
+  /** 静态 public 路径（如豪雅 `/catalog/hoya/pages/p1.jpg`）；无内嵌图时由 3D 页组件使用 */
   imageUrl?: string;
   /**
    * `series_entry`：**仅**在 PDF 右缘物理凸起标签已扫描确认后使用；须同时设 `physicalTabVerified: true`。
@@ -274,6 +275,8 @@ export type HandbookSeriesNavItem = {
   hOffsetPercent?: number;
   seriesAliasKey?: string;
   navTabTone?: HandbookNavTabTone;
+  /** 豪雅：该物理页使用 Boss 精修图（`/catalog/hoya/pages/p{n}.jpg` 或 `.png`） */
+  isManualTrimmed?: boolean;
 };
 
 const HANDBOOK_SECTION_NAV_LABEL: Record<HandbookSection, string> = {
@@ -493,6 +496,11 @@ export interface HandbookPageData {
    */
   physicalAnchorPage: boolean;
   /**
+   * 豪雅：Boss 精修页在 `public/catalog/hoya/pages/p{n}.jpg`（默认）或同路径 `.png`（透明版）。
+   * 为 true 时 `imageUrl` 先指向 `pages` 子目录下该页，且 **禁止** clip-path / inset 出血；页容器 overflow 可见以保留凸标。
+   */
+  isManualTrimmed?: boolean;
+  /**
    * 锚点页保护性 inset（% of box，供 `clip-path: inset()`）；仅 `physicalAnchorPage` 时由页表或 UI 默认注入。
    * 标签所在一侧 inset 更小，使色块在成品矩形外仍可见（配合 `overflow: visible`）。
    */
@@ -606,6 +614,9 @@ export function getPageData(
   const embedded = imageData && imageData.length > 0 ? imageData : null;
   const fromEntry = entry.imageUrl?.trim();
   const publicUrl = fromEntry && fromEntry.length > 0 ? fromEntry : null;
+  const isManualTrimmed = brand === 'hoya' && isHoyaManualTrimmedPdfPage(entry.pdfPage);
+  /** 豪雅页图统一走 `hoyaHandbookPageMap` 的 `/catalog/hoya/pages/p{n}.jpg` */
+  const imageUrl = publicUrl;
   let pageKind: HandbookPageKind = entry.pageKind ?? 'standard';
   if (pageKind === 'series_entry' && !entry.physicalTabVerified) {
     pageKind = 'standard';
@@ -632,11 +643,13 @@ export function getPageData(
     if (typeof hx === 'number' && Number.isFinite(hx)) hOffsetPercent = hx;
   }
   const physicalAnchorPage =
-    brand === 'hoya'
-      ? isHoyaPhysicalAnchorPdfPage(entry.pdfPage)
-      : brand === 'zeiss'
-        ? pageKind === 'series_entry' && physicalTabVerified && Boolean(physicalTabLabel)
-        : false;
+    isManualTrimmed
+      ? false
+      : brand === 'hoya'
+        ? isHoyaPhysicalAnchorPdfPage(entry.pdfPage)
+        : brand === 'zeiss'
+          ? pageKind === 'series_entry' && physicalTabVerified && Boolean(physicalTabLabel)
+          : false;
   return {
     brand,
     pdfIndex: entry.pdfPage,
@@ -650,7 +663,7 @@ export function getPageData(
     product,
     ocrRequired: Boolean(entry.ocrRequired),
     imageData: embedded,
-    imageUrl: publicUrl,
+    imageUrl,
     pageKind,
     physicalTabVerified,
     physicalTabLabel,
@@ -659,6 +672,7 @@ export function getPageData(
     vOffsetPercent,
     hOffsetPercent,
     physicalAnchorPage,
+    isManualTrimmed: isManualTrimmed || undefined,
     anchorPreservationInsetPct: null,
   };
 }

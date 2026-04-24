@@ -27,7 +27,7 @@ if (n === 0) {
 console.log('[HOYA] handbook page count:', n);
 
 const pd = getPageData(8, 'hoya');
-if (!pd || pd.product?.productName !== '新乐学' || pd.imageUrl !== '/catalog/hoya/p8.jpg') {
+if (!pd || pd.product?.productName !== '新乐学' || pd.imageUrl !== '/catalog/hoya/pages/p8.jpg') {
   console.error('FAIL: getPageData(8, hoya) expected 新乐学 + p8 imageUrl', pd);
   process.exit(1);
 }

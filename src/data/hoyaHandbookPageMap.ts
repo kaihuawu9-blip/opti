@@ -1,7 +1,7 @@
 /**
  * 豪雅数字化手册 · 物理页映射（Matrix V1.3 · 真机锚点）
  *
- * **页数**：`hoyaHandbookPageCount.json` 的 `total` / `pages`（与 `public/catalog/hoya/p*.jpg` 一致）。
+ * **页数**：`hoyaHandbookPageCount.json` 的 `total` / `pages`（静态图在 `public/catalog/hoya/pages/p*.jpg`，URL `/catalog/hoya/pages/…`）。
  *
  * **硬编码锚点（2025 册观察校准）**
  * - p1–p6：品牌与产品简介（无矩阵 `productName`，避免与价目脱节）
@@ -165,7 +165,7 @@ function buildHoyaHandbookPageMap(): readonly HoyaHandbookPageEntry[] {
   const total = HOYA_HANDBOOK_PHYSICAL_TOTAL;
   const out: HoyaHandbookPageEntry[] = [];
   for (let pdfPage = 1; pdfPage <= total; pdfPage++) {
-    const imageUrl = `/catalog/hoya/p${pdfPage}.jpg`;
+    const imageUrl = `/catalog/hoya/pages/p${pdfPage}.jpg`;
     const fixed = hardcodedRowForPdf(pdfPage);
     if (fixed) {
       out.push({ ...fixed, imageUrl });
