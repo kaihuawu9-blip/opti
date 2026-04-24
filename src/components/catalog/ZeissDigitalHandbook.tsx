@@ -709,6 +709,8 @@ export function ZeissDigitalHandbook() {
             imageData={pd?.imageData ?? null}
             imageUrl={pd?.imageUrl ?? null}
             physicalTabHit={physicalTabHit}
+            physicalAnchorPage={pd?.physicalAnchorPage ?? false}
+            anchorPreservationInsetPct={pd?.anchorPreservationInsetPct ?? null}
           />
         );
       }),

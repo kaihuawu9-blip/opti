@@ -162,9 +162,11 @@ describe('Matrix Protocol V1.3 — HOYA 豪雅专项', () => {
     expect(getHandbookPageCount('hoya')).toBe(hoyaHandbookMeta.pages);
     const p2 = getPageData(2, 'hoya');
     expect(p2?.dataAnchor).toBeNull();
+    expect(p2?.physicalAnchorPage).toBe(false);
     expect(p2?.title).toMatch(/简介/);
     expect(p2?.imageUrl).toBe('/catalog/hoya/p2.jpg');
     const p8 = getPageData(8, 'hoya');
+    expect(p8?.physicalAnchorPage).toBe(true);
     expect(p8?.dataAnchor).toBe('新乐学');
     // vOffsetPercent 由离线全域雷达扫描产出（`catalog:harvest-hoya-tabs`），仅断言「在合理区间」
     expect(p8?.vOffsetPercent).toBeTypeOf('number');

@@ -680,6 +680,58 @@ export function hoyaSeriesEntryFromColorBlockOcr(input: {
   };
 }
 
+// ─── Physical Anchor：边缘凸起触发（非「全页红线」）──────────────────────────
+
+function avgChromaInRect(
+  data: Uint8ClampedArray,
+  W: number,
+  H: number,
+  x0: number,
+  x1: number,
+): number {
+  const xa = Math.max(0, Math.min(W - 1, x0));
+  const xb = Math.max(0, Math.min(W, x1));
+  if (xb <= xa) return 0;
+  const stepY = Math.max(1, Math.floor(H / 96));
+  const stepX = Math.max(1, Math.floor((xb - xa) / 32));
+  let s = 0;
+  let n = 0;
+  for (let y = 0; y < H; y += stepY) {
+    for (let x = xa; x < xb; x += stepX) {
+      const i = (y * W + x) * 4;
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+      s += Math.max(r, g, b) - Math.min(r, g, b);
+      n++;
+    }
+  }
+  return n > 0 ? s / n : 0;
+}
+
+/**
+ * 轻量边缘色度差：左右各 `edgeFrac` 宽竖条 vs 画心 24% 宽竖条的平均色度（max−min）。
+ * 用于离线索引 / 抽检「是否有凸起标签带」——**不**扫全页红线。
+ *
+ * 运行时是否做保护性裁剪以 `getPageData().physicalAnchorPage`（页表 / 豪雅菜单真值）为准；
+ * 本函数仅作辅助分类，避免对无凸起页误触发裁图流水线。
+ */
+export function detectPhysicalAnchorPageFromEdgeChroma(
+  imageData: ImageData,
+  edgeFrac = 0.09,
+): boolean {
+  const W = imageData.width;
+  const H = imageData.height;
+  if (W < 64 || H < 64) return false;
+  const ew = Math.max(4, Math.floor(W * edgeFrac));
+  const d = imageData.data;
+  const center = avgChromaInRect(d, W, H, Math.floor(W * 0.38), Math.ceil(W * 0.62));
+  const left = avgChromaInRect(d, W, H, 0, ew);
+  const right = avgChromaInRect(d, W, H, W - ew, W);
+  const delta = 9;
+  return left - center > delta || right - center > delta;
+}
+
 // ─── 蔡司系列别名（OCR 文本规则，与几何扫描独立）────────────────────────────
 
 /** 与页表 `seriesAliasKey` 对齐的可选机器键（pipeline 输出） */

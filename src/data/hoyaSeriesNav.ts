@@ -152,6 +152,11 @@ export const HOYA_PHYSICAL_TAB_H_OFFSET_PERCENT_BY_PDF_PAGE: Readonly<Record<num
   ),
 );
 
+/** 该 PDF 页是否为「物理锚点页」（边缘有已登记凸起标签，才触发保护性出血裁剪） */
+export function isHoyaPhysicalAnchorPdfPage(pdfPage1Based: number): boolean {
+  return HOYA_SERIES_MENU.some((m) => m.physicalTabVerified && m.pdfPage === pdfPage1Based);
+}
+
 export function buildHoyaSeriesNavigationItems(): HandbookSeriesNavItem[] {
   return HOYA_SERIES_MENU.filter((m) => m.physicalTabVerified).map((m) => ({
     id: m.id,

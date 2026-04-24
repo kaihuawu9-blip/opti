@@ -34,6 +34,7 @@ import {
   buildHoyaSeriesNavigationItems,
   HOYA_PHYSICAL_TAB_H_OFFSET_PERCENT_BY_PDF_PAGE,
   HOYA_PHYSICAL_TAB_V_OFFSET_PERCENT_BY_PDF_PAGE,
+  isHoyaPhysicalAnchorPdfPage,
 } from '@/data/hoyaSeriesNav';
 
 export type HandbookSection =
@@ -486,6 +487,16 @@ export interface HandbookPageData {
   vOffsetPercent: number | null;
   /** 凸标中心水平锚点（0–100，% from left）；缺省为 null（UI 右缘回退） */
   hOffsetPercent: number | null;
+  /**
+   * 物理锚点页：本页有已验证的印刷凸起标签（StandardEye 仅对此类页做「保护性出血」裁剪；
+   * 非锚点页保持整图原样，避免全册裁剪造成视觉漂移）。
+   */
+  physicalAnchorPage: boolean;
+  /**
+   * 锚点页保护性 inset（% of box，供 `clip-path: inset()`）；仅 `physicalAnchorPage` 时由页表或 UI 默认注入。
+   * 标签所在一侧 inset 更小，使色块在成品矩形外仍可见（配合 `overflow: visible`）。
+   */
+  anchorPreservationInsetPct?: { top: number; right: number; bottom: number; left: number } | null;
 }
 
 /** 品牌适配接口：新品牌只需实现此契约 */
@@ -620,6 +631,12 @@ export function getPageData(
     const hx = HOYA_PHYSICAL_TAB_H_OFFSET_PERCENT_BY_PDF_PAGE[entry.pdfPage];
     if (typeof hx === 'number' && Number.isFinite(hx)) hOffsetPercent = hx;
   }
+  const physicalAnchorPage =
+    brand === 'hoya'
+      ? isHoyaPhysicalAnchorPdfPage(entry.pdfPage)
+      : brand === 'zeiss'
+        ? pageKind === 'series_entry' && physicalTabVerified && Boolean(physicalTabLabel)
+        : false;
   return {
     brand,
     pdfIndex: entry.pdfPage,
@@ -641,6 +658,8 @@ export function getPageData(
     quickNavWeight: quickBase,
     vOffsetPercent,
     hOffsetPercent,
+    physicalAnchorPage,
+    anchorPreservationInsetPct: null,
   };
 }
 

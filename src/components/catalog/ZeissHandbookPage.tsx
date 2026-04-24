@@ -1,17 +1,16 @@
 'use client';
 
-import { forwardRef, useState } from 'react';
+import { forwardRef, useMemo, useState } from 'react';
 
 /**
  * 透明感应层（Invisible Hit Layer）：作为 Page 的 `absolute` 子元素，**不绘制任何可见像素**。
  *
- * - 「标签」已印在 PDF 画面里（蓝色/橙色色块等），我们**不再画**任何 UI。
- * - 感应层在色块垂直高度上，从 PDF 内部**溢出**到纸缘外（右页向右、左页向左），
- *   形成横跨内外的点击条；它是 Page 的子元素，随 3D 翻页引擎一起旋转、透视、翻转。
- *
- * StandardEye V1.6「成品图模式」：
- * - PDF 页图已在离线工序里按出血位人工预裁好，前端**不再做任何裁剪或坐标重映射**。
- * - v/hOffsetPercent 直接使用成品图坐标，由 AI 扫描产出，对齐色块 1:1。
+ * StandardEye「物理锚点页」— **L 形 / 异形 clip-path**（非矩形 crop）：
+ * - 沿出血内侧（`anchorPreservationInsetPct`）走矩形裁切，在 **标签垂直区间** 向纸缘（0% / 100%）外折，
+ *   越过标签后再回到内侧垂直红线 → 切掉标签下方「红线外」白条，凸标呈 **纸缘孤立块**，而非拖一条白边。
+ * - 使用 `clip-path: polygon(...)`；无 `physicalTabHit` 时回退为 `inset(...)`。
+ * - 根容器 `overflow-visible`；锚点页根背景透明，便于裁掉区域透出 3D 场景。
+ * - 非锚点页：整图 `object-cover`，无 clip-path。
  */
 export type ZeissHandbookPhysicalTabHit = {
   vOffsetPercent: number;
@@ -25,27 +24,116 @@ export type ZeissHandbookPhysicalTabHit = {
   physicalTabLabel?: string;
 };
 
+export type AnchorPreservationInsetPct = {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
+};
+
 export type ZeissHandbookPageProps = {
   title: string;
   imageData: string | null;
   imageUrl?: string | null;
   pageNumber: number;
-  /** 物理凸标热区：坐标直接对齐成品图，由 AI 扫描产出 */
   physicalTabHit?: ZeissHandbookPhysicalTabHit | null;
+  /** 与 `getPageData().physicalAnchorPage` 一致：有凸起标签的 PDF 页 */
+  physicalAnchorPage?: boolean;
+  /** 覆盖默认保护性 inset（%）；通常留空，由标签左右自动选默认 */
+  anchorPreservationInsetPct?: AnchorPreservationInsetPct | null;
 };
 
 const PAPER_STACK_SHADOW =
   'inset 0 1px 0 rgba(255,255,255,0.12), inset -2px 0 0 rgba(255,255,255,0.92), inset -5px 0 0 rgba(248,250,252,0.88), inset -9px 0 0 rgba(241,245,249,0.82), inset -13px 0 0 rgba(226,232,240,0.55), inset -16px 0 0 rgba(203,213,225,0.35)';
 
-/** 感应条垂直高度（px）：略大于印刷色块，覆盖点击容差 */
+/** 右缘凸标：右侧 inset 极小，保留标签「伸出」成品矩形 */
+const DEFAULT_INSET_RIGHT_TAB: AnchorPreservationInsetPct = {
+  top: 5,
+  right: 0.42,
+  bottom: 5,
+  left: 5.5,
+};
+/** 左缘凸标（翻过去后）：左侧 inset 极小 */
+const DEFAULT_INSET_LEFT_TAB: AnchorPreservationInsetPct = {
+  top: 5,
+  right: 5.5,
+  bottom: 5,
+  left: 0.42,
+};
+
 const HIT_STRIP_H = 56;
-/** 感应条向页缘外溢出的距离（px） */
 const HIT_STRIP_OVERFLOW_OUT = 28;
-/** 没有 hOffsetPercent 时，感应条自纸缘向内覆盖的百分比 */
 const HIT_STRIP_INWARD_PCT = 16;
 
+/** 标签色块在 polygon 中折返用的半高（% of 页高），与印刷凸标视觉高度同量级 */
+const TAB_NOTCH_HALF_HEIGHT_PCT = 3.85;
+
+function clamp(n: number, lo: number, hi: number): number {
+  return Math.max(lo, Math.min(hi, n));
+}
+
+/**
+ * L 形蒙版：内侧矩形 + 纸缘一侧仅保留 [vp±half] 竖条的「凸起」；其余外侧（尤其标签下白条）不在多边形内 → 透明。
+ */
+function buildAnchorLShapeClipPath(
+  inset: AnchorPreservationInsetPct,
+  side: 'right' | 'left',
+  vOffsetPercent: number,
+): string {
+  const L = inset.left;
+  const R = inset.right;
+  const T = inset.top;
+  const B = inset.bottom;
+  const y0 = T;
+  const y1 = 100 - B;
+  const vp = clamp(vOffsetPercent, y0 + TAB_NOTCH_HALF_HEIGHT_PCT + 0.2, y1 - TAB_NOTCH_HALF_HEIGHT_PCT - 0.2);
+  const half = TAB_NOTCH_HALF_HEIGHT_PCT;
+  const yTabTop = clamp(vp - half, y0 + 0.1, y1 - 0.1);
+  const yTabBot = clamp(vp + half, y0 + 0.1, y1 - 0.1);
+
+  if (side === 'right') {
+    const xIn = 100 - R;
+    return [
+      'polygon(',
+      `${L}% ${y0}%,`,
+      `${xIn}% ${y0}%,`,
+      `${xIn}% ${yTabTop}%,`,
+      `100% ${yTabTop}%,`,
+      `100% ${yTabBot}%,`,
+      `${xIn}% ${yTabBot}%,`,
+      `${xIn}% ${y1}%,`,
+      `${L}% ${y1}%)`,
+    ].join(' ');
+  }
+  const xIn = L;
+  const xOut = 0;
+  const xR = 100 - R;
+  return [
+    'polygon(',
+    `${xIn}% ${y0}%,`,
+    `${xR}% ${y0}%,`,
+    `${xR}% ${yTabTop}%,`,
+    `${xOut}% ${yTabTop}%,`,
+    `${xOut}% ${yTabBot}%,`,
+    `${xR}% ${yTabBot}%,`,
+    `${xR}% ${y1}%,`,
+    `${xIn}% ${y1}%)`,
+  ].join(' ');
+}
+
 export const ZeissHandbookPage = forwardRef<HTMLDivElement, ZeissHandbookPageProps>(
-  function ZeissHandbookPage({ title, imageData, imageUrl, pageNumber, physicalTabHit = null }, ref) {
+  function ZeissHandbookPage(
+    {
+      title,
+      imageData,
+      imageUrl,
+      pageNumber,
+      physicalTabHit = null,
+      physicalAnchorPage = false,
+      anchorPreservationInsetPct = null,
+    },
+    ref,
+  ) {
     const [reveal, setReveal] = useState(false);
     const [hover, setHover] = useState(false);
     const src =
@@ -54,6 +142,26 @@ export const ZeissHandbookPage = forwardRef<HTMLDivElement, ZeissHandbookPagePro
         : imageUrl && imageUrl.length > 0
           ? imageUrl
           : null;
+
+    const insetPct = useMemo(() => {
+      if (!physicalAnchorPage) return null;
+      if (anchorPreservationInsetPct) return anchorPreservationInsetPct;
+      const side = physicalTabHit?.side ?? 'right';
+      return side === 'left' ? DEFAULT_INSET_LEFT_TAB : DEFAULT_INSET_RIGHT_TAB;
+    }, [physicalAnchorPage, anchorPreservationInsetPct, physicalTabHit?.side]);
+
+    const clipStyle: React.CSSProperties | undefined = useMemo(() => {
+      if (!insetPct || !physicalAnchorPage) return undefined;
+      if (physicalTabHit) {
+        const side = physicalTabHit.side ?? 'right';
+        const poly = buildAnchorLShapeClipPath(insetPct, side, physicalTabHit.vOffsetPercent);
+        return { clipPath: poly, WebkitClipPath: poly };
+      }
+      return {
+        clipPath: `inset(${insetPct.top}% ${insetPct.right}% ${insetPct.bottom}% ${insetPct.left}% round 3px)`,
+        WebkitClipPath: `inset(${insetPct.top}% ${insetPct.right}% ${insetPct.bottom}% ${insetPct.left}% round 3px)`,
+      };
+    }, [insetPct, physicalAnchorPage, physicalTabHit]);
 
     if (!src) {
       return (
@@ -125,10 +233,19 @@ export const ZeissHandbookPage = forwardRef<HTMLDivElement, ZeissHandbookPagePro
       <div
         ref={ref}
         data-density="compact"
-        className="stf__page-root relative h-full w-full rounded-l-sm border border-white/12 bg-[#0a0f14]"
+        data-physical-anchor={physicalAnchorPage ? '1' : '0'}
+        className={[
+          'stf__page-root relative h-full w-full overflow-visible rounded-l-sm border border-white/12',
+          physicalAnchorPage ? 'bg-transparent' : 'bg-[#0a0f14]',
+        ].join(' ')}
         style={{ boxShadow: PAPER_STACK_SHADOW }}
       >
-        <div className="absolute inset-0 overflow-hidden rounded-l-sm">
+        <div
+          className={[
+            'absolute inset-0',
+            physicalAnchorPage ? 'overflow-visible' : 'overflow-hidden rounded-l-sm',
+          ].join(' ')}
+        >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             key={pageNumber}
@@ -144,6 +261,7 @@ export const ZeissHandbookPage = forwardRef<HTMLDivElement, ZeissHandbookPagePro
               'transition-opacity ease-out duration-300',
               reveal ? 'opacity-100' : 'opacity-0',
             ].join(' ')}
+            style={clipStyle}
             draggable={false}
           />
         </div>
