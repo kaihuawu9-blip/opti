@@ -32,6 +32,13 @@
   transform-style: preserve-3d;
 }
 
+/* StandardEye：左槽 [data-handbook-series-nav] 与 React 解耦的硬切（需 Nav 根带 data-handbook-series-nav="1"） */
+[class*='--left'] [data-handbook-series-nav='1'] {
+  display: none !important;
+  opacity: 0;
+  pointer-events: none;
+}
+
 /*
  * 双页「两页标签」物理隔离：库克隆/硬编码可能绕过 React 门控，左页槽内一律焊死 rail。
  * 仅右槽（`.stf__item--right`）保留溢出，凸标可伸出。

@@ -565,7 +565,7 @@ export function ZeissDigitalHandbook() {
     return () => {
       window.pageFlipInstance = undefined;
     };
-  }, [assignWindowPageFlipFromEngine, binderLayoutTick, fullscreenOpen, currentPage]);
+  }, [assignWindowPageFlipFromEngine, binderLayoutTick, fullscreenOpen]);
 
   const flipToNavItem = useCallback(
     (item: HandbookSeriesNavItem) => {
@@ -735,10 +735,7 @@ export function ZeissDigitalHandbook() {
             : undefined;
 
         const useBodyTabRack = brand === 'hoya' && Boolean(pd?.isManualTrimmed);
-        /** 全屏双页：奇数 pdf 为左页，不挂物理书签；预览单页：恒为右缘（side 已为 right） */
-        const showHoyaPhysicalBookmarks = brand === 'hoya' && side === 'right';
-        const showZeissPhysicalRailSlot = brand === 'zeiss';
-        /** 与 {@link isHandbookPhysicalRailHostPage}、`ZeissSeriesNavList` 内二次校验同一公式 */
+        /** 仅 `isHandbookPhysicalRailHostPage` 允许挂右缘物理 rail（封面 + 右页槽）；与 CSS 左槽封杀、`ZeissSeriesNavList` 内校验一致 */
         const mountPhysicalRailOnThisPage = isHandbookPhysicalRailHostPage(idx);
 
         return (
@@ -746,7 +743,7 @@ export function ZeissDigitalHandbook() {
             <div
               className={[
                 'relative h-full min-h-0 w-full !overflow-visible [container-type:size]',
-                showHoyaPhysicalBookmarks || showZeissPhysicalRailSlot
+                mountPhysicalRailOnThisPage && (brand === 'hoya' || brand === 'zeiss')
                   ? '[transform:translateZ(0)] will-change-transform'
                   : '',
               ]
@@ -765,7 +762,7 @@ export function ZeissDigitalHandbook() {
                 anchorPreservationInsetPct={pd?.anchorPreservationInsetPct ?? null}
                 isManualTrimmed={pd?.isManualTrimmed ?? false}
               >
-                {mountPhysicalRailOnThisPage && showHoyaPhysicalBookmarks ? (
+                {mountPhysicalRailOnThisPage && brand === 'hoya' ? (
                   <ZeissSeriesNavList
                     items={seriesNav}
                     pageIndex={idx}
@@ -774,7 +771,7 @@ export function ZeissDigitalHandbook() {
                     navLayout="physical-tabs"
                   />
                 ) : null}
-                {mountPhysicalRailOnThisPage && showZeissPhysicalRailSlot ? (
+                {mountPhysicalRailOnThisPage && brand === 'zeiss' ? (
                   <ZeissSeriesNavList
                     items={seriesNav}
                     pageIndex={idx}
@@ -1097,8 +1094,8 @@ export function ZeissDigitalHandbook() {
                         .filter(Boolean)
                         .join(' ')}
                       style={{ width: '100%', maxWidth: dims.w, minHeight: dims.h }}
-                      width={HANDBOOK_FLIPBOOK_PAGE_W}
-                      height={HANDBOOK_FLIPBOOK_PAGE_H}
+                      width={450}
+                      height={600}
                       minWidth={HANDBOOK_FLIPBOOK_MIN_W}
                       maxWidth={HANDBOOK_FLIPBOOK_MAX_W}
                       minHeight={HANDBOOK_FLIPBOOK_MIN_H}
@@ -1364,8 +1361,8 @@ export function ZeissDigitalHandbook() {
                                     .filter(Boolean)
                                     .join(' ')}
                                   style={{ maxWidth: '100%', minHeight: fsDims.pageH, maxHeight: '80vh' }}
-                                  width={HANDBOOK_FLIPBOOK_PAGE_W}
-                                  height={HANDBOOK_FLIPBOOK_PAGE_H}
+                                  width={450}
+                                  height={600}
                                   minWidth={HANDBOOK_FLIPBOOK_MIN_W}
                                   maxWidth={HANDBOOK_FLIPBOOK_MAX_W}
                                   minHeight={HANDBOOK_FLIPBOOK_MIN_H}

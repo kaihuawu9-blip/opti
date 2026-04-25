@@ -9,6 +9,7 @@ import { buildHoyaSeriesNavigationItems, hoyaRailTopPercentForPdfPage } from '@/
 import type { HandbookNavTabTone, HandbookSeriesNavItem } from '@/data/zeissHandbookPageMap';
 import type { HandbookActiveNavState } from '@/lib/catalog/dataIntegrityValidator';
 import { acquireHoyaBookmarkOverflowParents } from '@/components/catalog/hoyaBookmarkOverflowParents';
+import { physicsJumpFromPdfPage1 } from '@/lib/catalog/handbookPhysicsJump';
 
 function subscribeVisualViewportScale(cb: () => void): () => void {
   if (typeof window === 'undefined') return () => {};
@@ -83,7 +84,10 @@ export type HoyaPhysicalTabRailProps = {
 };
 
 export const HoyaPhysicalTabRail = forwardRef<HTMLDivElement, HoyaPhysicalTabRailProps>(
-  function HoyaPhysicalTabRail({ activeId, onSelect, integrityWarnIds, activeNav, className = '' }, ref) {
+  function HoyaPhysicalTabRail(
+    { activeId, onSelect: _onSelect, integrityWarnIds, activeNav, className = '' },
+    ref,
+  ) {
     const innerRef = useRef<HTMLDivElement | null>(null);
     const setRef = (node: HTMLDivElement | null) => {
       innerRef.current = node;
@@ -133,7 +137,7 @@ export const HoyaPhysicalTabRail = forwardRef<HTMLDivElement, HoyaPhysicalTabRai
           top: 0,
           bottom: 0,
           width: 'min(10rem, 46%)',
-          zIndex: 50,
+          zIndex: 55,
           ...(hoyaNavFontPx ? { fontSize: `${hoyaNavFontPx}px` } : { fontSize: '12px' }),
         }}
       >
@@ -146,16 +150,19 @@ export const HoyaPhysicalTabRail = forwardRef<HTMLDivElement, HoyaPhysicalTabRai
           const anchorStatus =
             active && activeNav && it.id === activeNav.anchorId ? activeNav.dataStatus : undefined;
           const titleParts = [integrityWarn ? '数据完整性提示' : ''].filter(Boolean);
-          return (
+            return (
             <button
               key={it.id}
               type="button"
               data-zeiss-nav-active={active ? 'true' : undefined}
               data-handbook-anchor-status={anchorStatus}
               title={titleParts.length ? titleParts.join(' · ') : undefined}
-              onClick={() => onSelect(it)}
+              onClick={(e) => {
+                e.stopPropagation();
+                physicsJumpFromPdfPage1(it.startPage0 + 1);
+              }}
               className={[
-                'box-border m-0 flex cursor-pointer items-center justify-end whitespace-nowrap border-y border-r-0 border-white/[0.08] py-[0.35em] pl-[0.55em] pr-2 text-left',
+                'box-border m-0 flex cursor-pointer items-center justify-end whitespace-nowrap border-y border-r-0 border-white/[0.08] px-2 py-1.5 pl-[0.6em] pr-2.5 text-left',
                 'rounded-l-xl rounded-r-none shadow-[-5px_2px_14px_rgba(0,0,0,0.32)]',
                 frost.text,
                 integrityWarn ? 'outline outline-1 outline-red-500/80 -outline-offset-1' : '',
@@ -173,7 +180,7 @@ export const HoyaPhysicalTabRail = forwardRef<HTMLDivElement, HoyaPhysicalTabRai
                 WebkitBackdropFilter: 'blur(8px)',
                 borderLeft: frost.borderLeft,
                 boxShadow: frost.boxShadow,
-                zIndex: 10,
+                zIndex: 60,
                 maxHeight: '2.4em',
               }}
             >

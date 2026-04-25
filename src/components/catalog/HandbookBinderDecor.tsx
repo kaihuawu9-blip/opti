@@ -5,7 +5,10 @@ import type { ReactPageFlipRef } from '@/components/catalog/reactPageFlipTypes';
 
 const PUNCH_HOLE_COUNT = 6;
 
-/** 荔枝纹皮革：底层 `.leather-field`（体验馆桌面）+ 光照与 SVG 颗粒叠层 */
+/**
+ * 荔枝纹皮革：父级为 `z-[6]` 垫底。书芯 `HTMLFlipBook` 在 `ZeissDigitalHandbook` 中一般为 `z-[12]`；
+ * {@link HandbookPunchHolesOverlay} 的 AO/纸缘/活页条为 z 8/19/25，叠在书缘而不盖住整页内容。
+ */
 export function HandbookBinderLeatherField({ className = '' }: { className?: string }) {
   const uid = useId().replace(/:/g, '');
   const fid = `stf-leather-grain-${uid}`;

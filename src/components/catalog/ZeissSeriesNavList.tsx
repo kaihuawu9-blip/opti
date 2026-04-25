@@ -170,9 +170,13 @@ export function ZeissSeriesNavList({
                 data-zeiss-nav-active={anchorSelected ? 'true' : undefined}
                 data-handbook-anchor-status={anchorStatus}
                 title={titleParts.length ? titleParts.join(' · ') : undefined}
-                onClick={() => physicsJumpFromPdfPage1(tab.page)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  physicsJumpFromPdfPage1(tab.page);
+                }}
                 className={[
-                  'absolute left-0 flex h-[32px] w-[90px] cursor-pointer items-center border-0 bg-transparent p-0 text-left',
+                  'absolute left-0 z-[55] flex h-[32px] min-h-[40px] w-[90px] min-w-[100px] cursor-pointer items-center border-0 bg-transparent',
+                  'px-2.5 py-1.5 text-left',
                   'pointer-events-auto transition-all duration-300',
                   'backdrop-blur-md shadow-lg',
                   integrityWarn ? 'outline outline-1 outline-red-500/80 -outline-offset-1' : '',
