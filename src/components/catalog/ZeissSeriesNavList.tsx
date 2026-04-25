@@ -1,45 +1,40 @@
 'use client';
 
-/** StandardEye V1.3：手册物理导航；豪雅为右页横向书签（方案 B：负 right + overflow 解锁 + 视口/页盒缩放同步）。 */
+/**
+ * StandardEye 4.0：蔡司价目册右缘 rail（硬编码锚点 + 物理公式）；
+ * 豪雅 rail 已迁至 {@link HoyaPhysicalTabRail}，本文件不再引用豪雅数据源。
+ */
 
-import { useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { useLayoutEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { buildHoyaSeriesNavigationItems, hoyaRailTopPercentForPdfPage } from '@/data/hoyaSeriesNav';
-import type {
-  DigitalHandbookBrand,
-  HandbookNavTabTone,
-  HandbookSeriesNavItem,
-} from '@/data/zeissHandbookPageMap';
+import type { HandbookSeriesNavItem } from '@/data/zeissHandbookPageMap';
 import type { HandbookActiveNavState } from '@/lib/catalog/dataIntegrityValidator';
-import { acquireHoyaBookmarkOverflowParents } from '@/components/catalog/hoyaBookmarkOverflowParents';
+import { HoyaPhysicalTabRail } from '@/components/catalog/HoyaPhysicalTabRail';
 
 const ZEISS_BLUE = '#0066B3';
 
-function subscribeVisualViewportScale(cb: () => void): () => void {
-  if (typeof window === 'undefined') return () => {};
-  const vv = window.visualViewport;
-  if (!vv) return () => {};
-  vv.addEventListener('resize', cb);
-  vv.addEventListener('scroll', cb);
-  return () => {
-    vv.removeEventListener('resize', cb);
-    vv.removeEventListener('scroll', cb);
-  };
-}
+/** 蔡司价目册物理纵轴基准页数（与公式分母一致） */
+const ZEISS_PHYSICS_REF_PAGES = 82;
 
-function getVisualViewportScale(): number {
-  if (typeof window === 'undefined') return 1;
-  const s = window.visualViewport?.scale;
-  return typeof s === 'number' && Number.isFinite(s) && s > 0 ? s : 1;
-}
+/**
+ * 蔡司右缘 rail 锚点（秒开展示用，谨慎：页表 `series_entry` 补全后应以此处为冗余逐步收敛）。
+ */
+const ZEISS_PRESTIGE_TABS = [
+  { name: '智锐系列', page: 10 },
+  { name: '青少年', page: 25 },
+  { name: '单光系列', page: 33 },
+  { name: '渐进系列', page: 44 },
+  { name: '数码型', page: 53 },
+  { name: '驾驶型', page: 56 },
+  { name: '户外镜片', page: 60 },
+  { name: '健康消费品', page: 80 },
+] as const;
 
-function useVisualViewportScale(): number {
-  return useSyncExternalStore(subscribeVisualViewportScale, getVisualViewportScale, () => 1);
-}
+/** 微梯形 + 左圆角右直边观感（clip + 左圆角） */
+const ZEISS_PHYSICAL_TAB_CLIP = 'polygon(0% 2%, 100% 10%, 100% 90%, 0% 98%)';
 
-/** 竖排凸标：偏宋黑 / 黑体，略紧字距，接近实物印刷 */
-const PHYSICAL_EMBOSSED_FONT =
-  "font-[SimHei,SimSun,'Noto_Sans_SC','Source_Han_Sans_SC',sans-serif] font-bold tabular-nums";
+const ZEISS_RAIL_TAB_W = 45;
+const ZEISS_RAIL_TAB_W_ACTIVE = ZEISS_RAIL_TAB_W + 10;
 
 const NAV_SCROLL_STYLES =
   'zeiss-nav-scroll ' +
@@ -62,7 +57,7 @@ type Props = {
   useTwoColumn?: boolean;
   integrityWarnIds?: ReadonlySet<string>;
   activeNav?: HandbookActiveNavState | null;
-  brand?: DigitalHandbookBrand;
+  brand?: import('@/data/zeissHandbookPageMap').DigitalHandbookBrand;
   navLayout?: NavLayout;
 };
 
@@ -70,42 +65,20 @@ function shortLabel(label: string): boolean {
   return label.trim().length <= 10;
 }
 
-/** 扁平实色，与 PDF 色块一致；无阴影、无渐变。 */
-function resolvePhysicalTabSurface(
-  brand: DigitalHandbookBrand,
-  tone: HandbookNavTabTone | undefined,
-  active: boolean,
-): { bg: string; text: string } {
-  const t = tone ?? (brand === 'zeiss' ? 'zeiss-deep-blue' : 'neutral');
-  if (brand === 'zeiss' || t === 'zeiss-deep-blue') {
-    return active
-      ? { bg: '#003D78', text: 'text-white' }
-      : { bg: '#002A48', text: 'text-white/88' };
-  }
-  if (t === 'hoya-orange') {
-    return active
-      ? { bg: '#B0380C', text: 'text-white' }
-      : { bg: '#8B2E0E', text: 'text-white/90' };
-  }
-  if (t === 'hoya-blue') {
-    return active
-      ? { bg: '#055F94', text: 'text-white' }
-      : { bg: '#085985', text: 'text-white/90' };
-  }
-  if (t === 'hoya-purple') {
-    return active
-      ? { bg: '#5E21A8', text: 'text-white' }
-      : { bg: '#4C1D8F', text: 'text-white/90' };
-  }
-  return active
-    ? { bg: '#374151', text: 'text-white' }
-    : { bg: '#2A3341', text: 'text-white/80' };
+function zeissPrestigeTabToNavItem(tab: (typeof ZEISS_PRESTIGE_TABS)[number]): HandbookSeriesNavItem {
+  const p = tab.page;
+  return {
+    id: `tab:${p}`,
+    label: tab.name,
+    section: 'price',
+    startPage0: p - 1,
+    printedPage: null,
+    physicalTabVerified: false,
+    physicalTabLabel: tab.name,
+    navTabTone: 'zeiss-deep-blue',
+  };
 }
 
-/**
- * physical-tabs：豪雅为右缘横向书签，`top` 由 `hoyaRailTopPercentForPdfPage`（相对页容器高度，顶边对齐）；
- * 蔡司为竖排凸标 + `vOffsetPercent`；classic 为栅格列表（依视路）。
- */
 export function ZeissSeriesNavList({
   items,
   activeId,
@@ -122,33 +95,6 @@ export function ZeissSeriesNavList({
   const useTwoColumn =
     navLayout === 'classic' && useTwoColProp && !compact && items.length > 6;
 
-  const vvScale = useVisualViewportScale();
-  const [pageBoxH, setPageBoxH] = useState(0);
-
-  useLayoutEffect(() => {
-    if (navLayout !== 'physical-tabs' || brand !== 'hoya') return;
-    const nav = scrollRef.current;
-    if (!nav) return;
-    const releaseOverflow = acquireHoyaBookmarkOverflowParents(nav);
-    return () => releaseOverflow();
-  }, [brand, navLayout, activeId]);
-
-  useLayoutEffect(() => {
-    if (navLayout !== 'physical-tabs' || brand !== 'hoya') return;
-    const nav = scrollRef.current;
-    const box = nav?.offsetParent as HTMLElement | null | undefined;
-    if (!box) return;
-    const ro = new ResizeObserver((entries) => {
-      const h = entries[0]?.contentRect?.height ?? 0;
-      const rounded = Math.round(h);
-      if (rounded > 0) setPageBoxH(rounded);
-    });
-    ro.observe(box);
-    const h0 = Math.round(box.getBoundingClientRect().height);
-    if (h0 > 0) setPageBoxH(h0);
-    return () => ro.disconnect();
-  }, [brand, navLayout, activeId]);
-
   useLayoutEffect(() => {
     if (navLayout === 'physical-tabs') return;
     const root = scrollRef.current;
@@ -158,106 +104,94 @@ export function ZeissSeriesNavList({
   }, [activeId, items.length, activeNav?.anchorId, activeNav?.dataStatus, navLayout]);
 
   if (navLayout === 'physical-tabs') {
-    /** 豪雅：与 `HOYA_PHYSICAL_PAGE_ANCHORS` 全量同源，禁止依赖外层对 `items` 的裁剪。 */
-    const physicalItems = brand === 'hoya' ? buildHoyaSeriesNavigationItems() : items;
+    if (brand === 'hoya') {
+      return (
+        <HoyaPhysicalTabRail
+          ref={scrollRef}
+          activeId={activeId}
+          onSelect={onSelect}
+          integrityWarnIds={integrityWarnIds}
+          activeNav={activeNav}
+        />
+      );
+    }
 
-    const hoyaNavFontPx =
-      brand === 'hoya' && pageBoxH > 0
-        ? Math.max(10, Math.min(16, Math.round(pageBoxH * 0.021)))
-        : undefined;
+    if (brand === 'zeiss') {
+      console.log('Tabs rendered', ZEISS_PRESTIGE_TABS);
 
-    return (
-      <nav
-        ref={scrollRef}
-        role="navigation"
-        aria-label="系列索引（物理标签）"
-        className="pointer-events-none h-full min-h-0"
-        style={{
-          position: 'absolute',
-          right: brand === 'hoya' ? -30 * vvScale : 0,
-          top: 0,
-          bottom: 0,
-          width: brand === 'hoya' ? 'min(10rem, 46%)' : 50,
-          zIndex: 50,
-          ...(brand === 'hoya' && hoyaNavFontPx
-            ? { fontSize: `${hoyaNavFontPx}px` }
-            : brand === 'hoya'
-              ? { fontSize: '12px' }
-              : {}),
-        }}
-      >
-        {physicalItems.map((it) => {
-          const topCss =
-            brand === 'hoya'
-              ? `${hoyaRailTopPercentForPdfPage(it.startPage0 + 1)}%`
-              : typeof it.vOffsetPercent === 'number' && Number.isFinite(it.vOffsetPercent)
-                ? `${it.vOffsetPercent}%`
-                : '';
-          if (!topCss) return null;
+      return (
+        <nav
+          ref={scrollRef}
+          role="navigation"
+          aria-label="系列索引（物理标签）"
+          className="pointer-events-none absolute right-0 top-0 h-full w-[56px] overflow-visible [transform:translateZ(0)] will-change-transform !z-[9999]"
+        >
+          {ZEISS_PRESTIGE_TABS.map((tab) => {
+            const topCss = `${(tab.page / ZEISS_PHYSICS_REF_PAGES) * 100}%`;
+            const navItem = zeissPrestigeTabToNavItem(tab);
+            const active = activeId === navItem.id;
+            const integrityWarn = Boolean(integrityWarnIds?.has(navItem.id));
+            const anchorStatus =
+              active && activeNav && navItem.id === activeNav.anchorId ? activeNav.dataStatus : undefined;
+            const titleParts = [integrityWarn ? '数据完整性提示' : ''].filter(Boolean);
+            const w = active ? ZEISS_RAIL_TAB_W_ACTIVE : ZEISS_RAIL_TAB_W;
 
-          const tabText = (it.physicalTabLabel?.trim() || it.label).trim() || it.id;
-          const active = it.id === activeId;
-          const integrityWarn = Boolean(integrityWarnIds?.has(it.id));
-          const surf = resolvePhysicalTabSurface(brand, it.navTabTone, active);
-          const anchorStatus =
-            active && activeNav && it.id === activeNav.anchorId ? activeNav.dataStatus : undefined;
-          const titleParts = [integrityWarn ? '数据完整性提示' : ''].filter(Boolean);
-          const isHoyaRail = brand === 'hoya';
-          return (
-            <button
-              key={it.id}
-              type="button"
-              data-zeiss-nav-active={active ? 'true' : undefined}
-              data-handbook-anchor-status={anchorStatus}
-              title={titleParts.length ? titleParts.join(' · ') : undefined}
-              onClick={() => onSelect(it)}
-              className={[
-                'box-border cursor-pointer text-left pointer-events-auto',
-                isHoyaRail
-                  ? [
-                      'm-0 flex items-center justify-end border border-r-0 border-black/30 pr-2',
-                      'rounded-l-xl rounded-r-none',
-                      'py-[0.35em] pl-[0.55em]',
-                      'shadow-[-5px_2px_14px_rgba(0,0,0,0.32)]',
-                      'whitespace-nowrap',
-                    ].join(' ')
-                  : 'rounded-[1px] rounded-r-none border border-black/25 border-r-0 px-0.5 py-1.5',
-                surf.text,
-                !isHoyaRail && integrityWarn ? 'outline outline-1 outline-red-500/80 -outline-offset-1' : '',
-              ]
-                .filter(Boolean)
-                .join(' ')}
-              style={{
-                position: 'absolute',
-                right: 0,
-                top: topCss,
-                width: isHoyaRail ? 'max-content' : '100%',
-                maxWidth: isHoyaRail ? '100%' : undefined,
-                background: surf.bg,
-                zIndex: 10,
-                ...(isHoyaRail
-                  ? { maxHeight: '2.4em' }
-                  : { margin: 0, minHeight: 44 }),
-              }}
-            >
-              <span
+            return (
+              <button
+                key={navItem.id}
+                type="button"
+                data-zeiss-nav-active={active ? 'true' : undefined}
+                data-handbook-anchor-status={anchorStatus}
+                title={titleParts.length ? titleParts.join(' · ') : undefined}
+                onClick={() => onSelect(navItem)}
                 className={[
-                  PHYSICAL_EMBOSSED_FONT,
-                  isHoyaRail
-                    ? 'box-border block text-right text-[0.85em] leading-tight tracking-wide'
-                    : 'box-border block text-center text-[12px] leading-[1.75] tracking-[0.18em] [writing-mode:vertical-rl] [text-orientation:mixed]',
-                  compact && !isHoyaRail ? 'text-[11px] tracking-[0.16em]' : '',
+                  'box-border cursor-pointer border-0 bg-transparent p-0 text-left',
+                  'pointer-events-auto absolute',
+                  'transition-[width] duration-200 ease-out',
+                  integrityWarn ? 'outline outline-1 outline-red-500/80 -outline-offset-1' : '',
                 ]
                   .filter(Boolean)
                   .join(' ')}
+                style={{
+                  top: topCss,
+                  right: -45,
+                  width: w,
+                  minHeight: 36,
+                  transform: 'translateZ(0)',
+                  zIndex: 10,
+                }}
               >
-                {tabText}
-              </span>
-            </button>
-          );
-        })}
-      </nav>
-    );
+                <div
+                  className="relative flex h-full min-h-9 w-full items-center overflow-hidden rounded-l-md rounded-r-none pl-1.5 pr-1.5"
+                  style={{
+                    clipPath: ZEISS_PHYSICAL_TAB_CLIP,
+                    WebkitClipPath: ZEISS_PHYSICAL_TAB_CLIP,
+                    borderLeft: `2px solid ${ZEISS_BLUE}`,
+                    backgroundColor: active ? ZEISS_BLUE : 'rgba(20, 20, 20, 0.8)',
+                    backdropFilter: active ? 'blur(6px)' : 'blur(12px)',
+                    WebkitBackdropFilter: active ? 'blur(6px)' : 'blur(12px)',
+                    boxShadow: active ? 'inset 0 1px 0 rgba(255,255,255,0.16)' : undefined,
+                  }}
+                >
+                  {active ? <div className="zeiss-physical-tab-active-shine" aria-hidden /> : null}
+                  <span
+                    className={[
+                      "relative z-[1] block w-full truncate text-left text-[11px] font-medium leading-tight tracking-tight text-white [font-family:SimHei,SimSun,'Noto_Sans_SC','Source_Han_Sans_SC',sans-serif]",
+                      'tabular-nums',
+                    ].join(' ')}
+                    style={{ textShadow: '0 1px 2px rgba(0,0,0,0.55)' }}
+                  >
+                    {tab.name}
+                  </span>
+                </div>
+              </button>
+            );
+          })}
+        </nav>
+      );
+    }
+
+    return null;
   }
 
   return (

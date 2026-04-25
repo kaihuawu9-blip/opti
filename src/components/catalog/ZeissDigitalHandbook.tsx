@@ -17,6 +17,7 @@ import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Maximize2, ShoppingCart, X } from 'lucide-react';
 import '@/styles/page-flip.css';
+import { HandbookBinderLeatherField, HandbookPunchHolesOverlay } from '@/components/catalog/HandbookBinderDecor';
 import { HandbookFlipPageShell } from '@/components/catalog/HandbookFlipPageShell';
 import { ZeissHandbookPage, type ZeissHandbookPhysicalTabHit } from '@/components/catalog/ZeissHandbookPage';
 import { HandbookSidebar } from '@/components/catalog/HandbookSidebar';
@@ -277,10 +278,14 @@ export function ZeissDigitalHandbook() {
   const [fsSession, setFsSession] = useState(0);
   const [previewResync, setPreviewResync] = useState(0);
   const [previewStart, setPreviewStart] = useState(0);
+  /** 活页孔与 page-flip 内部 rect 对齐：翻页 / 横竖切换 / 尺寸变化时 bump */
+  const [binderLayoutTick, setBinderLayoutTick] = useState(0);
   /** 3D 书本实际渲染高度（px），与侧栏同高 */
   const [bookVisualH, setBookVisualH] = useState(0);
   const [zeissManifest, setZeissManifest] = useState<ZeissHandbookManifest | null>(null);
   const [dataIntegrityAlertOpen, setDataIntegrityAlertOpen] = useState(false);
+
+  const bumpBinderLayout = useCallback(() => setBinderLayoutTick((n) => n + 1), []);
 
   const canPortalFullscreen = useSyncExternalStore(subscribeNoop, () => true, () => false);
 
@@ -505,9 +510,10 @@ export function ZeissDigitalHandbook() {
         } catch {
           /* ignore */
         }
+        bumpBinderLayout();
       });
     },
-    [fullscreenOpen],
+    [fullscreenOpen, bumpBinderLayout],
   );
 
   /** init 的 data 为 { page, mode }，flip 的 data 为 0-based 左页下标 */
@@ -528,14 +534,19 @@ export function ZeissDigitalHandbook() {
         } catch {
           /* ignore */
         }
+        bumpBinderLayout();
       });
     },
-    [fullscreenOpen],
+    [fullscreenOpen, bumpBinderLayout],
   );
 
   const onChangeState = useCallback((e: { data?: unknown }) => {
     if (e?.data === 'flipping') playHandbookPaperRustle();
   }, []);
+
+  const onChangeOrientation = useCallback(() => {
+    queueMicrotask(bumpBinderLayout);
+  }, [bumpBinderLayout]);
 
   const flipToNavItem = useCallback(
     (item: HandbookSeriesNavItem) => {
@@ -559,7 +570,8 @@ export function ZeissDigitalHandbook() {
       setFsDims(d);
     }
     setFullscreenOpen(true);
-  }, [currentPage]);
+    queueMicrotask(bumpBinderLayout);
+  }, [currentPage, bumpBinderLayout]);
 
   const closeFullscreen = useCallback(() => {
     const ref = fsRef.current?.pageFlip?.();
@@ -573,7 +585,8 @@ export function ZeissDigitalHandbook() {
     setPreviewStart(p);
     setPreviewResync((k) => k + 1);
     setFullscreenOpen(false);
-  }, [currentPage]);
+    queueMicrotask(bumpBinderLayout);
+  }, [currentPage, bumpBinderLayout]);
 
   useEffect(() => {
     if (!fullscreenOpen) return;
@@ -707,11 +720,20 @@ export function ZeissDigitalHandbook() {
         const useBodyTabRack = brand === 'hoya' && Boolean(pd?.isManualTrimmed);
         /** 全屏双页：奇数 pdf 为左页，不挂物理书签；预览单页：恒为右缘（side 已为 right） */
         const showHoyaPhysicalBookmarks = brand === 'hoya' && side === 'right';
+        /** 蔡司：右页挂载梯形磨砂插片栏（与 3D 页同 GPU 子树）；热区仍由 `physicalTabHit` 负责 */
+        const showZeissPhysicalRail = brand === 'zeiss' && side === 'right' && seriesNav.length > 0;
 
         return (
           <HandbookFlipPageShell key={`pg-${brand}-${pdfN}`}>
             <div
-              className="relative h-full min-h-0 w-full !overflow-visible [container-type:size]"
+              className={[
+                'relative h-full min-h-0 w-full !overflow-visible [container-type:size]',
+                showHoyaPhysicalBookmarks || showZeissPhysicalRail
+                  ? '[transform:translateZ(0)] will-change-transform'
+                  : '',
+              ]
+                .filter(Boolean)
+                .join(' ')}
               data-stf-handbook-page-box="1"
             >
               <ZeissHandbookPage
@@ -730,6 +752,16 @@ export function ZeissDigitalHandbook() {
                   activeId={activeNav.anchorId}
                   onSelect={flipToNavItem}
                   brand="hoya"
+                  navLayout="physical-tabs"
+                  activeNav={activeNav}
+                  integrityWarnIds={integrityWarnNavIds}
+                />
+              ) : showZeissPhysicalRail ? (
+                <ZeissSeriesNavList
+                  items={seriesNav}
+                  activeId={activeNav.anchorId}
+                  onSelect={flipToNavItem}
+                  brand="zeiss"
                   navLayout="physical-tabs"
                   activeNav={activeNav}
                   integrityWarnIds={integrityWarnNavIds}
@@ -817,8 +849,14 @@ export function ZeissDigitalHandbook() {
       className="pointer-events-none absolute inset-y-1 left-1/2 z-[120] w-[min(30px,3.5%)] -translate-x-1/2"
       style={{
         background: strong
-          ? 'linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.22) 32%, rgba(0,0,0,0.5) 50%, rgba(255,255,255,0.1) 50.2%, rgba(0,0,0,0.32) 68%, rgba(0,0,0,0) 100%)'
-          : 'linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.14) 38%, rgba(0,0,0,0.28) 50%, rgba(255,255,255,0.07) 50.5%, rgba(0,0,0,0.22) 62%, rgba(0,0,0,0) 100%)',
+          ? [
+              'linear-gradient(90deg, transparent calc(50% - 0.5px), rgba(255,255,255,0.16) 50%, transparent calc(50% + 0.5px))',
+              'linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.22) 32%, rgba(0,0,0,0.5) 50%, rgba(255,255,255,0.1) 50.2%, rgba(0,0,0,0.32) 68%, rgba(0,0,0,0) 100%)',
+            ].join(', ')
+          : [
+              'linear-gradient(90deg, transparent calc(50% - 0.5px), rgba(255,255,255,0.1) 50%, transparent calc(50% + 0.5px))',
+              'linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.14) 38%, rgba(0,0,0,0.28) 50%, rgba(255,255,255,0.07) 50.5%, rgba(0,0,0,0.22) 62%, rgba(0,0,0,0) 100%)',
+            ].join(', '),
       }}
       aria-hidden
     />
@@ -999,38 +1037,66 @@ export function ZeissDigitalHandbook() {
                       'pointer-events-none absolute inset-y-2 right-0 z-[100] w-[14%] max-w-[48px] rounded-r-lg',
                     )
                   : null}
-                <HTMLFlipBook
-                  key={previewKey}
-                  ref={previewRef}
-                  className={['mx-auto', brand === 'hoya' ? '!overflow-visible' : ''].filter(Boolean).join(' ')}
-                  style={{ width: dims.w, minHeight: dims.h }}
-                  width={dims.w}
-                  height={dims.h}
-                  minWidth={260}
-                  maxWidth={900}
-                  minHeight={360}
-                  maxHeight={1200}
-                  size="stretch"
-                  startPage={previewStart}
-                  drawShadow
-                  maxShadowOpacity={0.5}
-                  showCover={false}
-                  mobileScrollSupport
-                  clickEventForward
-                  useMouseEvents
-                  swipeDistance={20}
-                  flippingTime={500}
-                  usePortrait
-                  startZIndex={0}
-                  autoSize
-                  showPageCorners
-                  disableFlipByClick={false}
-                  onFlip={onFlip}
-                  onInit={onBookInit}
-                  onChangeState={onChangeState}
+                <div
+                  className={[
+                    'relative z-[15] mx-auto [isolation:isolate]',
+                    brand === 'hoya' ? '!overflow-visible' : 'overflow-hidden rounded-lg',
+                  ]
+                    .filter(Boolean)
+                    .join(' ')}
+                  style={{
+                    width: dims.w,
+                    minHeight: dims.h,
+                    boxShadow: 'inset 0 0 100px rgba(0,0,0,0.5)',
+                  }}
                 >
-                  {bookCommonPages}
-                </HTMLFlipBook>
+                  <HandbookBinderLeatherField className={brand === 'hoya' ? '' : 'rounded-lg'} />
+                  <HandbookPunchHolesOverlay
+                    flipRef={previewRef}
+                    layoutTick={binderLayoutTick}
+                    bookWidth={dims.w}
+                    bookMinHeight={dims.h}
+                    flipInstanceKey={previewKey}
+                  />
+                  <HTMLFlipBook
+                    key={previewKey}
+                    ref={previewRef}
+                    className={[
+                      'relative z-[12] mx-auto',
+                      brand === 'hoya' ? '!overflow-visible' : '',
+                    ]
+                      .filter(Boolean)
+                      .join(' ')}
+                    style={{ width: dims.w, minHeight: dims.h }}
+                    width={dims.w}
+                    height={dims.h}
+                    minWidth={260}
+                    maxWidth={900}
+                    minHeight={360}
+                    maxHeight={1200}
+                    size="stretch"
+                    startPage={previewStart}
+                    drawShadow
+                    maxShadowOpacity={0.5}
+                    showCover={false}
+                    mobileScrollSupport
+                    clickEventForward
+                    useMouseEvents
+                    swipeDistance={20}
+                    flippingTime={500}
+                    usePortrait
+                    startZIndex={0}
+                    autoSize
+                    showPageCorners
+                    disableFlipByClick={false}
+                    onFlip={onFlip}
+                    onInit={onBookInit}
+                    onChangeState={onChangeState}
+                    onChangeOrientation={onChangeOrientation}
+                  >
+                    {bookCommonPages}
+                  </HTMLFlipBook>
+                </div>
               </div>
             </div>
           </div>
@@ -1227,40 +1293,66 @@ export function ZeissDigitalHandbook() {
                           >
                             {brand !== 'hoya' ? edgeRail('left') : null}
                             {brand !== 'hoya' ? edgeRail('right') : null}
-                            <HTMLFlipBook
-                              key={fsKey}
-                              ref={fsRef}
-                              className={['mx-auto w-full max-w-full', brand === 'hoya' ? '!overflow-visible' : '']
+                            <div
+                              className={[
+                                'relative z-[20] mx-auto w-full max-w-full [isolation:isolate]',
+                                brand === 'hoya' ? '!overflow-visible' : 'overflow-hidden rounded-xl',
+                              ]
                                 .filter(Boolean)
                                 .join(' ')}
-                              style={{ minHeight: fsDims.pageH, maxHeight: '80vh' }}
-                              width={fsDims.pageW}
-                              height={fsDims.pageH}
-                              minWidth={200}
-                              maxWidth={1000}
-                              minHeight={240}
-                              maxHeight={2000}
-                              size="stretch"
-                              startPage={fsEntryPage}
-                              drawShadow
-                              maxShadowOpacity={0.62}
-                              showCover={false}
-                              mobileScrollSupport
-                              clickEventForward
-                              useMouseEvents
-                              swipeDistance={24}
-                              flippingTime={520}
-                              usePortrait={false}
-                              startZIndex={0}
-                              autoSize
-                              showPageCorners
-                              disableFlipByClick={false}
-                              onFlip={onFlip}
-                              onInit={onBookInit}
-                              onChangeState={onChangeState}
+                              style={{
+                                minHeight: fsDims.pageH,
+                                maxHeight: '80vh',
+                                boxShadow: 'inset 0 0 100px rgba(0,0,0,0.5)',
+                              }}
                             >
-                              {bookCommonPages}
-                            </HTMLFlipBook>
+                              <HandbookBinderLeatherField className={brand === 'hoya' ? '' : 'rounded-xl'} />
+                              <HandbookPunchHolesOverlay
+                                flipRef={fsRef}
+                                layoutTick={binderLayoutTick}
+                                bookWidth={fsDims.pageW}
+                                bookMinHeight={fsDims.pageH}
+                                flipInstanceKey={fsKey}
+                              />
+                              <HTMLFlipBook
+                                key={fsKey}
+                                ref={fsRef}
+                                className={[
+                                  'relative z-[12] mx-auto w-full max-w-full',
+                                  brand === 'hoya' ? '!overflow-visible' : '',
+                                ]
+                                  .filter(Boolean)
+                                  .join(' ')}
+                                style={{ minHeight: fsDims.pageH, maxHeight: '80vh' }}
+                                width={fsDims.pageW}
+                                height={fsDims.pageH}
+                                minWidth={200}
+                                maxWidth={1000}
+                                minHeight={240}
+                                maxHeight={2000}
+                                size="stretch"
+                                startPage={fsEntryPage}
+                                drawShadow
+                                maxShadowOpacity={0.62}
+                                showCover={false}
+                                mobileScrollSupport
+                                clickEventForward
+                                useMouseEvents
+                                swipeDistance={24}
+                                flippingTime={520}
+                                usePortrait={false}
+                                startZIndex={0}
+                                autoSize
+                                showPageCorners
+                                disableFlipByClick={false}
+                                onFlip={onFlip}
+                                onInit={onBookInit}
+                                onChangeState={onChangeState}
+                                onChangeOrientation={onChangeOrientation}
+                              >
+                                {bookCommonPages}
+                              </HTMLFlipBook>
+                            </div>
                           </div>
                           </div>
                         </div>

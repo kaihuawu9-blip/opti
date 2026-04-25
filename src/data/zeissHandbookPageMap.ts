@@ -388,6 +388,20 @@ export function getHandbookPageCount(brand: DigitalHandbookBrand): number {
 }
 
 /**
+ * 蔡司右缘插片 `top%` 的**末位回退**：仅当页表未提供 `vOffsetPercent` 时使用。
+ * 公式 `(pdfPage / totalPages) * 100` 与物理页序一致；**不得**替代页表中已写入的 `vOffsetPercent`。
+ * 禁止用硬编码「系列名 → 页码」名单替代本数据链（见 StandardEye 物理映射）。
+ */
+export function zeissPhysicalTabRailFallbackTopPercent(
+  startPage0: number,
+  totalPages: number,
+): number {
+  if (totalPages <= 0) return 0;
+  const pdfPage = Math.max(1, Math.min(totalPages, Math.floor(startPage0) + 1));
+  return Math.min(100, Math.max(0, (pdfPage / totalPages) * 100));
+}
+
+/**
  * 与手动翻页同步：取当前页所属「最后一条不越过当前页」的导航项 AnchorID。
  * 若需插件 B 的 `dataStatus: "validated" | "warning"` 与占位文案，请用
  * `resolveActiveHandbookNavState()`（@/lib/catalog/dataIntegrityValidator）。

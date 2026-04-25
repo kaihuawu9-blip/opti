@@ -4,12 +4,26 @@
  */
 import type { CSSProperties, ReactNode, Ref } from 'react';
 
+/** page-flip HTML 渲染器 `getRender().getRect()` 与画布模式一致 */
+export type PageFlipRenderRect = {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+  pageWidth: number;
+};
+
 /** 与库内 St/PageFlip 实例对齐的最小可调 API */
 export type PageFlipEngine = {
   flip: (page: number) => void;
   getCurrentPageIndex: () => number;
   /** 部分构建版本存在，可选 */
   getPage?: (index: number) => unknown;
+  /** HTML 模式：用于活页孔等与引擎坐标对齐 */
+  getRender?: () => {
+    getRect: () => PageFlipRenderRect;
+    getOrientation: () => 'landscape' | 'portrait';
+  };
 };
 
 /** 组件 ref：pageFlip() 返回引擎实例（与现有调用方式一致） */
@@ -47,4 +61,5 @@ export type ReactPageFlipProps = {
   onFlip?: (e: { data?: unknown }) => void;
   onInit?: (e: { data?: unknown }) => void;
   onChangeState?: (e: { data?: unknown }) => void;
+  onChangeOrientation?: (e: { data?: unknown }) => void;
 };

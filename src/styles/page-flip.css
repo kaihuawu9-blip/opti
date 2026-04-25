@@ -55,6 +55,45 @@
   animation: zeissHandbookShimmer 3.2s ease-in-out infinite;
 }
 
+/* 蔡司右缘物理插片 · 激活态扫光（与梯形 clip-path 同层） */
+@keyframes zeissPhysicalTabShineSweep {
+  0% {
+    transform: translateX(-115%);
+    opacity: 0;
+  }
+  14% {
+    opacity: 0.5;
+  }
+  100% {
+    transform: translateX(135%);
+    opacity: 0;
+  }
+}
+
+.zeiss-physical-tab-active-shine {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.zeiss-physical-tab-active-shine::after {
+  content: '';
+  position: absolute;
+  top: -5%;
+  bottom: -5%;
+  left: 0;
+  width: 42%;
+  background: linear-gradient(
+    102deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.28) 48%,
+    transparent 100%
+  );
+  animation: zeissPhysicalTabShineSweep 2.75s ease-in-out infinite;
+}
+
 /* 豪雅精修页：单页槽内出现 data-hoya-manual-trim 时，该槽与 page-flip 链路透溢 */
 .stf__parent:has([data-hoya-manual-trim='1']),
 .stf__block:has([data-hoya-manual-trim='1']),
