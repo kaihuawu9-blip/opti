@@ -79,11 +79,11 @@ const HANDBOOK_FLIPBOOK_PAGE_W = 450;
 const HANDBOOK_FLIPBOOK_PAGE_H = 600;
 /** 横排双页可视宽度（单页宽 ×2），供活页孔叠层与书框呼吸区估算 */
 const HANDBOOK_FLIPBOOK_SPREAD_W = HANDBOOK_FLIPBOOK_PAGE_W * 2;
-/** 固定比例下的缩放边界（容器宜略大于书宽约 20%，由外层 `dims` / `80vh` 再约束） */
-const HANDBOOK_FLIPBOOK_MIN_W = 300;
-const HANDBOOK_FLIPBOOK_MAX_W = 1200;
-const HANDBOOK_FLIPBOOK_MIN_H = 400;
-const HANDBOOK_FLIPBOOK_MAX_H = 1500;
+/** 固定比例下的缩放边界：min 足够小保证小屏可用，max 足够大给 3D 折叠路径留飞行空间 */
+const HANDBOOK_FLIPBOOK_MIN_W = 200;
+const HANDBOOK_FLIPBOOK_MAX_W = 2000;
+const HANDBOOK_FLIPBOOK_MIN_H = 200;
+const HANDBOOK_FLIPBOOK_MAX_H = 2000;
 
 /** 物理标签页 Active：右缘约 20% 透明度品牌色（热区高亮，与旧侧栏色系对齐） */
 function physicalTabOverlayActiveTint(

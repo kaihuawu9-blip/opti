@@ -186,3 +186,27 @@
   position: relative;
   overflow: hidden;
 }
+
+/* 只有当页面容器位于物理右侧（.stf__item--right）时，才允许标签显示 */
+/* 强制消除左页（.stf__item--left）中的所有 SeriesNav 及其背景补丁 */
+
+.stf__item--left [data-handbook-series-nav="1"],
+.stf__item--left .zeiss-series-nav-container,
+.stf__item--left .zeiss-handbook-tab-bleed,
+[class*="--left"] [data-handbook-series-nav="1"],
+[class*="--left"] .zeiss-series-nav-container,
+[class*="--left"] .zeiss-handbook-tab-bleed {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* 确保右页容器完全放开溢出，让凸标浮出来 */
+.stf__item--right {
+  overflow: visible !important;
+}
+
+/* 防止翻页动画过程中标签发生物理抖动 */
+.stf__block {
+  perspective: 2000px;
+}
