@@ -267,13 +267,17 @@ export const ZeissHandbookPage = forwardRef<HTMLDivElement, ZeissHandbookPagePro
         data-physical-anchor={effectivePhysicalAnchor ? '1' : '0'}
         data-hoya-manual-trim={isManualTrimmed ? '1' : undefined}
         className={[
-          'stf__page-root relative h-full w-full overflow-visible',
+          // 与 .stf__item 内联高宽 1:1；无 physicalTabHit 时裁在槽内，图与内层已 overflow-hidden，左右等高
+          'stf__page-root relative box-border h-full max-h-full min-h-0 w-full min-w-0',
+          physicalTabHit && !isManualTrimmed ? 'overflow-visible' : isManualTrimmed ? '' : 'overflow-hidden',
           isManualTrimmed
-            ? 'hoya-manual-trim-page bg-transparent'
+            ? 'hoya-manual-trim-page h-auto max-h-none overflow-visible bg-transparent'
             : ['rounded-l-sm border border-white/12', physicalAnchorPage ? 'bg-transparent' : 'bg-[#0a0f14]'].join(
                 ' ',
               ),
-        ].join(' ')}
+        ]
+          .filter((c) => c && c.length > 0)
+          .join(' ')}
         style={isManualTrimmed ? undefined : { boxShadow: PAPER_STACK_SHADOW }}
       >
         {isManualTrimmed ? (
@@ -305,10 +309,7 @@ export const ZeissHandbookPage = forwardRef<HTMLDivElement, ZeissHandbookPagePro
           </div>
         ) : (
           <div
-            className={[
-              'absolute inset-0',
-              effectivePhysicalAnchor ? 'overflow-visible' : 'overflow-hidden rounded-l-sm',
-            ].join(' ')}
+            className="absolute inset-0 min-h-0 min-w-0 overflow-hidden bg-[#0a0f14] rounded-l-sm"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -322,7 +323,7 @@ export const ZeissHandbookPage = forwardRef<HTMLDivElement, ZeissHandbookPagePro
               onLoad={() => setReveal(true)}
               onError={() => setReveal(true)}
               className={[
-                'h-full w-full object-cover object-center transition-opacity ease-out duration-300',
+                'absolute inset-0 h-full w-full object-cover object-center transition-opacity ease-out duration-300',
                 reveal ? 'opacity-100' : 'opacity-0',
               ].join(' ')}
               style={clipStyle}

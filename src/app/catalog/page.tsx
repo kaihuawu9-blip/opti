@@ -14,7 +14,7 @@ export default function CatalogPage() {
   return (
     <div
       data-catalog-shell
-      className="relative min-h-[calc(100dvh-4rem)] overflow-x-hidden bg-slate-950 py-6 text-slate-100 max-xl:pl-[max(0.75rem,calc(env(safe-area-inset-left)+0.5rem))] max-xl:pr-[max(0.75rem,calc(env(safe-area-inset-right)+0.5rem))] max-xl:pb-[max(1rem,env(safe-area-inset-bottom))] max-[1366px]:px-5 md:py-8 xl:px-[max(1.25rem,calc(env(safe-area-inset-left)+0.75rem))] xl:pr-[max(1.25rem,calc(env(safe-area-inset-right)+0.75rem))]"
+      className="relative min-h-[calc(100dvh-4rem)] min-w-0 overflow-x-hidden bg-slate-950 py-6 text-slate-100 max-xl:pl-[max(0.75rem,calc(env(safe-area-inset-left)+0.5rem))] max-xl:pr-[max(0.75rem,calc(env(safe-area-inset-right)+0.5rem))] max-xl:pb-[max(1rem,env(safe-area-inset-bottom))] max-[1366px]:px-5 md:py-8 xl:px-[max(1.25rem,calc(env(safe-area-inset-left)+0.75rem))] xl:pr-[max(1.25rem,calc(env(safe-area-inset-right)+0.75rem))]"
     >
       <div
         className="pointer-events-none fixed inset-0"
@@ -29,7 +29,7 @@ export default function CatalogPage() {
       />
       <div className="pointer-events-none fixed inset-0 bg-slate-950/45 backdrop-blur-2xl" />
 
-      <div className="relative z-10 mx-auto max-w-[min(1320px,calc(100vw-1.25rem))] space-y-6 max-xl:max-w-[min(1320px,calc(100vw-2.25rem))]">
+      <div className="relative z-10 mx-auto w-full min-w-0 max-w-[min(1320px,calc(100vw-1.25rem))] space-y-6 max-xl:max-w-[min(1320px,calc(100vw-2.25rem))]">
         <header className="flex flex-wrap items-end gap-3 border-b border-white/10 pb-5">
           <Library className="h-9 w-9 shrink-0 text-[#5ba3d9]" aria-hidden />
           <div>

@@ -15,25 +15,6 @@ import { isHandbookPhysicalRailHostPage } from '@/lib/catalog/handbookPhysicalRa
 
 const ZEISS_BLUE = '#0066B3';
 
-/** 蔡司价目册物理纵轴基准页数（与公式分母一致） */
-const ZEISS_PHYSICS_REF_PAGES = 82;
-
-/**
- * 蔡司右缘 rail 锚点（秒开展示用，谨慎：页表 `series_entry` 补全后应以此处为冗余逐步收敛）。
- */
-/** 手动注入物理页码（右缘纵轴映射，分母 {@link ZEISS_PHYSICS_REF_PAGES}） */
-const ZEISS_PRESTIGE_TABS = [
-  { name: '智锐系列', page: 10 },
-  { name: '青少年', page: 25 },
-  { name: '单光', page: 33 },
-  { name: '渐进系列', page: 44 },
-  { name: '数码型', page: 53 },
-  { name: '驾驶型', page: 56 },
-  { name: '户外镜片', page: 60 },
-  { name: '附录', page: 64 },
-  { name: '健康消费品', page: 80 },
-] as const;
-
 const NAV_SCROLL_STYLES =
   'zeiss-nav-scroll ' +
   '[scrollbar-width:thin] [scrollbar-gutter:stable] ' +
@@ -68,20 +49,6 @@ function shortLabel(label: string): boolean {
   return label.trim().length <= 10;
 }
 
-function zeissPrestigeTabToNavItem(tab: (typeof ZEISS_PRESTIGE_TABS)[number]): HandbookSeriesNavItem {
-  const p = tab.page;
-  return {
-    id: `tab:${p}`,
-    label: tab.name,
-    section: 'price',
-    startPage0: p - 1,
-    printedPage: null,
-    physicalTabVerified: false,
-    physicalTabLabel: tab.name,
-    navTabTone: 'zeiss-deep-blue',
-  };
-}
-
 export function ZeissSeriesNavList({
   items,
   pageIndex,
@@ -94,7 +61,6 @@ export function ZeissSeriesNavList({
   activeNav,
   brand = 'zeiss',
   navLayout = 'physical-tabs',
-  viewerPdfPage1: viewerPdfPage1Prop,
 }: Props) {
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const rt = useHandbookFlipRuntime();
@@ -102,14 +68,6 @@ export function ZeissSeriesNavList({
   const integrityWarnEff = integrityWarnIds ?? rt.integrityWarnNavIds;
   const activeIdEff =
     (typeof activeId === 'string' && activeId.length > 0 ? activeId : activeNavEff?.anchorId) ?? '';
-  const viewerPdfEff =
-    viewerPdfPage1Prop !== undefined &&
-    Number.isFinite(viewerPdfPage1Prop) &&
-    (viewerPdfPage1Prop as number) > 0
-      ? (viewerPdfPage1Prop as number)
-      : rt.physicalPdfIndex1 > 0
-        ? rt.physicalPdfIndex1
-        : 1;
 
   const useTwoColumn =
     navLayout === 'classic' && useTwoColProp && !compact && items.length > 6;
@@ -139,64 +97,8 @@ export function ZeissSeriesNavList({
       );
     }
 
-    if (brand === 'zeiss') {
-      const pdf1 = viewerPdfEff;
-      // 书芯中轴钉死后，right-[-30px] 仍贴页右缘物理条
-      return (
-        <nav
-          ref={scrollRef}
-          role="navigation"
-          aria-label="系列索引（物理标签）"
-          data-handbook-series-nav="1"
-          className="zeiss-series-nav-container pointer-events-none absolute right-[-30px] top-0 z-50 h-full w-[60px] overflow-visible [transform:translateZ(0)] will-change-transform !z-[9999]"
-        >
-          {ZEISS_PRESTIGE_TABS.map((tab) => {
-            const topPosition = (tab.page / ZEISS_PHYSICS_REF_PAGES) * 100;
-            const navItem = zeissPrestigeTabToNavItem(tab);
-            const isProgressActive = pdf1 >= tab.page;
-            const anchorSelected = activeIdEff === navItem.id;
-            const integrityWarn = Boolean(integrityWarnEff?.has(navItem.id));
-            const anchorStatus =
-              anchorSelected && activeNavEff && navItem.id === activeNavEff.anchorId
-                ? activeNavEff.dataStatus
-                : undefined;
-            const titleParts = [integrityWarn ? '数据完整性提示' : ''].filter(Boolean);
-
-            return (
-              <button
-                key={navItem.id}
-                type="button"
-                data-zeiss-nav-active={anchorSelected ? 'true' : undefined}
-                data-handbook-anchor-status={anchorStatus}
-                title={titleParts.length ? titleParts.join(' · ') : undefined}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  try {
-                    window.pageFlipInstance?.flip(tab.page - 1, 'top');
-                  } catch {
-                    /* ignore */
-                  }
-                }}
-                className={[
-                  'absolute left-0 z-[55] flex h-[32px] min-h-[40px] w-[90px] min-w-[100px] cursor-pointer items-center border-0 bg-transparent',
-                  'px-2.5 py-1.5 text-left',
-                  'pointer-events-auto transition-all duration-300',
-                  'backdrop-blur-md shadow-lg',
-                  integrityWarn ? 'outline outline-1 outline-red-500/80 -outline-offset-1' : '',
-                  isProgressActive ? 'border-l-[4px] border-[#005AB5]' : 'border-l-[4px] border-gray-400',
-                  'bg-white/40',
-                ]
-                  .filter(Boolean)
-                  .join(' ')}
-                style={{ top: `${topPosition}%`, transform: 'translateZ(0)' }}
-              >
-                <span className="ml-2 whitespace-nowrap text-[12px] font-bold text-[#005AB5]">{tab.name}</span>
-              </button>
-            );
-          })}
-        </nav>
-      );
-    }
+    // 蔡司物理标签由 `ZeissDigitalHandbook` 自渲染（书右缘均分铺排）；本组件 zeiss 物理路径已退役。
+    if (brand === 'zeiss') return null;
 
     return null;
   }
