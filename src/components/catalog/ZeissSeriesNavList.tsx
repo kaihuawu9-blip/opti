@@ -29,6 +29,7 @@ const ZEISS_PRESTIGE_TABS = [
   { name: '数码型', page: 53 },
   { name: '驾驶型', page: 56 },
   { name: '户外镜片', page: 60 },
+  { name: '附录', page: 64 },
   { name: '健康消费品', page: 80 },
 ] as const;
 
@@ -44,13 +45,10 @@ const NAV_SCROLL_STYLES =
 
 type NavLayout = 'classic' | 'physical-tabs';
 
-/** PageFlip 0-based：双页横展时仅「物理右半」画 rail，消重影（第 0 页视为右侧封面） */
-function isPhysicalRightHalfForSpread(pageIndex0: number): boolean {
-  return pageIndex0 % 2 !== 0 || pageIndex0 === 0;
-}
-
 type Props = {
   items: readonly HandbookSeriesNavItem[];
+  /** PageFlip 子页 0-based；`physical-tabs` 下与右页门禁联用；classic 侧栏可传 `0` */
+  pageIndex: number;
   /** 未传时从 {@link useHandbookFlipRuntime} 读取（页内 rail，避免牵动 page-flip 子树） */
   activeId?: string;
   onSelect: (item: HandbookSeriesNavItem) => void;
@@ -63,12 +61,6 @@ type Props = {
   navLayout?: NavLayout;
   /** 未传时从 flip runtime context 读取 */
   viewerPdfPage1?: number;
-  /** PageFlip 子页 0-based 索引，与 {@link applySpreadParityLock} 联用 */
-  pageIndex0?: number;
-  /** 全屏横展双页时为 true，启用奇偶物理锁；竖屏预览须为 false */
-  applySpreadParityLock?: boolean;
-  /** 已废弃：由 `pageIndex0` + `applySpreadParityLock` 取代；仍传 `false` 时可强制不画 */
-  railHostIsRightPage?: boolean;
 };
 
 function shortLabel(label: string): boolean {
@@ -91,6 +83,7 @@ function zeissPrestigeTabToNavItem(tab: (typeof ZEISS_PRESTIGE_TABS)[number]): H
 
 export function ZeissSeriesNavList({
   items,
+  pageIndex,
   activeId,
   onSelect,
   compact = false,
@@ -101,9 +94,6 @@ export function ZeissSeriesNavList({
   brand = 'zeiss',
   navLayout = 'physical-tabs',
   viewerPdfPage1: viewerPdfPage1Prop,
-  pageIndex0,
-  applySpreadParityLock = false,
-  railHostIsRightPage = true,
 }: Props) {
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const rt = useHandbookFlipRuntime();
@@ -132,9 +122,8 @@ export function ZeissSeriesNavList({
   }, [activeIdEff, items.length, activeNavEff?.anchorId, activeNavEff?.dataStatus, navLayout]);
 
   if (navLayout === 'physical-tabs') {
-    if (railHostIsRightPage === false) return null;
-    const idx0 = typeof pageIndex0 === 'number' && Number.isFinite(pageIndex0) ? Math.trunc(pageIndex0) : 0;
-    if (applySpreadParityLock && !isPhysicalRightHalfForSpread(idx0)) return null;
+    const isRightSide = pageIndex % 2 !== 0 || pageIndex === 0;
+    if (!isRightSide) return null;
 
     if (brand === 'hoya') {
       return (
@@ -177,7 +166,13 @@ export function ZeissSeriesNavList({
                 data-zeiss-nav-active={anchorSelected ? 'true' : undefined}
                 data-handbook-anchor-status={anchorStatus}
                 title={titleParts.length ? titleParts.join(' · ') : undefined}
-                onClick={() => onSelect(navItem)}
+                onClick={() => {
+                  try {
+                    window.pageFlipInstance?.flip(tab.page);
+                  } catch {
+                    /* ignore */
+                  }
+                }}
                 className={[
                   'absolute left-0 flex h-[32px] w-[90px] cursor-pointer items-center border-0 bg-transparent p-0 text-left',
                   'pointer-events-auto transition-all duration-300',

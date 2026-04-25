@@ -22,11 +22,14 @@ import {
   HandbookFlipRuntimeProvider,
   type HandbookFlipRuntimeValue,
 } from '@/components/catalog/HandbookFlipRuntimeContext';
-import { HandbookFlipPageShell } from '@/components/catalog/HandbookFlipPageShell';
+import {
+  HandbookFlipPageShell,
+  HandbookPageFlipEngineProvider,
+} from '@/components/catalog/HandbookFlipPageShell';
 import { ZeissHandbookPage, type ZeissHandbookPhysicalTabHit } from '@/components/catalog/ZeissHandbookPage';
 import { HandbookSidebar } from '@/components/catalog/HandbookSidebar';
 import { ZeissSeriesNavList } from '@/components/catalog/ZeissSeriesNavList';
-import type { ReactPageFlipProps, ReactPageFlipRef } from '@/components/catalog/reactPageFlipTypes';
+import type { PageFlipEngine, ReactPageFlipProps, ReactPageFlipRef } from '@/components/catalog/reactPageFlipTypes';
 import { playHandbookPaperRustle } from '@/lib/catalog/handbookPaperSound';
 import {
   getPageData,
@@ -529,19 +532,34 @@ export function ZeissDigitalHandbook() {
     queueMicrotask(bumpBinderLayout);
   }, [bumpBinderLayout]);
 
+  const getHandbookPageFlipEngine = useCallback((): PageFlipEngine | undefined => {
+    try {
+      return (fullscreenOpen ? fsRef.current : previewRef.current)?.pageFlip?.();
+    } catch {
+      return undefined;
+    }
+  }, [fullscreenOpen]);
+
+  useLayoutEffect(() => {
+    if (typeof window === 'undefined') return;
+    const eng = getHandbookPageFlipEngine();
+    window.pageFlipInstance = eng as Window['pageFlipInstance'];
+    return () => {
+      window.pageFlipInstance = undefined;
+    };
+  }, [getHandbookPageFlipEngine, binderLayoutTick, fullscreenOpen, currentPage]);
+
   const flipToNavItem = useCallback(
     (item: HandbookSeriesNavItem) => {
-      const ref = fullscreenOpen ? fsRef : previewRef;
-      const pf = ref.current?.pageFlip?.();
+      const pf = getHandbookPageFlipEngine();
       if (!pf?.flip) return;
       try {
-        // StPageFlip：`flip` 走 flipController（有动画）；`turnToPage` 为 `pages.show` 瞬切
         pf.flip(item.startPage0, 'top');
       } catch {
         /* ignore */
       }
     },
-    [fullscreenOpen],
+    [getHandbookPageFlipEngine],
   );
 
   const openFullscreen = useCallback(() => {
@@ -731,20 +749,18 @@ export function ZeissDigitalHandbook() {
               {showHoyaPhysicalBookmarks ? (
                 <ZeissSeriesNavList
                   items={seriesNav}
+                  pageIndex={idx}
                   onSelect={flipToNavItem}
                   brand="hoya"
                   navLayout="physical-tabs"
-                  pageIndex0={idx}
-                  applySpreadParityLock={fullscreenOpen}
                 />
               ) : showZeissPhysicalRailSlot ? (
                 <ZeissSeriesNavList
                   items={seriesNav}
+                  pageIndex={idx}
                   onSelect={flipToNavItem}
                   brand="zeiss"
                   navLayout="physical-tabs"
-                  pageIndex0={idx}
-                  applySpreadParityLock={fullscreenOpen}
                 />
               ) : null}
             </div>
@@ -810,6 +826,7 @@ export function ZeissDigitalHandbook() {
       <div className="min-h-0 flex-1 overflow-hidden">
         <HandbookSidebar
           items={seriesNav}
+          pageIndex={0}
           activeId={activeNav.anchorId}
           activeNav={activeNav}
           onSelect={flipToNavItem}
@@ -1042,7 +1059,8 @@ export function ZeissDigitalHandbook() {
                     bookMinHeight={dims.h}
                     flipInstanceKey={previewKey}
                   />
-                  <HandbookFlipRuntimeProvider value={handbookFlipRuntime}>
+                  <HandbookPageFlipEngineProvider getEngine={getHandbookPageFlipEngine}>
+                    <HandbookFlipRuntimeProvider value={handbookFlipRuntime}>
                     <HTMLFlipBook
                       key={previewKey}
                       ref={previewRef}
@@ -1081,7 +1099,8 @@ export function ZeissDigitalHandbook() {
                     >
                       {bookCommonPages}
                     </HTMLFlipBook>
-                  </HandbookFlipRuntimeProvider>
+                    </HandbookFlipRuntimeProvider>
+                  </HandbookPageFlipEngineProvider>
                 </div>
               </div>
             </div>
@@ -1304,7 +1323,8 @@ export function ZeissDigitalHandbook() {
                                 bookMinHeight={fsDims.pageH}
                                 flipInstanceKey={fsKey}
                               />
-                              <HandbookFlipRuntimeProvider value={handbookFlipRuntime}>
+                              <HandbookPageFlipEngineProvider getEngine={getHandbookPageFlipEngine}>
+                                <HandbookFlipRuntimeProvider value={handbookFlipRuntime}>
                                 <HTMLFlipBook
                                   key={fsKey}
                                   ref={fsRef}
@@ -1343,7 +1363,8 @@ export function ZeissDigitalHandbook() {
                                 >
                                   {bookCommonPages}
                                 </HTMLFlipBook>
-                              </HandbookFlipRuntimeProvider>
+                                </HandbookFlipRuntimeProvider>
+                              </HandbookPageFlipEngineProvider>
                             </div>
                           </div>
                           </div>
