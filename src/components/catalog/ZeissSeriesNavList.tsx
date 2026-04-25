@@ -11,6 +11,7 @@ import type { HandbookSeriesNavItem } from '@/data/zeissHandbookPageMap';
 import type { HandbookActiveNavState } from '@/lib/catalog/dataIntegrityValidator';
 import { HoyaPhysicalTabRail } from '@/components/catalog/HoyaPhysicalTabRail';
 import { useHandbookFlipRuntime } from '@/components/catalog/HandbookFlipRuntimeContext';
+import { physicsJumpFromPdfPage1 } from '@/lib/catalog/handbookPhysicsJump';
 
 const ZEISS_BLUE = '#0066B3';
 
@@ -166,13 +167,7 @@ export function ZeissSeriesNavList({
                 data-zeiss-nav-active={anchorSelected ? 'true' : undefined}
                 data-handbook-anchor-status={anchorStatus}
                 title={titleParts.length ? titleParts.join(' · ') : undefined}
-                onClick={() => {
-                  try {
-                    window.pageFlipInstance?.flip(tab.page);
-                  } catch {
-                    /* ignore */
-                  }
-                }}
+                onClick={() => physicsJumpFromPdfPage1(tab.page)}
                 className={[
                   'absolute left-0 flex h-[32px] w-[90px] cursor-pointer items-center border-0 bg-transparent p-0 text-left',
                   'pointer-events-auto transition-all duration-300',

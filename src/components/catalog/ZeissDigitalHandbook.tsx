@@ -67,6 +67,21 @@ import {
 
 const HANDBOOK_EMPTY_ACTIVE_NAV: HandbookActiveNavState = { anchorId: '', dataStatus: 'pending' };
 
+/**
+ * `HTMLFlipBook` / StPageFlip 单页折叠时长（ms）。过小（如 100）会像平滑切页；
+ * 约 **800–1200** 更易读出纸张惯性。
+ */
+const HANDBOOK_FLIPPING_TIME_MS = 1000;
+
+/**
+ * `size="stretch"` 下边界的 stretch 区间（与引擎页角折叠可读性相关；过窄易像平滑位移）。
+ * 外层布局仍受预览/全屏容器约束（全屏另有 `max-height: 80vh`）。
+ */
+const HANDBOOK_FLIPBOOK_MIN_W = 315;
+const HANDBOOK_FLIPBOOK_MAX_W = 1000;
+const HANDBOOK_FLIPBOOK_MIN_H = 420;
+const HANDBOOK_FLIPBOOK_MAX_H = 1350;
+
 /** 物理标签页 Active：右缘约 20% 透明度品牌色（热区高亮，与旧侧栏色系对齐） */
 function physicalTabOverlayActiveTint(
   brand: DigitalHandbookBrand,
@@ -476,57 +491,43 @@ export function ZeissDigitalHandbook() {
     setFullscreenOpen(false);
   }, [brand]);
 
-  const onFlip = useCallback(
-    (e: { data?: unknown }) => {
-      const raw = e?.data;
-      const next = typeof raw === 'number' ? raw : Number(raw);
-      if (!Number.isFinite(next)) return;
-      setCurrentPage(next);
-      // 与 pageflip 引擎再对齐一次，避免双页/横排模式下 event 与真实左页下标不同步，导致侧栏高亮与页码偏差
-      queueMicrotask(() => {
-        const ref = fullscreenOpen ? fsRef : previewRef;
-        const pf = ref.current?.pageFlip?.();
-        try {
-          if (pf && typeof pf.getCurrentPageIndex === 'function') {
-            const idx = pf.getCurrentPageIndex();
-            if (Number.isFinite(idx)) setCurrentPage(idx);
-          }
-        } catch {
-          /* ignore */
-        }
-        bumpBinderLayout();
-      });
-    },
-    [fullscreenOpen, bumpBinderLayout],
-  );
+  /**
+   * 从 StPageFlip 引擎读当前左页下标并写回 React；**禁止**对 `HTMLFlipBook` 传受控 `page`，否则重渲染会打断折叠动画。
+   * `onFlip` 与 `onChangeState === 'read'` 均调用，兼顾回调时机差异。
+   */
+  const syncCurrentPageFromEngine = useCallback((_e?: { data?: unknown }) => {
+    const ref = fullscreenOpen ? fsRef : previewRef;
+    try {
+      const pf = ref.current?.pageFlip?.();
+      if (pf && typeof pf.getCurrentPageIndex === 'function') {
+        const idx = pf.getCurrentPageIndex();
+        if (Number.isFinite(idx)) setCurrentPage(idx);
+      }
+    } catch {
+      /* ignore */
+    }
+    bumpBinderLayout();
+  }, [fullscreenOpen, bumpBinderLayout]);
 
-  /** init 的 data 为 { page, mode }，flip 的 data 为 0-based 左页下标 */
+  /** init 的 data 为 { page, mode }；首帧后再与引擎对齐一次 */
   const onBookInit = useCallback(
     (e: { data?: { page?: number; mode?: string } | number }) => {
       const d = e?.data;
       if (d != null && typeof d === 'object' && 'page' in d && typeof d.page === 'number') {
         setCurrentPage(d.page);
       }
-      queueMicrotask(() => {
-        const ref = fullscreenOpen ? fsRef : previewRef;
-        const pf = ref.current?.pageFlip?.();
-        try {
-          if (pf && typeof pf.getCurrentPageIndex === 'function') {
-            const idx = pf.getCurrentPageIndex();
-            if (Number.isFinite(idx)) setCurrentPage(idx);
-          }
-        } catch {
-          /* ignore */
-        }
-        bumpBinderLayout();
-      });
+      queueMicrotask(() => syncCurrentPageFromEngine());
     },
-    [fullscreenOpen, bumpBinderLayout],
+    [syncCurrentPageFromEngine],
   );
 
-  const onChangeState = useCallback((e: { data?: unknown }) => {
-    if (e?.data === 'flipping') playHandbookPaperRustle();
-  }, []);
+  const onChangeState = useCallback(
+    (e: { data?: unknown }) => {
+      if (e?.data === 'flipping') playHandbookPaperRustle();
+      if (e?.data === 'read') syncCurrentPageFromEngine();
+    },
+    [syncCurrentPageFromEngine],
+  );
 
   const onChangeOrientation = useCallback(() => {
     queueMicrotask(bumpBinderLayout);
@@ -1061,6 +1062,12 @@ export function ZeissDigitalHandbook() {
                   />
                   <HandbookPageFlipEngineProvider getEngine={getHandbookPageFlipEngine}>
                     <HandbookFlipRuntimeProvider value={handbookFlipRuntime}>
+                    {/*
+                     * 禁止 `page={...}` 受控页：否则 React 重渲染会打断折叠动画。仅 `startPage` + `flip()` + 手势驱动；
+                     * `currentPage` 只由 `syncCurrentPageFromEngine`（`onFlip` / `read`）与 `onBookInit` 对齐引擎。
+                     * `showCover` 保持 false：本册从首页即双页对开（与物理页 / 页表一致）；true 会首屏单页「封面」打乱映射。
+                     * 翻页体感：`drawShadow` + `useMouseEvents` 显式开启；`size="stretch"` + min/max 见 HANDBOOK_FLIPBOOK_*。
+                     */}
                     <HTMLFlipBook
                       key={previewKey}
                       ref={previewRef}
@@ -1073,26 +1080,26 @@ export function ZeissDigitalHandbook() {
                       style={{ width: dims.w, minHeight: dims.h }}
                       width={dims.w}
                       height={dims.h}
-                      minWidth={260}
-                      maxWidth={900}
-                      minHeight={360}
-                      maxHeight={1200}
+                      minWidth={HANDBOOK_FLIPBOOK_MIN_W}
+                      maxWidth={HANDBOOK_FLIPBOOK_MAX_W}
+                      minHeight={HANDBOOK_FLIPBOOK_MIN_H}
+                      maxHeight={HANDBOOK_FLIPBOOK_MAX_H}
                       size="stretch"
                       startPage={previewStart}
-                      drawShadow
+                      drawShadow={true}
                       maxShadowOpacity={0.5}
                       showCover={false}
                       mobileScrollSupport
                       clickEventForward
-                      useMouseEvents
+                      useMouseEvents={true}
                       swipeDistance={20}
-                      flippingTime={500}
-                      usePortrait
+                      flippingTime={HANDBOOK_FLIPPING_TIME_MS}
+                      usePortrait={false}
                       startZIndex={0}
                       autoSize
                       showPageCorners
                       disableFlipByClick={false}
-                      onFlip={onFlip}
+                      onFlip={syncCurrentPageFromEngine}
                       onInit={onBookInit}
                       onChangeState={onChangeState}
                       onChangeOrientation={onChangeOrientation}
@@ -1325,6 +1332,10 @@ export function ZeissDigitalHandbook() {
                               />
                               <HandbookPageFlipEngineProvider getEngine={getHandbookPageFlipEngine}>
                                 <HandbookFlipRuntimeProvider value={handbookFlipRuntime}>
+                                {/*
+                                 * 禁止受控 `page`：全屏与预览一致；`onFlip` / `read` → `syncCurrentPageFromEngine`。
+                                 * `showCover={false}`：同预览，双页对开见文件内「奇数 pdfN」注释。
+                                 */}
                                 <HTMLFlipBook
                                   key={fsKey}
                                   ref={fsRef}
@@ -1337,26 +1348,26 @@ export function ZeissDigitalHandbook() {
                                   style={{ minHeight: fsDims.pageH, maxHeight: '80vh' }}
                                   width={fsDims.pageW}
                                   height={fsDims.pageH}
-                                  minWidth={200}
-                                  maxWidth={1000}
-                                  minHeight={240}
-                                  maxHeight={2000}
+                                  minWidth={HANDBOOK_FLIPBOOK_MIN_W}
+                                  maxWidth={HANDBOOK_FLIPBOOK_MAX_W}
+                                  minHeight={HANDBOOK_FLIPBOOK_MIN_H}
+                                  maxHeight={HANDBOOK_FLIPBOOK_MAX_H}
                                   size="stretch"
                                   startPage={fsEntryPage}
-                                  drawShadow
+                                  drawShadow={true}
                                   maxShadowOpacity={0.62}
                                   showCover={false}
                                   mobileScrollSupport
                                   clickEventForward
-                                  useMouseEvents
+                                  useMouseEvents={true}
                                   swipeDistance={24}
-                                  flippingTime={520}
+                                  flippingTime={HANDBOOK_FLIPPING_TIME_MS}
                                   usePortrait={false}
                                   startZIndex={0}
                                   autoSize
                                   showPageCorners
                                   disableFlipByClick={false}
-                                  onFlip={onFlip}
+                                  onFlip={syncCurrentPageFromEngine}
                                   onInit={onBookInit}
                                   onChangeState={onChangeState}
                                   onChangeOrientation={onChangeOrientation}
