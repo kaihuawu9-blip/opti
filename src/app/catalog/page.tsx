@@ -1,11 +1,36 @@
 'use client';
 
+import { useCallback } from 'react';
 import { useAuth } from '@/components/AuthProvider';
 import { ZeissDigitalHandbook } from '@/components/catalog/ZeissDigitalHandbook';
 import { Library } from 'lucide-react';
 
+function catalogPagePointerToPct(e: React.PointerEvent<HTMLDivElement>) {
+  const el = e.currentTarget;
+  const r = el.getBoundingClientRect();
+  const w = r.width;
+  const h = r.height;
+  if (w < 1 || h < 1) return;
+  const pctX = ((e.clientX - r.left) / w) * 100;
+  const pctY = ((e.clientY - r.top) / h) * 100;
+  // 收银/热区：以本层为 100%×100%，后续可映射到 PDF 页内或 Zeiss 舞台 rect
+  console.info('[catalog] hotzone pointerUp (%)', {
+    pctX: Math.round(pctX * 100) / 100,
+    pctY: Math.round(pctY * 100) / 100,
+    pointerId: e.pointerId,
+  });
+}
+
 export default function CatalogPage() {
   const { hasPermission } = useAuth();
+
+  const onCatalogPointerUp = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      if (e.button != null && e.button !== 0) return;
+      catalogPagePointerToPct(e);
+    },
+    [],
+  );
 
   if (!hasPermission('cashier.view')) {
     return <div className="text-slate-300">当前账号无权访问价格手册。</div>;
@@ -29,7 +54,11 @@ export default function CatalogPage() {
       />
       <div className="pointer-events-none fixed inset-0 bg-slate-950/45 backdrop-blur-2xl" />
 
-      <div className="relative z-10 mx-auto w-full min-w-0 max-w-[min(1320px,calc(100vw-1.25rem))] space-y-6 max-xl:max-w-[min(1320px,calc(100vw-2.25rem))]">
+      <div
+        className="relative z-10 mx-auto w-full min-w-0 max-w-[min(1320px,calc(100vw-1.25rem))] space-y-6 max-xl:max-w-[min(1320px,calc(100vw-2.25rem))]"
+        onPointerUp={onCatalogPointerUp}
+        data-catalog-page-layer
+      >
         <header className="flex flex-wrap items-end gap-3 border-b border-white/10 pb-5">
           <Library className="h-9 w-9 shrink-0 text-[#5ba3d9]" aria-hidden />
           <div>

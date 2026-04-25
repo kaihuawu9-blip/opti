@@ -5,7 +5,7 @@
  * 豪雅 rail 已迁至 {@link HoyaPhysicalTabRail}，本文件不再引用豪雅数据源。
  */
 
-import { useLayoutEffect, useRef } from 'react';
+import { useLayoutEffect, useRef, type CSSProperties } from 'react';
 import { motion } from 'framer-motion';
 import type { HandbookSeriesNavItem } from '@/data/zeissHandbookPageMap';
 import type { HandbookActiveNavState } from '@/lib/catalog/dataIntegrityValidator';
@@ -13,17 +13,30 @@ import { HoyaPhysicalTabRail } from '@/components/catalog/HoyaPhysicalTabRail';
 import { useHandbookFlipRuntime } from '@/components/catalog/HandbookFlipRuntimeContext';
 import { isHandbookPhysicalRailHostPage } from '@/lib/catalog/handbookPhysicalRailHostPage';
 
-const ZEISS_BLUE = '#0066B3';
+/**
+ * 侧栏表面：行内强制（不经过 Tailwind 编译），本帧即生效
+ * - slate-900/30 等价 rgba(15, 23, 42, 0.3)（Tailwind slate-900 为 #0f172a，此处用用户指定 RGB）
+ */
+const ZEISS_NAV_RAIL_SURFACE: CSSProperties = {
+  backgroundColor: 'rgba(15, 23, 42, 0.3)',
+  backdropFilter: 'blur(16px)',
+  WebkitBackdropFilter: 'blur(16px)',
+};
+
+/** 仅结构 / 阴影子类名；背景与模糊一律见 {@link ZEISS_NAV_RAIL_SURFACE} */
+const RAIL_CHROME =
+  'relative border-l border-white/10 ' +
+  'shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04),inset_-1px_0_12px_rgba(0,0,0,0.2)]';
 
 const NAV_SCROLL_STYLES =
   'zeiss-nav-scroll ' +
-  '[scrollbar-width:thin] [scrollbar-gutter:stable] ' +
-  '[scrollbar-color:rgba(0,30,50,0.25)_rgba(0,0,0,0.12)] ' +
+  'z-[1] [scrollbar-width:thin] [scrollbar-gutter:stable] ' +
+  '[scrollbar-color:rgba(0,30,50,0.3)_rgba(0,0,0,0.1)] ' +
   'hover:[scrollbar-color:rgba(0,59,100,0.5)_rgba(0,0,0,0.2)] ' +
   '[&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar]:bg-transparent ' +
   'hover:[&::-webkit-scrollbar]:bg-white/[0.04] ' +
-  '[&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-white/[0.08] ' +
-  'hover:[&::-webkit-scrollbar-thumb]:bg-[#0066B3]/35';
+  '[&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-white/[0.1] ' +
+  'hover:[&::-webkit-scrollbar-thumb]:bg-[#0066B3]/40';
 
 type NavLayout = 'classic' | 'physical-tabs';
 
@@ -103,27 +116,63 @@ export function ZeissSeriesNavList({
     return null;
   }
 
+  /** 蔡司 classic：页表无已验证凸标时侧栏为空，避免误以为「没渲染」 */
+  if (items.length === 0 && brand === 'zeiss' && navLayout === 'classic') {
+    return (
+      <div
+        style={ZEISS_NAV_RAIL_SURFACE}
+        className={[
+          'relative flex h-full min-h-0 w-full flex-col items-center justify-center overflow-hidden p-1.5',
+          RAIL_CHROME,
+          'rounded-r-md border border-dashed border-white/20',
+          className,
+        ]
+          .filter(Boolean)
+          .join(' ')}
+        role="status"
+        aria-label="无物理侧栏项"
+      >
+        <p className="text-center text-[9px] leading-tight text-white/55">
+          暂无已验证的物理侧栏
+          <span className="mt-0.5 block text-white/40">请核对蔡司页表内凸标与验证字段后刷新本页</span>
+        </p>
+      </div>
+    );
+  }
+
+  const labelTextBase = compact
+    ? 'line-clamp-4 pl-0.5 text-[10px] font-semibold leading-[1.2] tracking-[-0.02em]'
+    : 'line-clamp-3 pl-0.5 text-sm font-medium leading-snug tracking-tight';
+
   return (
     <div
-      ref={scrollRef}
-      role="navigation"
+      style={ZEISS_NAV_RAIL_SURFACE}
       className={[
-        'flex h-full min-h-0 w-full flex-col overflow-y-auto overflow-x-hidden',
-        'rounded-xl bg-gradient-to-b from-white/[0.06] to-white/[0.02]',
-        NAV_SCROLL_STYLES,
+        'flex h-full min-h-0 w-full flex-1 flex-col',
+        RAIL_CHROME,
+        'overflow-hidden rounded-r-md',
         className,
       ]
         .filter(Boolean)
         .join(' ')}
-      aria-label="系列快速跳转"
     >
       <div
-        className={
-          useTwoColumn
-            ? 'grid grid-cols-2 content-start items-start gap-x-0.5 gap-y-0.5 pr-0.5'
-            : 'flex flex-col gap-0.5 pr-0.5'
-        }
+        ref={scrollRef}
+        role="navigation"
+        className={[
+          'min-h-0 flex-1 overflow-y-auto overflow-x-hidden',
+          'flex flex-col',
+          NAV_SCROLL_STYLES,
+        ].join(' ')}
+        aria-label="系列快速跳转"
       >
+        <div
+          className={
+            useTwoColumn
+              ? 'grid min-h-0 flex-1 grid-cols-2 content-start items-start gap-1 px-0.5 py-0.5 pr-0.5'
+              : 'flex min-h-0 flex-1 flex-col divide-y divide-white/5 px-0.5 py-0.5 pr-0.5'
+          }
+        >
         {items.map((it) => {
           const active = it.id === activeIdEff;
           const wide = !shortLabel(it.label);
@@ -153,35 +202,35 @@ export function ZeissSeriesNavList({
               whileHover={{ x: -0.5 }}
               whileTap={{ scale: 0.99 }}
               transition={{ type: 'spring', stiffness: 480, damping: 34 }}
+              style={active ? { borderLeft: '4px solid #005AAA' } : undefined}
               className={[
-                'group/btn relative w-full rounded-md text-left',
-                'px-0.5 py-0.5 leading-tight',
-                'border-l-[1px] border-l-transparent pl-1.5',
+                'group/btn relative w-full rounded-[2px] pl-0.5 text-left',
+                compact ? 'px-0.5 py-px' : 'px-0.5 py-0.5',
+                'border-l-4',
+                'transition-[background,box-shadow,color,filter] duration-200',
+                'border-l-transparent',
+                'hover:border-l-white/20',
                 useTwoColumn && wide ? 'col-span-2' : 'col-span-1',
                 integrityWarn ? 'ring-1 ring-red-500/70 ring-inset' : '',
                 active
-                  ? 'border-l-[#0066B3]/0 bg-gradient-to-r from-[#0066B3]/18 to-white/[0.04] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]'
-                  : 'text-white/60 hover:border-l-white/15 hover:bg-white/[0.04] hover:text-white/88',
+                  ? 'bg-white/[0.04] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]'
+                  : 'hover:bg-white/[0.04]',
               ].join(' ')}
             >
               <span
                 className={[
-                  'pointer-events-none absolute left-0 top-1/2 w-[2px] -translate-y-1/2 rounded-full',
-                  'transition-all duration-200',
+                  labelTextBase,
                   active
-                    ? 'h-[64%] opacity-100 shadow-[0_0_10px_rgba(0,102,179,0.45)]'
-                    : 'h-0 opacity-0',
+                    ? 'text-white [text-shadow:0_0_8px_rgba(255,255,255,0.4)]'
+                    : 'text-slate-400 group-hover/btn:text-white group-hover/btn:[text-shadow:0_0_8px_rgba(255,255,255,0.4)]',
                 ].join(' ')}
-                style={{ background: ZEISS_BLUE }}
-                aria-hidden
-              />
-              <span className="line-clamp-3 pl-1 text-[14px] font-medium leading-snug tracking-tight text-white/90">
+              >
                 {it.label}
               </span>
               {showDataPending ? (
                 <span
                   role="status"
-                  className="mt-1 block rounded-md border border-amber-500/40 bg-amber-950/35 px-1.5 py-1 pl-1 text-[10px] font-semibold leading-tight text-amber-100/95"
+                  className="mt-0.5 block rounded border border-amber-500/40 bg-amber-950/40 px-1 py-0.5 pl-0.5 text-[9px] font-semibold leading-tight text-amber-100/95"
                 >
                   {pendingMsg}
                 </span>
@@ -189,6 +238,7 @@ export function ZeissSeriesNavList({
             </motion.button>
           );
         })}
+        </div>
       </div>
     </div>
   );
