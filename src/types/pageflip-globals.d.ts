@@ -4,7 +4,7 @@ export {};
 declare global {
   interface Window {
     pageFlipInstance?: {
-      flip: (page: number, corner?: string) => void;
+      flip: (page: number, corner?: 'top' | 'bottom' | string) => void;
       getCurrentPageIndex?: () => number;
     };
   }

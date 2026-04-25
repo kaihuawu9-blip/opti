@@ -12,6 +12,7 @@ import type { HandbookActiveNavState } from '@/lib/catalog/dataIntegrityValidato
 import { HoyaPhysicalTabRail } from '@/components/catalog/HoyaPhysicalTabRail';
 import { useHandbookFlipRuntime } from '@/components/catalog/HandbookFlipRuntimeContext';
 import { physicsJumpFromPdfPage1 } from '@/lib/catalog/handbookPhysicsJump';
+import { isHandbookPhysicalRailHostPage } from '@/lib/catalog/handbookPhysicalRailHostPage';
 
 const ZEISS_BLUE = '#0066B3';
 
@@ -48,7 +49,7 @@ type NavLayout = 'classic' | 'physical-tabs';
 
 type Props = {
   items: readonly HandbookSeriesNavItem[];
-  /** PageFlip 子页 0-based；`physical-tabs` 下与右页门禁联用；classic 侧栏可传 `0` */
+  /** PageFlip 子页 0-based；`physical-tabs` 下须满足 {@link isHandbookPhysicalRailHostPage}（父级已门控，此为双重保险） */
   pageIndex: number;
   /** 未传时从 {@link useHandbookFlipRuntime} 读取（页内 rail，避免牵动 page-flip 子树） */
   activeId?: string;
@@ -123,13 +124,14 @@ export function ZeissSeriesNavList({
   }, [activeIdEff, items.length, activeNavEff?.anchorId, activeNavEff?.dataStatus, navLayout]);
 
   if (navLayout === 'physical-tabs') {
-    const isRightSide = pageIndex % 2 !== 0 || pageIndex === 0;
-    if (!isRightSide) return null;
+    /** 与 `ZeissDigitalHandbook` 父级 `mountPhysicalRailOnThisPage` 同式，防误挂时的最后一道闸 */
+    if (!isHandbookPhysicalRailHostPage(pageIndex)) return null;
 
     if (brand === 'hoya') {
       return (
         <HoyaPhysicalTabRail
           ref={scrollRef}
+          className="zeiss-series-nav-container"
           activeId={activeIdEff}
           onSelect={onSelect}
           integrityWarnIds={integrityWarnEff}
@@ -146,7 +148,8 @@ export function ZeissSeriesNavList({
           ref={scrollRef}
           role="navigation"
           aria-label="系列索引（物理标签）"
-          className="pointer-events-none absolute right-[-30px] top-0 z-50 h-full w-[60px] overflow-visible [transform:translateZ(0)] will-change-transform !z-[9999]"
+          data-handbook-series-nav="1"
+          className="zeiss-series-nav-container pointer-events-none absolute right-[-30px] top-0 z-50 h-full w-[60px] overflow-visible [transform:translateZ(0)] will-change-transform !z-[9999]"
         >
           {ZEISS_PRESTIGE_TABS.map((tab) => {
             const topPosition = (tab.page / ZEISS_PHYSICS_REF_PAGES) * 100;

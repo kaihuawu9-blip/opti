@@ -1,6 +1,6 @@
 'use client';
 
-import { forwardRef, useEffect, useMemo, useState } from 'react';
+import { forwardRef, useEffect, useMemo, useState, type ReactNode } from 'react';
 
 /**
  * 透明感应层（Invisible Hit Layer）：作为 Page 的 `absolute` 子元素，**不绘制任何可见像素**。
@@ -11,8 +11,8 @@ import { forwardRef, useEffect, useMemo, useState } from 'react';
  * - 使用 `clip-path: polygon(...)`；无 `physicalTabHit` 时回退为 `inset(...)`。
  * - 根容器 `overflow-visible`；锚点页根背景透明，便于裁掉区域透出 3D 场景。
  * - 非锚点页：整图 `object-cover`，无 clip-path。
- * - **豪雅 `isManualTrimmed`**：页内仅整图 `object-contain`；物理横向书签由
- *   `ZeissDigitalHandbook` 在页壳内 `relative h-full` 容器中挂载 {@link ZeissSeriesNavList}（仅右页），与页同翻。
+ * - **豪雅 `isManualTrimmed`**：页内仅整图 `object-contain`；物理 rail 由父级以 **children** 传入
+ *   {@link ZeissSeriesNavList}，且仅 **PageFlip 0-based 右页**（`pageIndex % 2 !== 0 || pageIndex === 0`）挂载，与页同翻。
  */
 export type ZeissHandbookPhysicalTabHit = {
   vOffsetPercent: number;
@@ -38,6 +38,10 @@ export type ZeissHandbookPageProps = {
   imageData: string | null;
   imageUrl?: string | null;
   pageNumber: number;
+  /** StPageFlip 子页 0-based；与父级「仅右页挂 rail」门控一致，供调试 / 可及性 */
+  pageIndex?: number;
+  /** 页内叠层（如 {@link ZeissSeriesNavList}），须由父级按 `pageIndex` 门控后传入 */
+  children?: ReactNode;
   physicalTabHit?: ZeissHandbookPhysicalTabHit | null;
   /** 与 `getPageData().physicalAnchorPage` 一致：有凸起标签的 PDF 页 */
   physicalAnchorPage?: boolean;
@@ -135,6 +139,8 @@ export const ZeissHandbookPage = forwardRef<HTMLDivElement, ZeissHandbookPagePro
       imageData,
       imageUrl,
       pageNumber,
+      pageIndex,
+      children,
       physicalTabHit = null,
       physicalAnchorPage = false,
       anchorPreservationInsetPct = null,
@@ -245,8 +251,11 @@ export const ZeissHandbookPage = forwardRef<HTMLDivElement, ZeissHandbookPagePro
         <div
           ref={ref}
           data-density="compact"
+          data-stf-page-index={pageIndex !== undefined ? String(pageIndex) : undefined}
           className="stf__page-root relative h-full w-full overflow-hidden rounded-l-sm border border-white/[0.08] bg-gradient-to-b from-slate-900 to-[#0a0f14]"
-        />
+        >
+          {children}
+        </div>
       );
     }
 
@@ -254,6 +263,7 @@ export const ZeissHandbookPage = forwardRef<HTMLDivElement, ZeissHandbookPagePro
       <div
         ref={ref}
         data-density="compact"
+        data-stf-page-index={pageIndex !== undefined ? String(pageIndex) : undefined}
         data-physical-anchor={effectivePhysicalAnchor ? '1' : '0'}
         data-hoya-manual-trim={isManualTrimmed ? '1' : undefined}
         className={[
@@ -321,6 +331,7 @@ export const ZeissHandbookPage = forwardRef<HTMLDivElement, ZeissHandbookPagePro
           </div>
         )}
         {renderHitLayer()}
+        {children}
       </div>
     );
   },

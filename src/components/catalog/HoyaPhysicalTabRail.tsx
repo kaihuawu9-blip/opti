@@ -78,10 +78,12 @@ export type HoyaPhysicalTabRailProps = {
   onSelect: (item: HandbookSeriesNavItem) => void;
   integrityWarnIds?: ReadonlySet<string>;
   activeNav?: HandbookActiveNavState | null;
+  /** 与蔡司 rail 共用 `page-flip.css` 中 `.zeiss-series-nav-container` 物理槽样式 */
+  className?: string;
 };
 
 export const HoyaPhysicalTabRail = forwardRef<HTMLDivElement, HoyaPhysicalTabRailProps>(
-  function HoyaPhysicalTabRail({ activeId, onSelect, integrityWarnIds, activeNav }, ref) {
+  function HoyaPhysicalTabRail({ activeId, onSelect, integrityWarnIds, activeNav, className = '' }, ref) {
     const innerRef = useRef<HTMLDivElement | null>(null);
     const setRef = (node: HTMLDivElement | null) => {
       innerRef.current = node;
@@ -123,7 +125,8 @@ export const HoyaPhysicalTabRail = forwardRef<HTMLDivElement, HoyaPhysicalTabRai
         ref={setRef}
         role="navigation"
         aria-label="系列索引（物理标签）"
-        className="pointer-events-none h-full min-h-0"
+        data-handbook-series-nav="1"
+        className={['pointer-events-none h-full min-h-0', className].filter(Boolean).join(' ')}
         style={{
           position: 'absolute',
           right: -30 * vvScale,
