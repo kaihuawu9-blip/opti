@@ -74,11 +74,14 @@ const HANDBOOK_EMPTY_ACTIVE_NAV: HandbookActiveNavState = { anchorId: '', dataSt
  */
 const HANDBOOK_FLIPPING_TIME_MS = 1000;
 
-/** StPageFlip `size="fixed"` 单页物理像素（3:4，与常见 PDF 页一致）；`autoSize` 在 min/max 内缩放 */
+/** StPageFlip `size="fixed"` 单页 450×600；双页外框 = 900×600（1:1 与引擎折叠域对齐） */
 const HANDBOOK_FLIPBOOK_PAGE_W = 450;
 const HANDBOOK_FLIPBOOK_PAGE_H = 600;
-/** 横排双页可视宽度（单页宽 ×2），供活页孔叠层与书框呼吸区估算 */
+/** 窄容器：单页 360×480、双页 720，与 450/600 同 3:4 比例，避免 900 超出屏宽 */
+const HANDBOOK_FLIPBOOK_PAGE_W_COMPACT = 360;
+const HANDBOOK_FLIPBOOK_PAGE_H_COMPACT = 480;
 const HANDBOOK_FLIPBOOK_SPREAD_W = HANDBOOK_FLIPBOOK_PAGE_W * 2;
+const HANDBOOK_FLIPBOOK_SPREAD_W_COMPACT = HANDBOOK_FLIPBOOK_PAGE_W_COMPACT * 2;
 /** 固定比例下的缩放边界：min 足够小保证小屏可用，max 足够大给 3D 折叠路径留飞行空间 */
 const HANDBOOK_FLIPBOOK_MIN_W = 200;
 const HANDBOOK_FLIPBOOK_MAX_W = 2000;
@@ -289,6 +292,8 @@ export function ZeissDigitalHandbook() {
   const fsBookFrameRef = useRef<HTMLDivElement>(null);
   const previewRef = useRef<ReactPageFlipRef>(null);
   const fsRef = useRef<ReactPageFlipRef>(null);
+  /** 退出全屏后预览书 `startPage={0}` 重挂，用此在 `onInit` 里 `flip` 回离开时的页，避免 `onInit` 用第 0 页压掉 `currentPage` */
+  const returnFromFsPageRef = useRef<number | null>(null);
   const modalId = useId();
 
   const [brand, setBrand] = useState<DigitalHandbookBrand>('zeiss');
@@ -299,7 +304,6 @@ export function ZeissDigitalHandbook() {
   const [fsEntryPage, setFsEntryPage] = useState(0);
   const [fsSession, setFsSession] = useState(0);
   const [previewResync, setPreviewResync] = useState(0);
-  const [previewStart, setPreviewStart] = useState(0);
   /** 活页孔与 page-flip 内部 rect 对齐：翻页 / 横竖切换 / 尺寸变化时 bump */
   const [binderLayoutTick, setBinderLayoutTick] = useState(0);
   /** 3D 书本实际渲染高度（px），与侧栏同高 */
@@ -391,7 +395,6 @@ export function ZeissDigitalHandbook() {
     fsDims.pageW,
     fsDims.pageH,
     previewResync,
-    previewStart,
     fsSession,
     fsEntryPage,
   ]);
@@ -464,6 +467,26 @@ export function ZeissDigitalHandbook() {
     return bookVisualH > 0 ? `${bookVisualH}px` : `min(80vh, ${fsDims.pageH}px)`;
   }, [bookVisualH, fullscreenOpen, fsDims.pageH]);
 
+  /** 双页总宽不超过外层：可用宽度不足 900 时用 360/480/720，否则 450/600/900 */
+  const handbookEngineSize = useMemo(() => {
+    const full = {
+      pageW: HANDBOOK_FLIPBOOK_PAGE_W,
+      pageH: HANDBOOK_FLIPBOOK_PAGE_H,
+      spreadW: HANDBOOK_FLIPBOOK_SPREAD_W,
+    } as const;
+    const compact = {
+      pageW: HANDBOOK_FLIPBOOK_PAGE_W_COMPACT,
+      pageH: HANDBOOK_FLIPBOOK_PAGE_H_COMPACT,
+      spreadW: HANDBOOK_FLIPBOOK_SPREAD_W_COMPACT,
+    } as const;
+    if (typeof window === 'undefined') return full;
+    if (fullscreenOpen) {
+      const availW = Math.min(window.innerWidth, 1600) - 64;
+      return availW < HANDBOOK_FLIPBOOK_SPREAD_W ? compact : full;
+    }
+    return dims.w < HANDBOOK_FLIPBOOK_SPREAD_W ? compact : full;
+  }, [dims.w, fullscreenOpen]);
+
   const seriesNav = useMemo(() => buildHandbookSeriesNavItemsForBrand(brand), [brand]);
 
   /** 插件 B：AnchorID 反查矩阵 + 当前页断层 → dataStatus / 占位文案（状态自愈） */
@@ -489,7 +512,6 @@ export function ZeissDigitalHandbook() {
     if (b === brand) return;
     setBrand(b);
     setCurrentPage(0);
-    setPreviewStart(0);
     setPreviewResync((k) => k + 1);
     setFullscreenOpen(false);
   }, [brand]);
@@ -535,6 +557,22 @@ export function ZeissDigitalHandbook() {
   /** init 的 data 为 { page, mode }；首帧后再与引擎对齐，并确保全局句柄指向**当前**实例（`onInit` 时 ref 已就绪） */
   const onBookInit = useCallback(
     (e: { data?: { page?: number; mode?: string } | number }) => {
+      if (returnFromFsPageRef.current != null) {
+        const target = returnFromFsPageRef.current;
+        returnFromFsPageRef.current = null;
+        queueMicrotask(() => {
+          try {
+            if (Number.isInteger(target) && target > 0) {
+              previewRef.current?.pageFlip?.()?.flip(target, 'top');
+            }
+          } catch {
+            /* ignore */
+          }
+          syncCurrentPageFromEngine();
+          assignWindowPageFlipFromEngine();
+        });
+        return;
+      }
       const d = e?.data;
       if (d != null && typeof d === 'object' && 'page' in d && typeof d.page === 'number') {
         setCurrentPage(d.page);
@@ -599,8 +637,8 @@ export function ZeissDigitalHandbook() {
     } catch {
       /* keep currentPage */
     }
+    returnFromFsPageRef.current = p;
     setCurrentPage(p);
-    setPreviewStart(p);
     setPreviewResync((k) => k + 1);
     setFullscreenOpen(false);
     queueMicrotask(bumpBinderLayout);
@@ -674,17 +712,6 @@ export function ZeissDigitalHandbook() {
     if (!cashierPayload) return;
     dispatchHandbookAddToCart(cashierPayload);
   }, [cashierPayload]);
-
-  // 勿将 width/height 放入 key：ResizeObserver 会改尺寸，key 变会导致整本 react-pageflip 反复卸载，表现为白屏或「一页没有」
-  const previewKey = useMemo(
-    () => `pv-${brand}-${previewResync}-${total}-${previewStart}`,
-    [brand, previewResync, total, previewStart],
-  );
-
-  const fsKey = useMemo(
-    () => `fs-${fsSession}-${total}-${fsEntryPage}`,
-    [fsSession, total, fsEntryPage],
-  );
 
   /** 勿写入 `bookCommonPages` 的 useMemo 依赖：子数组引用变化会触发 react-pageflip `updateFromHtml`，打断翻页动画 */
   const handbookFlipRuntime = useMemo<HandbookFlipRuntimeValue>(
@@ -1054,7 +1081,8 @@ export function ZeissDigitalHandbook() {
                   : null}
                 <div
                   className={[
-                    'relative z-[15] mx-auto [isolation:isolate]',
+                    'relative z-[15] mx-auto flex w-full [isolation:isolate]',
+                    'flex-col items-stretch justify-center p-0',
                     brand === 'hoya'
                       ? '!overflow-visible'
                       : brand === 'zeiss'
@@ -1067,41 +1095,52 @@ export function ZeissDigitalHandbook() {
                     width: dims.w,
                     minHeight: dims.h,
                     boxShadow: 'inset 0 0 100px rgba(0,0,0,0.5)',
+                    paddingLeft: 0,
+                    paddingRight: 0,
                   }}
                 >
                   <HandbookBinderLeatherField className={brand === 'hoya' ? '' : 'rounded-lg'} />
-                  <HandbookPunchHolesOverlay
-                    flipRef={previewRef}
-                    layoutTick={binderLayoutTick}
-                    bookWidth={HANDBOOK_FLIPBOOK_SPREAD_W}
-                    bookMinHeight={HANDBOOK_FLIPBOOK_PAGE_H}
-                    flipInstanceKey={previewKey}
-                  />
-                  <HandbookPageFlipEngineProvider getEngine={getHandbookPageFlipEngine}>
+                  <div className="pointer-events-none absolute inset-0 z-[7]">
+                    <HandbookPunchHolesOverlay
+                      flipRef={previewRef}
+                      layoutTick={binderLayoutTick}
+                      bookWidth={handbookEngineSize.spreadW}
+                      bookMinHeight={handbookEngineSize.pageH}
+                      flipInstanceKey="handbook-preview"
+                    />
+                  </div>
+                  <div className="relative z-10 h-full min-h-0 w-full flex-1 overflow-visible">
+                    <HandbookPageFlipEngineProvider getEngine={getHandbookPageFlipEngine}>
                     <HandbookFlipRuntimeProvider value={handbookFlipRuntime}>
                     {/*
-                     * [HTMLFlipBook 手术规约 — 预览]
-                     * 1. 禁止受控 `page`；2. `onFlip` → `syncCurrentPageFromEngine`；3. `size="fixed"` + 单页 450×600 + `autoSize`。
-                     * `showCover={true}` 利于 3D 路径；`mobileScrollSupport={false}` 减少移动端滚动抢手势。
+                     * [HTMLFlipBook — 预览] 无 key；外框与引擎同尺；`absolute`+50% 钉中轴；窄屏 360/480。
                      */}
+                    <div
+                      className="absolute left-1/2 top-1/2 z-[12] w-full max-w-full -translate-x-1/2 -translate-y-1/2 shrink-0"
+                      style={{
+                        width: handbookEngineSize.spreadW,
+                        height: handbookEngineSize.pageH,
+                        maxWidth: '100%',
+                        boxSizing: 'border-box',
+                      }}
+                    >
                     <HTMLFlipBook
-                      key={previewKey}
                       ref={previewRef}
                       className={[
-                        'relative z-[12] mx-auto',
+                        'relative z-[12] h-full w-full min-h-0 min-w-0 max-w-full shrink-0',
                         brand === 'hoya' || brand === 'zeiss' ? '!overflow-visible' : '',
                       ]
                         .filter(Boolean)
                         .join(' ')}
-                      style={{ width: '100%', maxWidth: dims.w, minHeight: dims.h }}
-                      width={450}
-                      height={600}
+                      style={{ width: '100%', height: '100%' }}
+                      width={handbookEngineSize.pageW}
+                      height={handbookEngineSize.pageH}
                       minWidth={HANDBOOK_FLIPBOOK_MIN_W}
                       maxWidth={HANDBOOK_FLIPBOOK_MAX_W}
                       minHeight={HANDBOOK_FLIPBOOK_MIN_H}
                       maxHeight={HANDBOOK_FLIPBOOK_MAX_H}
                       size="fixed"
-                      startPage={previewStart}
+                      startPage={0}
                       flippingTime={HANDBOOK_FLIPPING_TIME_MS}
                       drawShadow={true}
                       usePortrait={false}
@@ -1112,7 +1151,7 @@ export function ZeissDigitalHandbook() {
                       useMouseEvents={true}
                       swipeDistance={20}
                       startZIndex={0}
-                      autoSize={true}
+                      autoSize={false}
                       showPageCorners
                       disableFlipByClick={false}
                       onFlip={syncCurrentPageFromEngine}
@@ -1122,8 +1161,10 @@ export function ZeissDigitalHandbook() {
                     >
                       {bookCommonPages}
                     </HTMLFlipBook>
+                    </div>
                     </HandbookFlipRuntimeProvider>
                   </HandbookPageFlipEngineProvider>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1323,7 +1364,8 @@ export function ZeissDigitalHandbook() {
                             {brand !== 'hoya' ? edgeRail('right') : null}
                             <div
                               className={[
-                                'relative z-[20] mx-auto w-full max-w-full [isolation:isolate]',
+                                'relative z-[20] mx-auto flex w-full max-w-full [isolation:isolate]',
+                                'flex-col items-stretch justify-center p-0',
                                 brand === 'hoya'
                                   ? '!overflow-visible'
                                   : brand === 'zeiss'
@@ -1336,33 +1378,47 @@ export function ZeissDigitalHandbook() {
                                 minHeight: fsDims.pageH,
                                 maxHeight: '80vh',
                                 boxShadow: 'inset 0 0 100px rgba(0,0,0,0.5)',
+                                paddingLeft: 0,
+                                paddingRight: 0,
                               }}
                             >
                               <HandbookBinderLeatherField className={brand === 'hoya' ? '' : 'rounded-xl'} />
-                              <HandbookPunchHolesOverlay
-                                flipRef={fsRef}
-                                layoutTick={binderLayoutTick}
-                                bookWidth={HANDBOOK_FLIPBOOK_SPREAD_W}
-                                bookMinHeight={HANDBOOK_FLIPBOOK_PAGE_H}
-                                flipInstanceKey={fsKey}
-                              />
-                              <HandbookPageFlipEngineProvider getEngine={getHandbookPageFlipEngine}>
+                              <div className="pointer-events-none absolute inset-0 z-[7]">
+                                <HandbookPunchHolesOverlay
+                                  flipRef={fsRef}
+                                  layoutTick={binderLayoutTick}
+                                  bookWidth={handbookEngineSize.spreadW}
+                                  bookMinHeight={handbookEngineSize.pageH}
+                                  flipInstanceKey="handbook-fs"
+                                />
+                              </div>
+                              <div className="relative z-10 h-full min-h-0 w-full flex-1 overflow-visible">
+                                <HandbookPageFlipEngineProvider getEngine={getHandbookPageFlipEngine}>
                                 <HandbookFlipRuntimeProvider value={handbookFlipRuntime}>
                                 {/*
-                                 * [HTMLFlipBook 手术规约 — 全屏] 与预览同一套固定物理比例 + `autoSize`，外层 `80vh` 控高。
+                                 * 全屏：同预览；中轴绝对钉死；startPage=进入时页。
                                  */}
+                                <div
+                                  className="absolute left-1/2 top-1/2 z-[12] w-full max-w-full -translate-x-1/2 -translate-y-1/2 shrink-0"
+                                  style={{
+                                    width: handbookEngineSize.spreadW,
+                                    height: handbookEngineSize.pageH,
+                                    maxWidth: '100%',
+                                    maxHeight: '80vh',
+                                    boxSizing: 'border-box',
+                                  }}
+                                >
                                 <HTMLFlipBook
-                                  key={fsKey}
                                   ref={fsRef}
                                   className={[
-                                    'relative z-[12] mx-auto w-full max-w-full',
+                                    'relative z-[12] h-full w-full min-h-0 min-w-0 max-w-full shrink-0',
                                     brand === 'hoya' || brand === 'zeiss' ? '!overflow-visible' : '',
                                   ]
                                     .filter(Boolean)
                                     .join(' ')}
-                                  style={{ maxWidth: '100%', minHeight: fsDims.pageH, maxHeight: '80vh' }}
-                                  width={450}
-                                  height={600}
+                                  style={{ width: '100%', height: '100%' }}
+                                  width={handbookEngineSize.pageW}
+                                  height={handbookEngineSize.pageH}
                                   minWidth={HANDBOOK_FLIPBOOK_MIN_W}
                                   maxWidth={HANDBOOK_FLIPBOOK_MAX_W}
                                   minHeight={HANDBOOK_FLIPBOOK_MIN_H}
@@ -1379,7 +1435,7 @@ export function ZeissDigitalHandbook() {
                                   useMouseEvents={true}
                                   swipeDistance={24}
                                   startZIndex={0}
-                                  autoSize={true}
+                                  autoSize={false}
                                   showPageCorners
                                   disableFlipByClick={false}
                                   onFlip={syncCurrentPageFromEngine}
@@ -1389,8 +1445,10 @@ export function ZeissDigitalHandbook() {
                                 >
                                   {bookCommonPages}
                                 </HTMLFlipBook>
+                                </div>
                                 </HandbookFlipRuntimeProvider>
                               </HandbookPageFlipEngineProvider>
+                              </div>
                             </div>
                           </div>
                           </div>

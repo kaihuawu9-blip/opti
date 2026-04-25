@@ -7,10 +7,32 @@
   -ms-touch-action: pan-y;
   touch-action: pan-y;
 }
-.sft__wrapper {
+.sft__wrapper,
+.stf__wrapper {
   position: relative;
   width: 100%;
   box-sizing: border-box;
+}
+
+/* 定尺 1:1 时父级允许出界；仅手册 bleed 区 */
+.zeiss-handbook-tab-bleed .stf__parent,
+.hoya-handbook-tab-bleed .stf__parent {
+  overflow: visible !important;
+  position: relative !important;
+}
+
+/* 库根 sft__wrapper / stf__wrapper：中轴线 + 3D 轨迹解限。慎用，仅 bleed；与 React 包层双保险 */
+.zeiss-handbook-tab-bleed .sft__wrapper,
+.zeiss-handbook-tab-bleed .stf__wrapper,
+.hoya-handbook-tab-bleed .sft__wrapper,
+.hoya-handbook-tab-bleed .stf__wrapper {
+  position: absolute !important;
+  left: 50% !important;
+  top: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  overflow: visible !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
 }
 .stf__parent canvas {
   position: absolute;
@@ -24,6 +46,7 @@
   width: 100%;
   height: 100%;
   box-sizing: border-box;
+  transform-style: preserve-3d;
   perspective: 2000px;
 }
 .stf__item {
@@ -213,7 +236,4 @@
   overflow: visible !important;
 }
 
-/* 防止翻页动画过程中标签发生物理抖动 */
-.stf__block {
-  perspective: 2000px;
-}
+/* 翻页 3D：perspective / transform-style 见上 `.stf__block` 主块 */

@@ -12,7 +12,7 @@ export type HandbookPhysicsFlipCorner = 'top' | 'bottom';
 export function physicsJump(target: number, corner: HandbookPhysicsFlipCorner = 'top'): void {
   if (!Number.isFinite(target)) return;
   try {
-    // 显式传入 corner，让引擎按页角寻折叠路径（勿省略第二参以免退化成弱 3D）
+    // 二参必传 'top'：从页角上缘「抠开」，否则部分构建会走弱 3D/滑页
     window.pageFlipInstance?.flip(Math.trunc(target), corner);
   } catch {
     /* ignore */

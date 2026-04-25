@@ -227,7 +227,7 @@ export function HandbookPunchHolesOverlay({
   }, [sync, layoutTick, bookWidth, bookMinHeight, flipInstanceKey]);
 
   return (
-    <>
+    <div className="pointer-events-none absolute inset-0" aria-hidden>
       <div ref={aoRef} className="opacity-0" aria-hidden />
       <div ref={rimRef} className="opacity-0" aria-hidden />
       <div ref={stripRef} className="opacity-0" aria-hidden>
@@ -251,6 +251,6 @@ export function HandbookPunchHolesOverlay({
           </span>
         ))}
       </div>
-    </>
+    </div>
   );
 }

@@ -142,7 +142,7 @@ export function ZeissSeriesNavList({
 
     if (brand === 'zeiss') {
       const pdf1 = viewerPdfEff;
-
+      // 书芯中轴钉死后，right-[-30px] 仍贴页右缘物理条
       return (
         <nav
           ref={scrollRef}
