@@ -1,39 +1,67 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import type { ComponentType } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { ComponentType, CSSProperties, ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { Maximize2, X } from 'lucide-react';
 import '@/styles/page-flip.css';
 import { ZeissHandbookPage } from '@/components/catalog/ZeissHandbookPage';
+import { ZeissSeriesNavList } from '@/components/catalog/ZeissSeriesNavList';
 import type { ReactPageFlipProps, ReactPageFlipRef } from '@/components/catalog/reactPageFlipTypes';
 import { playHandbookPaperRustle } from '@/lib/catalog/handbookPaperSound';
-import { getHandbookPageCount, getPageData } from '@/data/zeissHandbookPageMap';
+import {
+  buildHandbookSeriesNavItemsForBrand,
+  getHandbookPageCount,
+  getPageData,
+  type HandbookSeriesNavItem,
+} from '@/data/zeissHandbookPageMap';
 
 /**
- * 单页槽位尺寸（宽 × 高）。蔡司素材实际是横版页（约 4:3），整书展开 = 2 × PAGE_W × PAGE_H。
- * 每张 PDF 图都将以 `object-cover` 精确填满此槽位，**容器与图片可视区一样大**，无上下黑边。
+ * 单页尺寸由「基宽 + 标准比例」唯一导出，不手写“猜”的像素高。
+ * PAGE_RATIO = 高/宽，与 A4 纵向比例一致时约为 √2；若你 PDF 栅格与标准 A4 不一致，请按原图高÷宽替换此常数。
  */
-const PAGE_W = 540;
-const PAGE_H = 405;
-const SPREAD_W = PAGE_W * 2;
-const SPREAD_H = PAGE_H;
-
-/** 蔡司物理标签锚点（PDF 1-based 页）。点击直接 flip 到该页。 */
-const ZEISS_TABS = [
-  { name: '智锐系列', page: 10 },
-  { name: '青少年', page: 25 },
-  { name: '单光', page: 33 },
-  { name: '渐进系列', page: 44 },
-  { name: '数码型', page: 53 },
-  { name: '驾驶型', page: 56 },
-  { name: '户外镜片', page: 60 },
-  { name: '附录', page: 64 },
-  { name: '健康消费品', page: 80 },
-] as const;
+const PAGE_RATIO = 1.4145;
+const PAGE_W = 450;
+const PAGE_H = Math.floor(PAGE_W * PAGE_RATIO);
+/** 右侧系列栏宽 */
+const RAIL_W = 60;
+/** 凸标与书右缘间隙（`absolute; left: 100%` 后再加） */
+const RAIL_GAP = 5;
+/** 外沿总宽 = 书宽 + 间隙 + 栏，用于 `w-max` 占位与 `min(…, calc(100vw - 本值))` 行高 */
+const RAIL_CHROME = RAIL_W + RAIL_GAP;
+/**
+ * 单页 高/宽 = PAGE_RATIO 时，双页展开 宽/高 = 2 / PAGE_RATIO（与 PDF 等效外接框一致，不含右栏 60px）。
+ * @see `PAGE_W`、{@link PAGE_H}：引擎内部页尺寸仍用这两值，stretch 仅缩放 Canvas。
+ */
+const ASPECT_SPREAD = `2 / ${PAGE_RATIO}` as const;
 
 const FLIP_MS = 1000;
+
+/** 舞台行：高由视口+屏宽与侧栏反算共同约束，书槽+侧栏 总宽 100vw 内不溢出。 */
+const STAGE_ROW_OUTER_STYLE: CSSProperties = {
+  height: `min(85vh, 900px, calc((100vw - ${RAIL_CHROME}px) * ${PAGE_RATIO} / 2))`,
+  maxHeight: 900,
+  maxWidth: '100%',
+  width: 'max-content',
+  minWidth: 0,
+};
+
+/**
+ * 双页书槽锚点层（2 : PAGE_RATIO）：`stretch` 吃满；侧栏与 `HTMLFlipBook` 同级、紧挨书右缘
+ * `absolute; left: 100%` 叠出，不占本列流式宽度（同行右侧另见占位块）。
+ * 行高在父级 {@link STAGE_ROW_OUTER_STYLE} 中给定。
+ */
+function HandbookAspectBox({ children, className = '' }: { children: ReactNode; className?: string }) {
+  return (
+    <div
+      className={['relative h-full min-h-0 min-w-0 shrink-0', className].filter(Boolean).join(' ')}
+      style={{ aspectRatio: ASPECT_SPREAD, maxWidth: '100%' }}
+    >
+      <div className="relative h-full w-full min-h-0 min-w-0">{children}</div>
+    </div>
+  );
+}
 
 function loadReactPageFlip(): Promise<ComponentType<ReactPageFlipProps>> {
   return import('react-pageflip').then((m) => m.default as ComponentType<ReactPageFlipProps>);
@@ -47,13 +75,15 @@ const HTMLFlipBook = dynamic(loadReactPageFlip, {
 });
 
 /**
- * 物理舞台：双页书 + 右缘标签条。**容器 = 图片可视区 1:1**。
- * `flipRef` 注入对应实例（预览 / 全屏各持一个）。
+ * 物理舞台：外层由 {@link HandbookAspectBox} 锁比例；`stretch` 吃满剩余宽，右栏高与锚点同高。
  */
 function HandbookStage({
   flipRef,
   pages,
   currentPage,
+  seriesNav,
+  activeNavId,
+  onSelectNavItem,
   onFlip,
   onBookInit,
   onChangeState,
@@ -61,47 +91,38 @@ function HandbookStage({
   flipRef: React.RefObject<ReactPageFlipRef | null>;
   pages: React.ReactNode;
   currentPage: number;
+  seriesNav: readonly HandbookSeriesNavItem[];
+  activeNavId: string;
+  onSelectNavItem: (item: HandbookSeriesNavItem) => void;
   onFlip: () => void;
   onBookInit: () => void;
   onChangeState: (e: { data?: unknown }) => void;
 }) {
-  const onTabClick = useCallback((page1: number) => {
-    try {
-      window.pageFlipInstance?.flip(page1 - 1, 'top');
-    } catch {
-      /* ignore */
-    }
-  }, []);
-
   return (
     <div
-      className="flex items-center justify-center gap-2"
+      className="relative box-border inline-flex min-h-0 w-max min-w-0 max-w-full flex-row items-stretch overflow-x-visible overflow-y-clip"
       data-handbook-stage="zeiss"
-      style={{ height: SPREAD_H }}
+      style={STAGE_ROW_OUTER_STYLE}
     >
-      {/* 书：永远双页展开（取消 showCover，避免封面只占半幅造成视觉「靠上靠左」） */}
-      <div
-        className="relative shrink-0 self-center"
-        style={{ width: SPREAD_W, height: SPREAD_H }}
-      >
+      <HandbookAspectBox>
         <HTMLFlipBook
           ref={flipRef}
-          className="pointer-events-auto h-full w-full !overflow-visible"
-          style={{ width: SPREAD_W, height: SPREAD_H, margin: 0, minHeight: SPREAD_H, display: 'block' }}
+          className="pointer-events-auto !h-full !w-full !min-h-0 !min-w-0 !overflow-visible"
+          style={{ width: '100%', height: '100%', margin: 0, display: 'block' }}
           width={PAGE_W}
           height={PAGE_H}
-          minWidth={PAGE_W}
-          minHeight={PAGE_H}
-          maxWidth={PAGE_W}
-          maxHeight={PAGE_H}
-          size="fixed"
+          minWidth={200}
+          minHeight={200}
+          maxWidth={2000}
+          maxHeight={2000}
+          size="stretch"
+          autoSize
           startPage={0}
           flippingTime={FLIP_MS}
           drawShadow
           usePortrait={false}
           startZIndex={0}
           showCover={false}
-          autoSize={false}
           clickEventForward
           useMouseEvents
           disableFlipByClick={false}
@@ -111,51 +132,38 @@ function HandbookStage({
         >
           {pages}
         </HTMLFlipBook>
-      </div>
 
-      {/* 标签条：紧贴书右外缘，flex 兄弟节点。垂直均分 9 格，永不重叠 */}
-      <ul
-        aria-label="蔡司系列快速跳转"
-        className="pointer-events-auto z-50 flex shrink-0 flex-col gap-1.5"
-        style={{
-          height: SPREAD_H,
-          width: 108,
-          paddingTop: 18,
-          paddingBottom: 18,
-        }}
-      >
-        {ZEISS_TABS.map((tab) => {
-          const isActive = currentPage + 1 >= tab.page;
-          return (
-            <li key={tab.page} className="flex-1 min-h-0">
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onTabClick(tab.page);
-                }}
-                className={[
-                  'group flex h-full w-full items-center justify-start',
-                  'rounded-r-md border-l-[3px] px-2.5 text-left',
-                  'shadow-[0_2px_6px_rgba(0,0,0,0.25)] backdrop-blur-md transition-all duration-200',
-                  isActive
-                    ? 'border-[#0066B3] bg-white/85 hover:bg-white'
-                    : 'border-white/35 bg-white/30 hover:bg-white/55',
-                ].join(' ')}
-              >
-                <span
-                  className={[
-                    'whitespace-nowrap text-[12px] font-bold tracking-wide',
-                    isActive ? 'text-[#0066B3]' : 'text-slate-700',
-                  ].join(' ')}
-                >
-                  {tab.name}
-                </span>
-              </button>
-            </li>
-          );
-        })}
-      </ul>
+        <div
+          className="pointer-events-auto absolute z-[60] flex flex-col"
+          style={{
+            left: '100%',
+            top: 0,
+            height: '100%',
+            width: RAIL_W,
+            marginLeft: RAIL_GAP,
+          }}
+        >
+          <ZeissSeriesNavList
+            items={seriesNav}
+            pageIndex={0}
+            activeId={activeNavId}
+            onSelect={onSelectNavItem}
+            brand="zeiss"
+            navLayout="classic"
+            compact
+            useTwoColumn={false}
+            viewerPdfPage1={currentPage + 1}
+            className="!h-full !min-h-0 !rounded-l-none !rounded-r-md"
+          />
+        </div>
+      </HandbookAspectBox>
+
+      {/* 绝对定位侧栏不占流式宽，为 w-max 布局行与视口行高、与「书+65px」外沿对齐 */}
+      <div
+        aria-hidden
+        className="h-full min-h-0 shrink-0"
+        style={{ width: RAIL_CHROME, flexShrink: 0, pointerEvents: 'none' }}
+      />
     </div>
   );
 }
@@ -163,11 +171,11 @@ function HandbookStage({
 export function ZeissDigitalHandbook() {
   const previewFlipRef = useRef<ReactPageFlipRef>(null);
   const fsFlipRef = useRef<ReactPageFlipRef>(null);
-  const previewScrollRef = useRef<HTMLDivElement | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
   const [fullscreenOpen, setFullscreenOpen] = useState(false);
 
   const total = useMemo(() => getHandbookPageCount('zeiss'), []);
+  const seriesNav = useMemo(() => buildHandbookSeriesNavItemsForBrand('zeiss'), []);
 
   const activeFlipRef = fullscreenOpen ? fsFlipRef : previewFlipRef;
 
@@ -216,6 +224,22 @@ export function ZeissDigitalHandbook() {
     exposeWindowInstance();
   }, [exposeWindowInstance, syncCurrentPage]);
 
+  const onSelectNavItem = useCallback((item: HandbookSeriesNavItem) => {
+    try {
+      window.pageFlipInstance?.flip(item.startPage0, 'top');
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  const activeNavId = useMemo(() => {
+    let active = '';
+    for (const item of seriesNav) {
+      if (item.startPage0 <= currentPage) active = item.id;
+    }
+    return active;
+  }, [seriesNav, currentPage]);
+
   const pages = useMemo(
     () =>
       Array.from({ length: total }, (_, idx) => {
@@ -247,42 +271,6 @@ export function ZeissDigitalHandbook() {
     return () => window.removeEventListener('keydown', onKey);
   }, [fullscreenOpen]);
 
-  useEffect(() => {
-    if (!fullscreenOpen) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, [fullscreenOpen]);
-
-  /** 视口比书+标签窄时横向可滚动，并把初始位置放在中间，避免只看见「半本书/半列标签」 */
-  const centerPreviewScroll = useCallback(() => {
-    const el = previewScrollRef.current;
-    if (!el) return;
-    if (el.scrollWidth <= el.clientWidth) {
-      el.scrollLeft = 0;
-      return;
-    }
-    el.scrollLeft = Math.max(0, (el.scrollWidth - el.clientWidth) / 2);
-  }, []);
-
-  useLayoutEffect(() => {
-    if (fullscreenOpen) return;
-    centerPreviewScroll();
-  }, [fullscreenOpen, centerPreviewScroll]);
-
-  useLayoutEffect(() => {
-    if (typeof window === 'undefined' || fullscreenOpen) return;
-    const el = previewScrollRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver(() => {
-      centerPreviewScroll();
-    });
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [fullscreenOpen, centerPreviewScroll]);
-
   if (total <= 0) {
     return (
       <div className="flex h-[480px] w-full items-center justify-center rounded-2xl border border-white/10 bg-slate-950/60 text-sm text-white/70">
@@ -292,7 +280,10 @@ export function ZeissDigitalHandbook() {
   }
 
   const previewBlock = (
-    <section className="relative w-full min-w-0">
+    <section
+      className="zeiss-digital-handbook relative w-full min-w-0"
+      data-handbook-flip-shell="1"
+    >
       <div className="mb-3 flex items-center justify-between gap-3">
         <h2 className="text-sm font-semibold tracking-wide text-white/85 sm:text-base">
           蔡司价目手册 · 沉浸式翻阅
@@ -309,10 +300,9 @@ export function ZeissDigitalHandbook() {
       </div>
 
       <div
-        ref={previewScrollRef}
-        className="relative w-full min-w-0 overflow-x-auto overflow-y-visible py-8 [scrollbar-gutter:stable] rounded-2xl border border-white/10 bg-slate-950/60 px-1 text-center shadow-[0_30px_80px_rgba(0,0,0,0.5)]"
-        style={{ minHeight: SPREAD_H + 64 }}
-        aria-label="手册阅读区，内容较宽时可左右滑动查看"
+        className="relative w-full min-w-0 overflow-visible py-8 rounded-2xl border border-white/10 bg-slate-950/60 px-1 text-center shadow-[0_30px_80px_rgba(0,0,0,0.5)]"
+        style={{ minHeight: 'calc(min(85vh, 900px) + 4rem)' }}
+        aria-label="手册阅读区"
       >
         <div className="inline-block w-max min-w-0 max-w-none text-left align-middle">
           {!fullscreenOpen ? (
@@ -320,6 +310,9 @@ export function ZeissDigitalHandbook() {
               flipRef={previewFlipRef}
               pages={pages}
               currentPage={currentPage}
+              seriesNav={seriesNav}
+              activeNavId={activeNavId}
+              onSelectNavItem={onSelectNavItem}
               onFlip={onFlip}
               onBookInit={onBookInit}
               onChangeState={onChangeState}
@@ -347,7 +340,8 @@ export function ZeissDigitalHandbook() {
               role="dialog"
               aria-modal
               aria-label="蔡司价目手册 · 全屏沉浸"
-              className="fixed inset-0 z-[300] flex items-center justify-center bg-black/85 backdrop-blur-md"
+              className="fixed inset-0 z-[300] flex h-full w-full items-center justify-center overflow-visible bg-[#1a1a1a] leather-field"
+              data-handbook-flip-shell="1"
             >
               <button
                 type="button"
@@ -362,6 +356,9 @@ export function ZeissDigitalHandbook() {
                 flipRef={fsFlipRef}
                 pages={pages}
                 currentPage={currentPage}
+                seriesNav={seriesNav}
+                activeNavId={activeNavId}
+                onSelectNavItem={onSelectNavItem}
                 onFlip={onFlip}
                 onBookInit={onBookInit}
                 onChangeState={onChangeState}
