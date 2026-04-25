@@ -43,7 +43,8 @@
     "catalog:pdf-to-jpg-pages": "node scripts/catalog-pdf-to-jpg-pages.mjs",
     "catalog:hoya-pdf-python": "python scripts/catalog_pdf_to_jpg_pages.py --dir public/catalog/hoya --dpi 175",
     "catalog:harvest-hoya-tabs": "tsx scripts/harvest-hoya-physical-tabs.ts",
-    "catalog:harvest-hoya-tabs:apply": "tsx scripts/harvest-hoya-physical-tabs.ts --apply"
+    "catalog:harvest-hoya-tabs:apply": "tsx scripts/harvest-hoya-physical-tabs.ts --apply",
+    "sync": "git add . && git commit -m \"StandardEye 4.0: 焊死物理标签与皮革背景重构\" && git push origin master && git push github master"
   },
   "build": {
     "appId": "cn.optiai.sale",

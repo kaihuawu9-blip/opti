@@ -5,7 +5,7 @@ import type { ReactPageFlipRef } from '@/components/catalog/reactPageFlipTypes';
 
 const PUNCH_HOLE_COUNT = 6;
 
-/** 荔枝纹皮革 2.0：径向光照 + SVG feTurbulence 颗粒 + overlay 融合 */
+/** 荔枝纹皮革：底层 `.leather-field`（体验馆桌面）+ 光照与 SVG 颗粒叠层 */
 export function HandbookBinderLeatherField({ className = '' }: { className?: string }) {
   const uid = useId().replace(/:/g, '');
   const fid = `stf-leather-grain-${uid}`;
@@ -16,9 +16,10 @@ export function HandbookBinderLeatherField({ className = '' }: { className?: str
       className={['pointer-events-none absolute inset-0 z-[6] overflow-hidden', className].filter(Boolean).join(' ')}
       aria-hidden
     >
+      <div className="leather-field absolute inset-0 z-0" aria-hidden />
       {/* 主光照：径向 + 145° 微弱侧光（皮质体积感） */}
       <div
-        className="absolute inset-0"
+        className="absolute inset-0 z-[1]"
         style={{
           background: `
             linear-gradient(145deg, rgba(255,255,255,0.045) 0%, transparent 42%, rgba(0,0,0,0.18) 100%),
@@ -68,7 +69,7 @@ export function HandbookBinderLeatherField({ className = '' }: { className?: str
       </svg>
       {/* 微弱顶光 */}
       <div
-        className="pointer-events-none absolute inset-0 z-[2] mix-blend-soft-light opacity-32"
+        className="pointer-events-none absolute inset-0 z-[2] opacity-32 mix-blend-soft-light"
         style={{
           background: 'radial-gradient(ellipse 80% 55% at 50% 0%, rgba(255,255,255,0.07), transparent 58%)',
         }}
@@ -230,16 +231,10 @@ export function HandbookPunchHolesOverlay({
         {Array.from({ length: PUNCH_HOLE_COUNT }, (_, i) => (
           <span
             key={i}
-            className="relative shrink-0 overflow-hidden rounded-full bg-[#050505]"
+            className="binder-hole"
             style={{
-              width: 'var(--punch-d, 10px)',
-              height: 'var(--punch-d, 10px)',
-              boxShadow: `
-                inset 3px 3px 6px rgba(0,0,0,1),
-                inset 0.5px 0 0 #333,
-                inset -1px -1px 2px rgba(40,40,40,0.2),
-                2px 2px 4px rgba(0,0,0,0.75)
-              `,
+              width: 'var(--punch-d, 14px)',
+              height: 'var(--punch-d, 14px)',
             }}
           >
             {/* 左侧弧形高光（金属扣反光环内侧） */}

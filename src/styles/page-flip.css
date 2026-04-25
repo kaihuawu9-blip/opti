@@ -104,15 +104,21 @@
 }
 
 /*
- * 预览 / 全屏：包住 HTMLFlipBook 的书框带 .hoya-handbook-tab-bleed（brand === hoya），
- * 向下穿透常见 stf__ / page-flip 子节点，彻底解除裁切（肉身凸标）。
+ * 预览 / 全屏：包住 HTMLFlipBook 的书框带 .hoya-handbook-tab-bleed / .zeiss-handbook-tab-bleed，
+ * 向下穿透常见 stf__ / page-flip 子节点，彻底解除裁切（右缘物理条 / 肉身凸标）。
  */
 .hoya-handbook-tab-bleed,
+.zeiss-handbook-tab-bleed,
 .hoya-handbook-tab-bleed .stf__parent,
+.zeiss-handbook-tab-bleed .stf__parent,
 .hoya-handbook-tab-bleed .stf__block,
+.zeiss-handbook-tab-bleed .stf__block,
 .hoya-handbook-tab-bleed .stf__item,
+.zeiss-handbook-tab-bleed .stf__item,
 .hoya-handbook-tab-bleed .sft__wrapper,
-.hoya-handbook-tab-bleed [class*='stf__'] {
+.zeiss-handbook-tab-bleed .sft__wrapper,
+.hoya-handbook-tab-bleed [class*='stf__'],
+.zeiss-handbook-tab-bleed [class*='stf__'] {
   overflow: visible !important;
   clip-path: none !important;
   -webkit-clip-path: none !important;
@@ -138,4 +144,31 @@
   width: auto !important;
   height: 100% !important;
   object-fit: contain !important;
+}
+
+/* -------------------------------------------------------------------------- */
+/* LeatherField：蔡司体验馆式荔枝纹皮面（HandbookBinderLeatherField 底层） */
+/* 默认第二图层为内联 SVG 噪点，避免强依赖静态资源；若放置 public/textures/leather_grain.png 可自行改 background-image 首项纹理。 */
+/* -------------------------------------------------------------------------- */
+.leather-field {
+  background-color: #1a1a1a;
+  background-image:
+    radial-gradient(circle at center, rgba(60, 60, 60, 0.5) 0%, rgba(20, 20, 20, 1) 100%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.62' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.5'/%3E%3C/svg%3E");
+  background-blend-mode: multiply, multiply;
+  position: relative;
+}
+
+/* 活页金属圆孔：内凹 + 边缘高光（直径由 --punch-d 控制） */
+.binder-hole {
+  width: var(--punch-d, 14px);
+  height: var(--punch-d, 14px);
+  background: #222;
+  border-radius: 50%;
+  box-shadow:
+    inset 2px 2px 4px rgba(0, 0, 0, 0.8),
+    0.5px 0.5px 0 rgba(255, 255, 255, 0.15);
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
 }

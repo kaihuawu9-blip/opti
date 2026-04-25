@@ -15,7 +15,10 @@ export type PageFlipRenderRect = {
 
 /** 与库内 St/PageFlip 实例对齐的最小可调 API */
 export type PageFlipEngine = {
-  flip: (page: number) => void;
+  /** 动画翻向目标页（HTML 模式内部走 flipController） */
+  flip: (page: number, corner?: string) => void;
+  /** 瞬切到某页（`pages.show`，无翻页动画）— 程序化跳转应优先用 `flip` */
+  turnToPage?: (pageIndex: number) => void;
   getCurrentPageIndex: () => number;
   /** 部分构建版本存在，可选 */
   getPage?: (index: number) => unknown;

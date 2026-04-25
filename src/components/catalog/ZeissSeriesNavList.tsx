@@ -10,6 +10,7 @@ import { motion } from 'framer-motion';
 import type { HandbookSeriesNavItem } from '@/data/zeissHandbookPageMap';
 import type { HandbookActiveNavState } from '@/lib/catalog/dataIntegrityValidator';
 import { HoyaPhysicalTabRail } from '@/components/catalog/HoyaPhysicalTabRail';
+import { useHandbookFlipRuntime } from '@/components/catalog/HandbookFlipRuntimeContext';
 
 const ZEISS_BLUE = '#0066B3';
 
@@ -19,22 +20,17 @@ const ZEISS_PHYSICS_REF_PAGES = 82;
 /**
  * 蔡司右缘 rail 锚点（秒开展示用，谨慎：页表 `series_entry` 补全后应以此处为冗余逐步收敛）。
  */
+/** 手动注入物理页码（右缘纵轴映射，分母 {@link ZEISS_PHYSICS_REF_PAGES}） */
 const ZEISS_PRESTIGE_TABS = [
   { name: '智锐系列', page: 10 },
   { name: '青少年', page: 25 },
-  { name: '单光系列', page: 33 },
+  { name: '单光', page: 33 },
   { name: '渐进系列', page: 44 },
   { name: '数码型', page: 53 },
   { name: '驾驶型', page: 56 },
   { name: '户外镜片', page: 60 },
   { name: '健康消费品', page: 80 },
 ] as const;
-
-/** 微梯形 + 左圆角右直边观感（clip + 左圆角） */
-const ZEISS_PHYSICAL_TAB_CLIP = 'polygon(0% 2%, 100% 10%, 100% 90%, 0% 98%)';
-
-const ZEISS_RAIL_TAB_W = 45;
-const ZEISS_RAIL_TAB_W_ACTIVE = ZEISS_RAIL_TAB_W + 10;
 
 const NAV_SCROLL_STYLES =
   'zeiss-nav-scroll ' +
@@ -48,9 +44,15 @@ const NAV_SCROLL_STYLES =
 
 type NavLayout = 'classic' | 'physical-tabs';
 
+/** PageFlip 0-based：双页横展时仅「物理右半」画 rail，消重影（第 0 页视为右侧封面） */
+function isPhysicalRightHalfForSpread(pageIndex0: number): boolean {
+  return pageIndex0 % 2 !== 0 || pageIndex0 === 0;
+}
+
 type Props = {
   items: readonly HandbookSeriesNavItem[];
-  activeId: string;
+  /** 未传时从 {@link useHandbookFlipRuntime} 读取（页内 rail，避免牵动 page-flip 子树） */
+  activeId?: string;
   onSelect: (item: HandbookSeriesNavItem) => void;
   compact?: boolean;
   className?: string;
@@ -59,6 +61,14 @@ type Props = {
   activeNav?: HandbookActiveNavState | null;
   brand?: import('@/data/zeissHandbookPageMap').DigitalHandbookBrand;
   navLayout?: NavLayout;
+  /** 未传时从 flip runtime context 读取 */
+  viewerPdfPage1?: number;
+  /** PageFlip 子页 0-based 索引，与 {@link applySpreadParityLock} 联用 */
+  pageIndex0?: number;
+  /** 全屏横展双页时为 true，启用奇偶物理锁；竖屏预览须为 false */
+  applySpreadParityLock?: boolean;
+  /** 已废弃：由 `pageIndex0` + `applySpreadParityLock` 取代；仍传 `false` 时可强制不画 */
+  railHostIsRightPage?: boolean;
 };
 
 function shortLabel(label: string): boolean {
@@ -90,8 +100,26 @@ export function ZeissSeriesNavList({
   activeNav,
   brand = 'zeiss',
   navLayout = 'physical-tabs',
+  viewerPdfPage1: viewerPdfPage1Prop,
+  pageIndex0,
+  applySpreadParityLock = false,
+  railHostIsRightPage = true,
 }: Props) {
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const rt = useHandbookFlipRuntime();
+  const activeNavEff = activeNav ?? rt.activeNav ?? null;
+  const integrityWarnEff = integrityWarnIds ?? rt.integrityWarnNavIds;
+  const activeIdEff =
+    (typeof activeId === 'string' && activeId.length > 0 ? activeId : activeNavEff?.anchorId) ?? '';
+  const viewerPdfEff =
+    viewerPdfPage1Prop !== undefined &&
+    Number.isFinite(viewerPdfPage1Prop) &&
+    (viewerPdfPage1Prop as number) > 0
+      ? (viewerPdfPage1Prop as number)
+      : rt.physicalPdfIndex1 > 0
+        ? rt.physicalPdfIndex1
+        : 1;
+
   const useTwoColumn =
     navLayout === 'classic' && useTwoColProp && !compact && items.length > 6;
 
@@ -101,89 +129,68 @@ export function ZeissSeriesNavList({
     if (!root) return;
     const el = root.querySelector<HTMLElement>('[data-zeiss-nav-active="true"]');
     el?.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'smooth' });
-  }, [activeId, items.length, activeNav?.anchorId, activeNav?.dataStatus, navLayout]);
+  }, [activeIdEff, items.length, activeNavEff?.anchorId, activeNavEff?.dataStatus, navLayout]);
 
   if (navLayout === 'physical-tabs') {
+    if (railHostIsRightPage === false) return null;
+    const idx0 = typeof pageIndex0 === 'number' && Number.isFinite(pageIndex0) ? Math.trunc(pageIndex0) : 0;
+    if (applySpreadParityLock && !isPhysicalRightHalfForSpread(idx0)) return null;
+
     if (brand === 'hoya') {
       return (
         <HoyaPhysicalTabRail
           ref={scrollRef}
-          activeId={activeId}
+          activeId={activeIdEff}
           onSelect={onSelect}
-          integrityWarnIds={integrityWarnIds}
-          activeNav={activeNav}
+          integrityWarnIds={integrityWarnEff}
+          activeNav={activeNavEff}
         />
       );
     }
 
     if (brand === 'zeiss') {
-      console.log('Tabs rendered', ZEISS_PRESTIGE_TABS);
+      const pdf1 = viewerPdfEff;
 
       return (
         <nav
           ref={scrollRef}
           role="navigation"
           aria-label="系列索引（物理标签）"
-          className="pointer-events-none absolute right-0 top-0 h-full w-[56px] overflow-visible [transform:translateZ(0)] will-change-transform !z-[9999]"
+          className="pointer-events-none absolute right-[-30px] top-0 z-50 h-full w-[60px] overflow-visible [transform:translateZ(0)] will-change-transform !z-[9999]"
         >
           {ZEISS_PRESTIGE_TABS.map((tab) => {
-            const topCss = `${(tab.page / ZEISS_PHYSICS_REF_PAGES) * 100}%`;
+            const topPosition = (tab.page / ZEISS_PHYSICS_REF_PAGES) * 100;
             const navItem = zeissPrestigeTabToNavItem(tab);
-            const active = activeId === navItem.id;
-            const integrityWarn = Boolean(integrityWarnIds?.has(navItem.id));
+            const isProgressActive = pdf1 >= tab.page;
+            const anchorSelected = activeIdEff === navItem.id;
+            const integrityWarn = Boolean(integrityWarnEff?.has(navItem.id));
             const anchorStatus =
-              active && activeNav && navItem.id === activeNav.anchorId ? activeNav.dataStatus : undefined;
+              anchorSelected && activeNavEff && navItem.id === activeNavEff.anchorId
+                ? activeNavEff.dataStatus
+                : undefined;
             const titleParts = [integrityWarn ? '数据完整性提示' : ''].filter(Boolean);
-            const w = active ? ZEISS_RAIL_TAB_W_ACTIVE : ZEISS_RAIL_TAB_W;
 
             return (
               <button
                 key={navItem.id}
                 type="button"
-                data-zeiss-nav-active={active ? 'true' : undefined}
+                data-zeiss-nav-active={anchorSelected ? 'true' : undefined}
                 data-handbook-anchor-status={anchorStatus}
                 title={titleParts.length ? titleParts.join(' · ') : undefined}
                 onClick={() => onSelect(navItem)}
                 className={[
-                  'box-border cursor-pointer border-0 bg-transparent p-0 text-left',
-                  'pointer-events-auto absolute',
-                  'transition-[width] duration-200 ease-out',
+                  'absolute left-0 flex h-[32px] w-[90px] cursor-pointer items-center border-0 bg-transparent p-0 text-left',
+                  'pointer-events-auto transition-all duration-300',
+                  'backdrop-blur-md shadow-lg',
                   integrityWarn ? 'outline outline-1 outline-red-500/80 -outline-offset-1' : '',
+                  isProgressActive ? 'border-l-[4px] border-[#005AB5]' : 'border-l-[4px] border-gray-400',
+                  'bg-white/40',
                 ]
                   .filter(Boolean)
                   .join(' ')}
-                style={{
-                  top: topCss,
-                  right: -45,
-                  width: w,
-                  minHeight: 36,
-                  transform: 'translateZ(0)',
-                  zIndex: 10,
-                }}
+                style={{ top: `${topPosition}%`, transform: 'translateZ(0)' }}
               >
-                <div
-                  className="relative flex h-full min-h-9 w-full items-center overflow-hidden rounded-l-md rounded-r-none pl-1.5 pr-1.5"
-                  style={{
-                    clipPath: ZEISS_PHYSICAL_TAB_CLIP,
-                    WebkitClipPath: ZEISS_PHYSICAL_TAB_CLIP,
-                    borderLeft: `2px solid ${ZEISS_BLUE}`,
-                    backgroundColor: active ? ZEISS_BLUE : 'rgba(20, 20, 20, 0.8)',
-                    backdropFilter: active ? 'blur(6px)' : 'blur(12px)',
-                    WebkitBackdropFilter: active ? 'blur(6px)' : 'blur(12px)',
-                    boxShadow: active ? 'inset 0 1px 0 rgba(255,255,255,0.16)' : undefined,
-                  }}
-                >
-                  {active ? <div className="zeiss-physical-tab-active-shine" aria-hidden /> : null}
-                  <span
-                    className={[
-                      "relative z-[1] block w-full truncate text-left text-[11px] font-medium leading-tight tracking-tight text-white [font-family:SimHei,SimSun,'Noto_Sans_SC','Source_Han_Sans_SC',sans-serif]",
-                      'tabular-nums',
-                    ].join(' ')}
-                    style={{ textShadow: '0 1px 2px rgba(0,0,0,0.55)' }}
-                  >
-                    {tab.name}
-                  </span>
-                </div>
+                <span className="ml-2 whitespace-nowrap text-[12px] font-bold text-[#005AB5]">{tab.name}</span>
               </button>
             );
           })}
@@ -216,14 +223,14 @@ export function ZeissSeriesNavList({
         }
       >
         {items.map((it) => {
-          const active = it.id === activeId;
+          const active = it.id === activeIdEff;
           const wide = !shortLabel(it.label);
-          const integrityWarn = Boolean(integrityWarnIds?.has(it.id));
+          const integrityWarn = Boolean(integrityWarnEff?.has(it.id));
           const anchorStatus =
-            active && activeNav && it.id === activeNav.anchorId ? activeNav.dataStatus : undefined;
+            active && activeNavEff && it.id === activeNavEff.anchorId ? activeNavEff.dataStatus : undefined;
           const pendingMsg =
-            active && activeNav && it.id === activeNav.anchorId && activeNav.dataStatus === 'warning'
-              ? activeNav.placeholderMessage
+            active && activeNavEff && it.id === activeNavEff.anchorId && activeNavEff.dataStatus === 'warning'
+              ? activeNavEff.placeholderMessage
               : '';
           const showDataPending = Boolean(pendingMsg);
           const titleParts = [

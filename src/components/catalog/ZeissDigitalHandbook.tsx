@@ -18,6 +18,10 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Maximize2, ShoppingCart, X } from 'lucide-react';
 import '@/styles/page-flip.css';
 import { HandbookBinderLeatherField, HandbookPunchHolesOverlay } from '@/components/catalog/HandbookBinderDecor';
+import {
+  HandbookFlipRuntimeProvider,
+  type HandbookFlipRuntimeValue,
+} from '@/components/catalog/HandbookFlipRuntimeContext';
 import { HandbookFlipPageShell } from '@/components/catalog/HandbookFlipPageShell';
 import { ZeissHandbookPage, type ZeissHandbookPhysicalTabHit } from '@/components/catalog/ZeissHandbookPage';
 import { HandbookSidebar } from '@/components/catalog/HandbookSidebar';
@@ -46,9 +50,6 @@ import {
 } from '@/lib/catalog/indexAutoCalibrator';
 import type { ZeissHandbookManifest } from '@/lib/catalog/zeissHandbookTypes';
 import {
-  DATA_INTEGRITY_SESSION_KEY,
-  DATA_INTEGRITY_UI_ALERT_VERSION,
-  formatDataIntegrityBossSummary,
   getNavIdsMissingMatrixJson,
   getPdfPagesWithMissingMatrixData,
   resolveActiveHandbookNavState,
@@ -283,7 +284,6 @@ export function ZeissDigitalHandbook() {
   /** 3D 书本实际渲染高度（px），与侧栏同高 */
   const [bookVisualH, setBookVisualH] = useState(0);
   const [zeissManifest, setZeissManifest] = useState<ZeissHandbookManifest | null>(null);
-  const [dataIntegrityAlertOpen, setDataIntegrityAlertOpen] = useState(false);
 
   const bumpBinderLayout = useCallback(() => setBinderLayoutTick((n) => n + 1), []);
 
@@ -301,25 +301,6 @@ export function ZeissDigitalHandbook() {
     () => getPdfPagesWithMissingMatrixData(dataIntegrityGaps),
     [dataIntegrityGaps],
   );
-
-  useEffect(() => {
-    if (brand !== 'zeiss' || dataIntegrityGaps.length === 0) return;
-    let cancelled = false;
-    queueMicrotask(() => {
-      if (cancelled) return;
-      try {
-        const v = sessionStorage.getItem(DATA_INTEGRITY_SESSION_KEY);
-        if (v !== DATA_INTEGRITY_UI_ALERT_VERSION) {
-          startTransition(() => setDataIntegrityAlertOpen(true));
-        }
-      } catch {
-        startTransition(() => setDataIntegrityAlertOpen(true));
-      }
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [brand, dataIntegrityGaps.length]);
 
   useEffect(() => {
     let cancelled = false;
@@ -552,9 +533,10 @@ export function ZeissDigitalHandbook() {
     (item: HandbookSeriesNavItem) => {
       const ref = fullscreenOpen ? fsRef : previewRef;
       const pf = ref.current?.pageFlip?.();
-      if (!pf) return;
+      if (!pf?.flip) return;
       try {
-        pf.flip(item.startPage0);
+        // StPageFlip：`flip` 走 flipController（有动画）；`turnToPage` 为 `pages.show` 瞬切
+        pf.flip(item.startPage0, 'top');
       } catch {
         /* ignore */
       }
@@ -657,15 +639,6 @@ export function ZeissDigitalHandbook() {
     dispatchHandbookAddToCart(cashierPayload);
   }, [cashierPayload]);
 
-  const dismissDataIntegrityAlert = useCallback(() => {
-    try {
-      sessionStorage.setItem(DATA_INTEGRITY_SESSION_KEY, DATA_INTEGRITY_UI_ALERT_VERSION);
-    } catch {
-      /* ignore private mode */
-    }
-    setDataIntegrityAlertOpen(false);
-  }, []);
-
   // 勿将 width/height 放入 key：ResizeObserver 会改尺寸，key 变会导致整本 react-pageflip 反复卸载，表现为白屏或「一页没有」
   const previewKey = useMemo(
     () => `pv-${brand}-${previewResync}-${total}-${previewStart}`,
@@ -675,6 +648,16 @@ export function ZeissDigitalHandbook() {
   const fsKey = useMemo(
     () => `fs-${fsSession}-${total}-${fsEntryPage}`,
     [fsSession, total, fsEntryPage],
+  );
+
+  /** 勿写入 `bookCommonPages` 的 useMemo 依赖：子数组引用变化会触发 react-pageflip `updateFromHtml`，打断翻页动画 */
+  const handbookFlipRuntime = useMemo<HandbookFlipRuntimeValue>(
+    () => ({
+      physicalPdfIndex1: total > 0 ? physicalPdfIndex1 : 1,
+      activeNav,
+      integrityWarnNavIds,
+    }),
+    [total, physicalPdfIndex1, activeNav, integrityWarnNavIds],
   );
 
   const bookCommonPages = useMemo(
@@ -708,7 +691,6 @@ export function ZeissDigitalHandbook() {
                 vOffsetPercent: v,
                 hOffsetPercent: typeof h === 'number' && Number.isFinite(h) ? h : undefined,
                 side,
-                active: navItem.id === activeNav.anchorId,
                 ariaLabel: tabLabel || navItem.id,
                 tooltipLabel: tabLabel || navItem.label,
                 physicalTabLabel: tabLabel || undefined,
@@ -720,15 +702,15 @@ export function ZeissDigitalHandbook() {
         const useBodyTabRack = brand === 'hoya' && Boolean(pd?.isManualTrimmed);
         /** 全屏双页：奇数 pdf 为左页，不挂物理书签；预览单页：恒为右缘（side 已为 right） */
         const showHoyaPhysicalBookmarks = brand === 'hoya' && side === 'right';
-        /** 蔡司：右页挂载梯形磨砂插片栏（与 3D 页同 GPU 子树）；热区仍由 `physicalTabHit` 负责 */
-        const showZeissPhysicalRail = brand === 'zeiss' && side === 'right' && seriesNav.length > 0;
+        /** 蔡司：页内挂载 rail，是否绘制由 {@link ZeissSeriesNavList} 内 PageFlip 奇偶锁决定 */
+        const showZeissPhysicalRailSlot = brand === 'zeiss';
 
         return (
           <HandbookFlipPageShell key={`pg-${brand}-${pdfN}`}>
             <div
               className={[
                 'relative h-full min-h-0 w-full !overflow-visible [container-type:size]',
-                showHoyaPhysicalBookmarks || showZeissPhysicalRail
+                showHoyaPhysicalBookmarks || showZeissPhysicalRailSlot
                   ? '[transform:translateZ(0)] will-change-transform'
                   : '',
               ]
@@ -749,29 +731,27 @@ export function ZeissDigitalHandbook() {
               {showHoyaPhysicalBookmarks ? (
                 <ZeissSeriesNavList
                   items={seriesNav}
-                  activeId={activeNav.anchorId}
                   onSelect={flipToNavItem}
                   brand="hoya"
                   navLayout="physical-tabs"
-                  activeNav={activeNav}
-                  integrityWarnIds={integrityWarnNavIds}
+                  pageIndex0={idx}
+                  applySpreadParityLock={fullscreenOpen}
                 />
-              ) : showZeissPhysicalRail ? (
+              ) : showZeissPhysicalRailSlot ? (
                 <ZeissSeriesNavList
                   items={seriesNav}
-                  activeId={activeNav.anchorId}
                   onSelect={flipToNavItem}
                   brand="zeiss"
                   navLayout="physical-tabs"
-                  activeNav={activeNav}
-                  integrityWarnIds={integrityWarnNavIds}
+                  pageIndex0={idx}
+                  applySpreadParityLock={fullscreenOpen}
                 />
               ) : null}
             </div>
           </HandbookFlipPageShell>
         );
       }),
-    [total, brand, seriesNav, activeNav, flipToNavItem, fullscreenOpen, integrityWarnNavIds],
+    [total, brand, seriesNav, flipToNavItem, fullscreenOpen],
   );
 
   useEffect(() => {
@@ -1024,7 +1004,7 @@ export function ZeissDigitalHandbook() {
                 data-stf-handbook-book-frame="1"
                 className={[
                   'relative z-[15] h-full min-h-full w-full [filter:drop-shadow(0_20px_40px_rgba(0,0,0,0.45))_drop-shadow(0_6px_18px_rgba(0,89,163,0.1))]',
-                  brand === 'hoya' ? '!overflow-visible' : '',
+                  brand === 'hoya' || brand === 'zeiss' ? '!overflow-visible' : '',
                 ]
                   .filter(Boolean)
                   .join(' ')}
@@ -1040,7 +1020,11 @@ export function ZeissDigitalHandbook() {
                 <div
                   className={[
                     'relative z-[15] mx-auto [isolation:isolate]',
-                    brand === 'hoya' ? '!overflow-visible' : 'overflow-hidden rounded-lg',
+                    brand === 'hoya'
+                      ? '!overflow-visible'
+                      : brand === 'zeiss'
+                        ? '!overflow-visible rounded-lg zeiss-handbook-tab-bleed'
+                        : 'overflow-hidden rounded-lg',
                   ]
                     .filter(Boolean)
                     .join(' ')}
@@ -1058,44 +1042,46 @@ export function ZeissDigitalHandbook() {
                     bookMinHeight={dims.h}
                     flipInstanceKey={previewKey}
                   />
-                  <HTMLFlipBook
-                    key={previewKey}
-                    ref={previewRef}
-                    className={[
-                      'relative z-[12] mx-auto',
-                      brand === 'hoya' ? '!overflow-visible' : '',
-                    ]
-                      .filter(Boolean)
-                      .join(' ')}
-                    style={{ width: dims.w, minHeight: dims.h }}
-                    width={dims.w}
-                    height={dims.h}
-                    minWidth={260}
-                    maxWidth={900}
-                    minHeight={360}
-                    maxHeight={1200}
-                    size="stretch"
-                    startPage={previewStart}
-                    drawShadow
-                    maxShadowOpacity={0.5}
-                    showCover={false}
-                    mobileScrollSupport
-                    clickEventForward
-                    useMouseEvents
-                    swipeDistance={20}
-                    flippingTime={500}
-                    usePortrait
-                    startZIndex={0}
-                    autoSize
-                    showPageCorners
-                    disableFlipByClick={false}
-                    onFlip={onFlip}
-                    onInit={onBookInit}
-                    onChangeState={onChangeState}
-                    onChangeOrientation={onChangeOrientation}
-                  >
-                    {bookCommonPages}
-                  </HTMLFlipBook>
+                  <HandbookFlipRuntimeProvider value={handbookFlipRuntime}>
+                    <HTMLFlipBook
+                      key={previewKey}
+                      ref={previewRef}
+                      className={[
+                        'relative z-[12] mx-auto',
+                        brand === 'hoya' || brand === 'zeiss' ? '!overflow-visible' : '',
+                      ]
+                        .filter(Boolean)
+                        .join(' ')}
+                      style={{ width: dims.w, minHeight: dims.h }}
+                      width={dims.w}
+                      height={dims.h}
+                      minWidth={260}
+                      maxWidth={900}
+                      minHeight={360}
+                      maxHeight={1200}
+                      size="stretch"
+                      startPage={previewStart}
+                      drawShadow
+                      maxShadowOpacity={0.5}
+                      showCover={false}
+                      mobileScrollSupport
+                      clickEventForward
+                      useMouseEvents
+                      swipeDistance={20}
+                      flippingTime={500}
+                      usePortrait
+                      startZIndex={0}
+                      autoSize
+                      showPageCorners
+                      disableFlipByClick={false}
+                      onFlip={onFlip}
+                      onInit={onBookInit}
+                      onChangeState={onChangeState}
+                      onChangeOrientation={onChangeOrientation}
+                    >
+                      {bookCommonPages}
+                    </HTMLFlipBook>
+                  </HandbookFlipRuntimeProvider>
                 </div>
               </div>
             </div>
@@ -1285,7 +1271,7 @@ export function ZeissDigitalHandbook() {
                             data-stf-handbook-book-frame="1"
                             className={[
                               'relative z-[20] w-full max-h-[80vh] [filter:drop-shadow(0_32px_64px_rgba(0,0,0,0.55))]',
-                              brand === 'hoya' ? 'h-full min-h-full !overflow-visible' : '',
+                              brand === 'hoya' || brand === 'zeiss' ? 'h-full min-h-full !overflow-visible' : '',
                             ]
                               .filter(Boolean)
                               .join(' ')}
@@ -1296,7 +1282,11 @@ export function ZeissDigitalHandbook() {
                             <div
                               className={[
                                 'relative z-[20] mx-auto w-full max-w-full [isolation:isolate]',
-                                brand === 'hoya' ? '!overflow-visible' : 'overflow-hidden rounded-xl',
+                                brand === 'hoya'
+                                  ? '!overflow-visible'
+                                  : brand === 'zeiss'
+                                    ? '!overflow-visible rounded-xl zeiss-handbook-tab-bleed'
+                                    : 'overflow-hidden rounded-xl',
                               ]
                                 .filter(Boolean)
                                 .join(' ')}
@@ -1314,44 +1304,46 @@ export function ZeissDigitalHandbook() {
                                 bookMinHeight={fsDims.pageH}
                                 flipInstanceKey={fsKey}
                               />
-                              <HTMLFlipBook
-                                key={fsKey}
-                                ref={fsRef}
-                                className={[
-                                  'relative z-[12] mx-auto w-full max-w-full',
-                                  brand === 'hoya' ? '!overflow-visible' : '',
-                                ]
-                                  .filter(Boolean)
-                                  .join(' ')}
-                                style={{ minHeight: fsDims.pageH, maxHeight: '80vh' }}
-                                width={fsDims.pageW}
-                                height={fsDims.pageH}
-                                minWidth={200}
-                                maxWidth={1000}
-                                minHeight={240}
-                                maxHeight={2000}
-                                size="stretch"
-                                startPage={fsEntryPage}
-                                drawShadow
-                                maxShadowOpacity={0.62}
-                                showCover={false}
-                                mobileScrollSupport
-                                clickEventForward
-                                useMouseEvents
-                                swipeDistance={24}
-                                flippingTime={520}
-                                usePortrait={false}
-                                startZIndex={0}
-                                autoSize
-                                showPageCorners
-                                disableFlipByClick={false}
-                                onFlip={onFlip}
-                                onInit={onBookInit}
-                                onChangeState={onChangeState}
-                                onChangeOrientation={onChangeOrientation}
-                              >
-                                {bookCommonPages}
-                              </HTMLFlipBook>
+                              <HandbookFlipRuntimeProvider value={handbookFlipRuntime}>
+                                <HTMLFlipBook
+                                  key={fsKey}
+                                  ref={fsRef}
+                                  className={[
+                                    'relative z-[12] mx-auto w-full max-w-full',
+                                    brand === 'hoya' || brand === 'zeiss' ? '!overflow-visible' : '',
+                                  ]
+                                    .filter(Boolean)
+                                    .join(' ')}
+                                  style={{ minHeight: fsDims.pageH, maxHeight: '80vh' }}
+                                  width={fsDims.pageW}
+                                  height={fsDims.pageH}
+                                  minWidth={200}
+                                  maxWidth={1000}
+                                  minHeight={240}
+                                  maxHeight={2000}
+                                  size="stretch"
+                                  startPage={fsEntryPage}
+                                  drawShadow
+                                  maxShadowOpacity={0.62}
+                                  showCover={false}
+                                  mobileScrollSupport
+                                  clickEventForward
+                                  useMouseEvents
+                                  swipeDistance={24}
+                                  flippingTime={520}
+                                  usePortrait={false}
+                                  startZIndex={0}
+                                  autoSize
+                                  showPageCorners
+                                  disableFlipByClick={false}
+                                  onFlip={onFlip}
+                                  onInit={onBookInit}
+                                  onChangeState={onChangeState}
+                                  onChangeOrientation={onChangeOrientation}
+                                >
+                                  {bookCommonPages}
+                                </HTMLFlipBook>
+                              </HandbookFlipRuntimeProvider>
                             </div>
                           </div>
                           </div>
@@ -1385,47 +1377,6 @@ export function ZeissDigitalHandbook() {
           )
         : null}
 
-      {brand === 'zeiss' && dataIntegrityAlertOpen && dataIntegrityGaps.length > 0 ? (
-        <motion.div
-          className="fixed inset-0 z-[260] flex items-center justify-center p-4"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-        >
-          <button
-            type="button"
-            className="absolute inset-0 border-0 bg-black/55 backdrop-blur-sm"
-            aria-label="关闭提示"
-            onClick={dismissDataIntegrityAlert}
-          />
-          <motion.div
-            role="alertdialog"
-            aria-modal="true"
-            aria-labelledby="zeiss-data-integrity-title"
-            initial={{ scale: 0.94, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: 'spring', stiffness: 420, damping: 28 }}
-            className="relative z-10 max-h-[min(82vh,620px)] w-full max-w-lg overflow-y-auto rounded-2xl border border-red-500/45 bg-slate-950/96 p-5 shadow-[0_24px_80px_rgba(0,0,0,0.65)] backdrop-blur-xl"
-          >
-            <h2 id="zeiss-data-integrity-title" className="text-base font-semibold tracking-tight text-red-100">
-              价目数据完整性（Data-Integrity-Validator）
-            </h2>
-            <p className="mt-3 max-h-[48vh] overflow-y-auto whitespace-pre-wrap text-left text-[13px] leading-relaxed text-white/88">
-              {formatDataIntegrityBossSummary(dataIntegrityGaps)}
-            </p>
-            <p className="mt-3 text-[11px] leading-snug text-white/45">
-              导航项在 JSON 矩阵中缺同名 productName 时会在数据完整性报告中标出。翻页时红色顶栏：该物理页有价目位或系列标题线索但未绑定矩阵。可在补齐后刷新；点「知道了」后本版本不再弹窗。
-            </p>
-            <button
-              type="button"
-              onClick={dismissDataIntegrityAlert}
-              className="mt-5 w-full rounded-xl border border-red-400/30 bg-red-600/90 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:bg-red-600"
-            >
-              知道了
-            </button>
-          </motion.div>
-        </motion.div>
-      ) : null}
     </div>
   );
 }
