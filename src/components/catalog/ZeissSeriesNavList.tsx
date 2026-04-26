@@ -6,27 +6,18 @@
  */
 
 import { useLayoutEffect, useRef, type CSSProperties } from 'react';
-import { motion } from 'framer-motion';
 import type { HandbookSeriesNavItem } from '@/data/zeissHandbookPageMap';
 import type { HandbookActiveNavState } from '@/lib/catalog/dataIntegrityValidator';
 import { HoyaPhysicalTabRail } from '@/components/catalog/HoyaPhysicalTabRail';
 import { useHandbookFlipRuntime } from '@/components/catalog/HandbookFlipRuntimeContext';
 import { isHandbookPhysicalRailHostPage } from '@/lib/catalog/handbookPhysicalRailHostPage';
 
-/**
- * 侧栏表面：行内强制（不经过 Tailwind 编译），本帧即生效
- * - slate-900/30 等价 rgba(15, 23, 42, 0.3)（Tailwind slate-900 为 #0f172a，此处用用户指定 RGB）
- */
-const ZEISS_NAV_RAIL_SURFACE: CSSProperties = {
-  backgroundColor: 'rgba(15, 23, 42, 0.3)',
-  backdropFilter: 'blur(16px)',
-  WebkitBackdropFilter: 'blur(16px)',
+/** 与 {@link ZeissHandbookShortcutRail} 一致：无 blur/投影，纯静态色块 */
+const ZEISS_RAIL_SHELF: CSSProperties = {
+  backgroundColor: 'rgb(15 23 42 / 0.95)',
 };
 
-/** 仅结构 / 阴影子类名；背景与模糊一律见 {@link ZEISS_NAV_RAIL_SURFACE} */
-const RAIL_CHROME =
-  'relative border-l border-white/10 ' +
-  'shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04),inset_-1px_0_12px_rgba(0,0,0,0.2)]';
+const RAIL_CHROME = 'relative border-l border-white/20 border-r border-white/5';
 
 const NAV_SCROLL_STYLES =
   'zeiss-nav-scroll ' +
@@ -46,6 +37,9 @@ type Props = {
   pageIndex: number;
   /** 未传时从 {@link useHandbookFlipRuntime} 读取（页内 rail，避免牵动 page-flip 子树） */
   activeId?: string;
+  /**
+   * 在组件内已**同步**调用 `pageFlipInstance.flip`；`onSelect` 于 `queueMicrotask` 中触发，仅作埋点/副作用，勿再 `flip`。
+   */
   onSelect: (item: HandbookSeriesNavItem) => void;
   compact?: boolean;
   className?: string;
@@ -120,7 +114,7 @@ export function ZeissSeriesNavList({
   if (items.length === 0 && brand === 'zeiss' && navLayout === 'classic') {
     return (
       <div
-        style={ZEISS_NAV_RAIL_SURFACE}
+        style={ZEISS_RAIL_SHELF}
         className={[
           'relative flex h-full min-h-0 w-full flex-col items-center justify-center overflow-hidden p-1.5',
           RAIL_CHROME,
@@ -132,21 +126,21 @@ export function ZeissSeriesNavList({
         role="status"
         aria-label="无物理侧栏项"
       >
-        <p className="text-center text-[9px] leading-tight text-white/55">
+        <p className="text-center text-[9px] leading-tight text-white">
           暂无已验证的物理侧栏
-          <span className="mt-0.5 block text-white/40">请核对蔡司页表内凸标与验证字段后刷新本页</span>
+          <span className="mt-0.5 block text-white">请核对蔡司页表内凸标与验证字段后刷新本页</span>
         </p>
       </div>
     );
   }
 
-  const labelTextBase = compact
-    ? 'line-clamp-4 pl-0.5 text-[10px] font-semibold leading-[1.2] tracking-[-0.02em]'
-    : 'line-clamp-3 pl-0.5 text-sm font-medium leading-snug tracking-tight';
+  const labelText = compact
+    ? 'line-clamp-4 pl-1.5 text-left text-[10px] font-medium leading-[1.2] text-white'
+    : 'line-clamp-3 pl-1.5 text-left text-sm font-medium leading-snug text-white';
 
   return (
     <div
-      style={ZEISS_NAV_RAIL_SURFACE}
+      style={ZEISS_RAIL_SHELF}
       className={[
         'flex h-full min-h-0 w-full flex-1 flex-col',
         RAIL_CHROME,
@@ -169,7 +163,7 @@ export function ZeissSeriesNavList({
         <div
           className={
             useTwoColumn
-              ? 'grid min-h-0 flex-1 grid-cols-2 content-start items-start gap-1 px-0.5 py-0.5 pr-0.5'
+              ? 'grid min-h-0 flex-1 grid-cols-2 content-start items-start gap-0.5 px-0.5 py-0.5 pr-0.5'
               : 'flex min-h-0 flex-1 flex-col divide-y divide-white/5 px-0.5 py-0.5 pr-0.5'
           }
         >
@@ -190,40 +184,43 @@ export function ZeissSeriesNavList({
             anchorStatus === 'warning' ? '当前锚点价目数据待补全' : '',
           ].filter(Boolean);
           return (
-            <motion.button
+            <button
               key={it.id}
               type="button"
               data-zeiss-nav-active={active ? 'true' : undefined}
               data-handbook-anchor-status={anchorStatus}
               title={titleParts.length ? titleParts.join(' · ') : undefined}
-              onClick={() => onSelect(it)}
-              layout
-              initial={false}
-              whileHover={{ x: -0.5 }}
-              whileTap={{ scale: 0.99 }}
-              transition={{ type: 'spring', stiffness: 480, damping: 34 }}
-              style={active ? { borderLeft: '4px solid #005AAA' } : undefined}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (typeof window !== 'undefined') {
+                  try {
+                    window.pageFlipInstance?.flip(it.startPage0, 'top');
+                  } catch {
+                    /* ignore */
+                  }
+                }
+                queueMicrotask(() => {
+                  onSelect(it);
+                });
+              }}
               className={[
-                'group/btn relative w-full rounded-[2px] pl-0.5 text-left',
-                compact ? 'px-0.5 py-px' : 'px-0.5 py-0.5',
-                'border-l-4',
-                'transition-[background,box-shadow,color,filter] duration-200',
-                'border-l-transparent',
-                'hover:border-l-white/20',
+                'relative w-full min-w-0 overflow-hidden rounded-[2px] bg-transparent text-left',
+                'px-0.5',
+                compact ? 'py-px' : 'py-0.5',
                 useTwoColumn && wide ? 'col-span-2' : 'col-span-1',
                 integrityWarn ? 'ring-1 ring-red-500/70 ring-inset' : '',
-                active
-                  ? 'bg-white/[0.04] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]'
-                  : 'hover:bg-white/[0.04]',
               ].join(' ')}
             >
               <span
+                aria-hidden
                 className={[
-                  labelTextBase,
-                  active
-                    ? 'text-white [text-shadow:0_0_8px_rgba(255,255,255,0.4)]'
-                    : 'text-slate-400 group-hover/btn:text-white group-hover/btn:[text-shadow:0_0_8px_rgba(255,255,255,0.4)]',
+                  'pointer-events-none absolute left-0 top-[11%] z-[1] h-[78%] w-1',
+                  active ? 'bg-[#005AAA] opacity-100' : 'opacity-0',
                 ].join(' ')}
+              />
+              <span
+                className={['relative z-[1] min-w-0 max-w-full', labelText].join(' ')}
               >
                 {it.label}
               </span>
@@ -235,7 +232,7 @@ export function ZeissSeriesNavList({
                   {pendingMsg}
                 </span>
               ) : null}
-            </motion.button>
+            </button>
           );
         })}
         </div>

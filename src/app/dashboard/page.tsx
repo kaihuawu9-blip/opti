@@ -13,6 +13,7 @@ import {
 import { disableAuthMode } from '@/core/auth';
 import { cloudRest, isCloudRestConfigured, cloudRestConfigHint } from '@/lib/cloudRest';
 import { useAuth } from '@/components/AuthProvider';
+import { CapsuleTag } from '@/components/ui/CapsuleTag';
 import { useAppNavigate } from '@/lib/useAppNavigate';
 
 type RxEye = { ds: string; dc: string; axis: string; va: string; pd: string; add?: string };
@@ -334,25 +335,33 @@ export default function DashboardPage() {
                     </div>
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="font-mono text-xs leading-relaxed text-slate-700">
+                    <CapsuleTag
+                      variant="rx"
+                      numeric
+                      mono
+                      multiline
+                      size="md"
+                      className="!w-full !text-xs !font-medium !leading-relaxed"
+                    >
                       {formatRxOneLine(row.prescription)}
-                    </p>
+                    </CapsuleTag>
                     <p className="mt-1 truncate text-xs text-slate-500">
                       {row.products?.name || '—'} · {row.stores?.name || '—'}
                     </p>
                   </div>
                   <div className="flex shrink-0 flex-wrap items-center gap-2 sm:flex-col sm:items-end">
-                    <span
-                      className={`inline-flex rounded-md px-2 py-0.5 text-[11px] font-semibold ring-1 ${
+                    <CapsuleTag
+                      size="md"
+                      variant={
                         row.sale_status === '加工中'
-                          ? 'bg-sky-50 text-sky-800 ring-sky-200'
+                          ? 'brand'
                           : row.sale_status === '待加工'
-                            ? 'bg-amber-50 text-amber-900 ring-amber-200'
-                            : 'bg-slate-50 text-slate-600 ring-slate-200'
-                      }`}
+                            ? 'warning'
+                            : 'status'
+                      }
                     >
                       {row.sale_status || '待加工'}
-                    </span>
+                    </CapsuleTag>
                     <time className="text-[11px] tabular-nums text-slate-400">
                       {new Date(row.created_at).toLocaleString('zh-CN', {
                         month: '2-digit',

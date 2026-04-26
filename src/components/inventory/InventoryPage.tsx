@@ -19,6 +19,7 @@ import {
   type LensSeriesOption,
 } from '@/lib/lensCatalog';
 import { compressImageFileToJpegBlob } from '@/lib/compressImageClient';
+import { CapsuleTag } from '@/components/ui/CapsuleTag';
 
 type Product = {
   id: string;
@@ -1182,16 +1183,24 @@ export default function InventoryPage() {
                       product.allow_points === false ? (
                         <div className="flex flex-wrap gap-1">
                           {product.is_hot ? (
-                            <span className="rounded bg-orange-100 px-1.5 py-0.5 text-orange-800">热卖</span>
+                            <CapsuleTag size="sm" variant="hot">
+                              热卖
+                            </CapsuleTag>
                           ) : null}
                           {product.is_promo ? (
-                            <span className="rounded bg-rose-100 px-1.5 py-0.5 text-rose-800">特价</span>
+                            <CapsuleTag size="sm" variant="commerce">
+                              特价
+                            </CapsuleTag>
                           ) : null}
                           {product.allow_discount === false ? (
-                            <span className="rounded bg-slate-100 px-1.5 py-0.5 text-slate-600">不打折</span>
+                            <CapsuleTag size="sm" variant="neutral">
+                              不打折
+                            </CapsuleTag>
                           ) : null}
                           {product.allow_points === false ? (
-                            <span className="rounded bg-slate-100 px-1.5 py-0.5 text-slate-600">不积分</span>
+                            <CapsuleTag size="sm" variant="neutral">
+                              不积分
+                            </CapsuleTag>
                           ) : null}
                         </div>
                       ) : (

@@ -170,6 +170,58 @@ export function onHandbookAddToCart(handler: HandbookAddToCartHandler): () => vo
     window.removeEventListener(HANDBOOK_ADD_TO_CART_EVENT, cb as EventListener);
 }
 
+/* ─── 全屏感应层：页面点击坐标广播 ───────────────────────────────────────── */
+
+/**
+ * 点击页面时广播的物理坐标（已还原为 1:1 PDF 像素 + 相对百分比）。
+ * 供全屏「收银映射」等上层逻辑消费，与 {@link HandbookCartPayload} 解耦。
+ */
+export interface HandbookPageClickCoord {
+  /** 翻页引擎 0-based 左页下标（与 StPageFlip `e.data` 一致） */
+  pageIndex0: number;
+  /** 点击位于左页还是右页 */
+  side: 'left' | 'right';
+  /** 单页内相对 X（0.0–1.0，左 → 右） */
+  relX: number;
+  /** 单页内相对 Y（0.0–1.0，上 → 下） */
+  relY: number;
+  /**
+   * 物理像素 X — 已 / scale 还原，等效于 PDF 页在 1:1 时的 px 横坐标（0 = 单页左缘）。
+   * 计算公式：`relX × pageW`（其中 pageW 为单页 CSS 像素宽，如 450）。
+   */
+  physX: number;
+  /** 物理像素 Y，同上 */
+  physY: number;
+  brand: DigitalHandbookBrand;
+  /** 1-based 左页 PDF 页码 */
+  pdfPage1Left: number;
+}
+
+export const HANDBOOK_PAGE_CLICK_EVENT = 'handbook:page-click' as const;
+
+/** 全屏感应层点击 → 广播坐标（供上层「坐标收银」消费） */
+export function dispatchHandbookPageClick(coord: HandbookPageClickCoord): void {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(
+    new CustomEvent<HandbookPageClickCoord>(HANDBOOK_PAGE_CLICK_EVENT, { detail: coord }),
+  );
+}
+
+export type HandbookPageClickHandler = (coord: HandbookPageClickCoord) => void;
+
+/** 注册页面坐标点击监听（返回取消函数） */
+export function onHandbookPageClick(handler: HandbookPageClickHandler): () => void {
+  if (typeof window === 'undefined') return () => {};
+  const cb = (e: Event) => {
+    const ce = e as CustomEvent<HandbookPageClickCoord>;
+    if (ce?.detail) handler(ce.detail);
+  };
+  window.addEventListener(HANDBOOK_PAGE_CLICK_EVENT, cb as EventListener);
+  return () => window.removeEventListener(HANDBOOK_PAGE_CLICK_EVENT, cb as EventListener);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────── */
+
 /** 将 payload 合成为一个可直接传给 CartItem 的「镜片 Product」快照；非 UUID id 代表非库存入账行 */
 export function toCashierLensProduct(payload: HandbookCartPayload): {
   id: string;

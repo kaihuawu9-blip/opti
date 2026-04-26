@@ -24,3 +24,30 @@ export type ZeissHandbookMapId = ZeissHandbookMapEntry['id'];
 export function zeissHandbookMapPageToIndex0(pdfPage1: number): number {
   return Math.max(0, Math.floor(pdfPage1) - 1);
 }
+
+/**
+ * 横展双页时，引擎的 `getCurrentPageIndex` / `onFlip(e.data)` 常指向**左叶**下标。
+ * 章节从某 PDF 页号开始（如 智锐 P10），若 P10 为右叶，需用对页中**较大**下标做高亮，左右叶均落在同一段内。
+ */
+export function zeissHandbookMapEffectiveIndex0(engineIndex0: number, totalPages: number): number {
+  const t = Math.max(0, totalPages);
+  if (t <= 0) return 0;
+  const i = Math.max(0, Math.min(Math.floor(engineIndex0), t - 1));
+  if (t > 1 && i < t - 1) return i + 1;
+  return i;
+}
+
+/**
+ * 在「区间」上取**最后一个**满足 `entry.page - 1 <= index0` 的项（与累积命中规则一致）
+ */
+export function getZeissHandbookMapActiveId(
+  currentIndex0: number,
+  totalPages: number,
+): ZeissHandbookMapId | null {
+  const eff = zeissHandbookMapEffectiveIndex0(currentIndex0, totalPages);
+  let id: ZeissHandbookMapId | null = null;
+  for (const it of ZEISS_HANDBOOK_MAP) {
+    if (it.page - 1 <= eff) id = it.id;
+  }
+  return id;
+}

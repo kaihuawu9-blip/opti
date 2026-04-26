@@ -8,6 +8,7 @@ import { toChineseErrorMessage } from '@/lib/userMessages';
 import { useAuth } from '@/components/AuthProvider';
 import PrintTemplate, { type PrintOrder } from '@/components/PrintTemplate';
 import { resolveStoreDisplayName } from '@/lib/storeDisplayName';
+import { CapsuleTag } from '@/components/ui/CapsuleTag';
 import { ReceiptDesktopPrinterBar } from '@/components/ReceiptDesktopPrinterBar';
 import { printReceiptWithElectronPreference } from '@/lib/receiptElectronPrint';
 import '@/styles/Print.css';
@@ -737,15 +738,15 @@ export default function ReportsPage() {
                   <td className="px-6 py-4 text-gray-700">{sale.customer_name || '—'}</td>
                   <td className="px-6 py-4 text-gray-700">{sale.customer_phone || '—'}</td>
                   <td className="px-6 py-4">
-                    <span
-                      className={`inline-flex px-2 py-0.5 rounded text-xs font-medium ${
-                        (sale.sale_status || '').trim() === '已退单'
-                          ? 'bg-red-100 text-red-800'
-                          : 'bg-slate-100 text-slate-700'
-                      }`}
+                    <CapsuleTag
+                      size="md"
+                      className="text-xs"
+                      variant={
+                        (sale.sale_status || '').trim() === '已退单' ? 'danger' : 'status'
+                      }
                     >
                       {sale.sale_status || '待加工'}
-                    </span>
+                    </CapsuleTag>
                   </td>
                   <td className="px-6 py-4 text-xs align-top max-w-[180px]" title={sale.refund_reason || ''}>
                     {(sale.sale_status || '').trim() === '已退单' ? (
@@ -759,8 +760,13 @@ export default function ReportsPage() {
                     )}
                   </td>
                   <td className="px-6 py-4 text-gray-600 font-medium">{sale.quantity}</td>
-                  <td className="px-6 py-4 text-xs text-gray-600 align-top max-w-xs" title={formatPrescriptionShort(sale.prescription)}>
-                    {formatPrescriptionShort(sale.prescription)}
+                  <td
+                    className="px-6 py-4 text-xs text-gray-600 align-top max-w-xs"
+                    title={formatPrescriptionShort(sale.prescription)}
+                  >
+                    <CapsuleTag variant="rx" numeric mono multiline size="md" className="!w-full !text-xs !font-medium">
+                      {formatPrescriptionShort(sale.prescription)}
+                    </CapsuleTag>
                   </td>
                   <td className="px-6 py-4 text-right font-bold text-blue-600">
                     ￥{Number(sale.total_price).toFixed(2)}

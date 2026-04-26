@@ -1,6 +1,7 @@
 'use client';
 
 import { memo } from 'react';
+import { CapsuleTag } from '@/components/ui/CapsuleTag';
 import {
   type CartItem,
   type RxEye,
@@ -115,9 +116,17 @@ function ReadonlyCartBlockInner({
             {tintNote ? <p className="mt-0.5 text-[10px] leading-tight text-stone-500">{tintNote}</p> : null}
             {showRxDegreeBlock ? (
               rxOne ? (
-                <p className="mt-0.5 truncate font-mono text-[10px] leading-none text-stone-800" title={rxOne}>
-                  度数 · {rxOne}
-                </p>
+                <div className="mt-0.5 min-w-0 max-w-full truncate" title={rxOne}>
+                  <CapsuleTag
+                    variant="rx"
+                    numeric
+                    mono
+                    size="sm"
+                    className="align-middle !inline max-w-full !text-[10px] !leading-tight"
+                  >
+                    度数 · {rxOne}
+                  </CapsuleTag>
+                </div>
               ) : isCustomComboLine(item) ? (
                 <p className="mt-0.5 text-[10px] leading-tight text-amber-700">自主配镜 · 验光待填</p>
               ) : (
@@ -125,18 +134,20 @@ function ReadonlyCartBlockInner({
               )
             ) : null}
             <p className="mt-1">
-              <span
-                className={`inline-block rounded px-1 py-px text-[10px] leading-none ${
+              <CapsuleTag
+                size="sm"
+                variant={
                   isCustomComboLine(item)
                     ? isRxComplete(item.rx)
-                      ? 'bg-violet-100 text-violet-800'
-                      : 'bg-amber-100 text-amber-800'
+                      ? 'rx'
+                      : 'warning'
                     : isLensProduct(item)
                       ? isRxComplete(item.rx)
-                        ? 'bg-emerald-100 text-emerald-800'
-                        : 'bg-amber-100 text-amber-800'
-                      : 'bg-stone-100 text-stone-600'
-                }`}
+                        ? 'success'
+                        : 'warning'
+                      : 'retail'
+                }
+                weight="bold"
               >
                 {isCustomComboLine(item)
                   ? isRxComplete(item.rx)
@@ -147,7 +158,7 @@ function ReadonlyCartBlockInner({
                       ? '验光齐'
                       : '缺验光'
                     : '零售商品'}
-              </span>
+              </CapsuleTag>
             </p>
           </>
         );

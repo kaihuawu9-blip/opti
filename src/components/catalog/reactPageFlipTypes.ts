@@ -61,7 +61,8 @@ export type ReactPageFlipProps = {
   autoSize?: boolean;
   showPageCorners?: boolean;
   disableFlipByClick?: boolean;
-  onFlip?: (e: { data?: unknown }) => void;
+  /** `data` 为当前 0-based 页下标（与 `getCurrentPageIndex()` 一致） */
+  onFlip?: (e: { data?: unknown; object?: unknown }) => void;
   onInit?: (e: { data?: unknown }) => void;
   onChangeState?: (e: { data?: unknown }) => void;
   onChangeOrientation?: (e: { data?: unknown }) => void;

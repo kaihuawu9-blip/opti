@@ -21,8 +21,8 @@ import { Maximize2, X } from 'lucide-react';
 import '@/styles/page-flip.css';
 import { ZeissHandbookPage } from '@/components/catalog/ZeissHandbookPage';
 import { ZeissHandbookShortcutRail } from '@/components/catalog/ZeissHandbookShortcutRail';
+import { HandbookFsInteractionZone } from '@/components/catalog/HandbookFsInteractionZone';
 import type { ReactPageFlipProps, ReactPageFlipRef } from '@/components/catalog/reactPageFlipTypes';
-import { playHandbookPaperRustle } from '@/lib/catalog/handbookPaperSound';
 import { getHandbookPageCount, getPageData } from '@/data/zeissHandbookPageMap';
 
 /* ─── 物理常数 ────────────────────────────────────────────────────────────── */
@@ -32,7 +32,8 @@ const PAGE_W    = 450;
 const PAGE_H    = Math.floor(PAGE_W * PAGE_RATIO); // 636
 const RAIL_W    = 60;
 const RAIL_GAP  = 5;
-const FLIP_MS   = 1000;
+/** 翻页「速度感」：600–800ms 区间，固定 700，与价目册快节奏一致 */
+const FLIP_MS   = 700;
 
 const PHYS_W  = 2 * PAGE_W + RAIL_W + RAIL_GAP; // 965 — 书+间隙+栏
 const PHYS_H  = PAGE_H;                          // 636
@@ -121,9 +122,10 @@ interface BookStageProps {
   pages: ReactNode;
   /** react-pageflip startPage；首次挂载时跳到指定页 */
   startPage: number;
-  /** 当前 0-based 页码（驱动 rail 激活态） */
+  /** 当前 0-based 页码（驱动 rail 激活态；与引擎 onFlip e.data 一致） */
   currentPage: number;
-  onFlip: () => void;
+  pageCount: number;
+  onFlip: (e: { data?: unknown }) => void;
   onInit: () => void;
   onChangeState: (e: { data?: unknown }) => void;
 }
@@ -139,7 +141,7 @@ interface BookStageProps {
  * - BookStage `overflow: visible` 保证 rail 可向右溢出展示。
  */
 function BookStage({
-  flipRef, pages, startPage, currentPage,
+  flipRef, pages, startPage, currentPage, pageCount,
   onFlip, onInit, onChangeState,
 }: BookStageProps) {
   return (
@@ -188,7 +190,7 @@ function BookStage({
           height: '100%',
         }}
       >
-        <ZeissHandbookShortcutRail currentPageIndex0={currentPage} />
+        <ZeissHandbookShortcutRail currentPageIndex0={currentPage} pageCount={pageCount} />
       </div>
     </div>
   );
@@ -214,7 +216,8 @@ export function ZeissDigitalHandbook() {
   const [isFs,        setIsFs]        = useState(false);
   const [mounted,     setMounted]     = useState(false);
 
-  /* hydration 标志（portal 需要 document） */
+  /* hydration 标志（portal 需要 document）：SSR 下 false，CSR 首帧后 true */
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { setMounted(true); }, []);
 
   /* 同步 isFsRef（useLayoutEffect 先于 useEffect，在绘制前完成） */
@@ -234,9 +237,10 @@ export function ZeissDigitalHandbook() {
 
   /* ── 全屏视口（直接读 window，免疫祖先 containing block） ── */
   useLayoutEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!isFs) { setFsViewport({ w: 0, h: 0 }); return; }
     const sync = () => setFsViewport({ w: window.innerWidth, h: window.innerHeight });
-    sync();                                           // 立即同步一次
+    sync();
     window.addEventListener('resize', sync, { passive: true });
     return () => window.removeEventListener('resize', sync);
   }, [isFs]);
@@ -282,18 +286,42 @@ export function ZeissDigitalHandbook() {
     queueMicrotask(() => { exposeInstance(); syncPage(); });
   }, [exposeInstance, syncPage]);
 
+  /**
+   * 翻页至「可读」态（`read`）再读 getCurrentPageIndex，作为 onFlip 的兜底。
+   */
   const onChangeState = useCallback(
     (e: { data?: unknown }) => {
-      if (e?.data === 'flipping') playHandbookPaperRustle();
-      if (e?.data === 'read') syncPage();
+      if (e.data === 'read') {
+        requestAnimationFrame(() => {
+          syncPage();
+          exposeInstance();
+        });
+      }
     },
-    [syncPage],
+    [syncPage, exposeInstance],
   );
 
-  const onFlip = useCallback(() => {
-    syncPage();
-    exposeInstance();
-  }, [exposeInstance, syncPage]);
+  /**
+   * 优先使用引擎 `onFlip` 的 `e.data`（0-based 左叶下标，与 StPageFlip 一致），rAF 后再 setState；否则回读 getCurrentPageIndex。
+   */
+  const onFlip = useCallback(
+    (e: { data?: unknown }) => {
+      requestAnimationFrame(() => {
+        const raw = e?.data;
+        if (raw !== undefined && raw !== null) {
+          const n = Number(raw);
+          if (Number.isFinite(n)) {
+            setCurrentPage(Math.max(0, Math.floor(n)));
+            exposeInstance();
+            return;
+          }
+        }
+        syncPage();
+        exposeInstance();
+      });
+    },
+    [exposeInstance, syncPage],
+  );
 
   const pages = useMemo(
     () =>
@@ -318,22 +346,27 @@ export function ZeissDigitalHandbook() {
   );
 
   /* ── 全屏关闭后：把预览书跳到 FS 最后阅读的页码 ── */
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const currentPageRef = useRef(currentPage);
+  useLayoutEffect(() => { currentPageRef.current = currentPage; }, [currentPage]);
+
   useEffect(() => {
     if (isFs) return;
     const id = setTimeout(() => {
       try {
         const pf = previewRef.current?.pageFlip?.();
         if (!pf) return;
+        const target = currentPageRef.current;
         const cur = pf.getCurrentPageIndex?.() ?? 0;
-        if (cur === currentPage) return; // 已对齐，无需跳转
-        typeof pf.turnToPage === 'function'
-          ? pf.turnToPage(currentPage)
-          : pf.flip(currentPage, 'top');
+        if (cur === target) return;
+        if (typeof pf.turnToPage === 'function') {
+          pf.turnToPage(target);
+        } else {
+          pf.flip(target, 'top');
+        }
       } catch { /* ignore */ }
     }, 80);
     return () => clearTimeout(id);
-  }, [isFs]); // 依赖 isFs 即可；currentPage 此时已是 FS 期间的最新值
+  }, [isFs]);
 
   /* ── Esc 退出全屏 ── */
   useEffect(() => {
@@ -354,7 +387,7 @@ export function ZeissDigitalHandbook() {
 
   /** 共享给两个 BookStage 的 props（不含 flipRef / startPage） */
   const sharedStageProps = {
-    pages, currentPage,
+    pages, currentPage, pageCount: total,
     onFlip, onInit, onChangeState,
   } as const;
 
@@ -419,7 +452,12 @@ export function ZeissDigitalHandbook() {
         createPortal(
           <div
             className="leather-field pointer-events-auto flex items-center justify-center"
-            style={{ position: 'fixed', inset: 0, zIndex: 999999 }}
+            style={{
+              position: 'fixed', inset: 0, zIndex: 999999,
+              /* 防止浏览器将双指合拢误判为"退出"或触发系统页面缩放 */
+              touchAction: 'none',
+              overscrollBehavior: 'none',
+            }}
             role="dialog"
             aria-modal
             aria-label="蔡司价目手册 · 全屏沉浸"
@@ -428,21 +466,34 @@ export function ZeissDigitalHandbook() {
           >
             {/* 视口尺寸就绪后才渲染书，防止首帧 scale=0.45 的邮票闪现 */}
             {fsViewport.w > 0 && (
-              <ScaledBlock scale={fsScale}>
-                <BookStage
-                  flipRef={fsRef}
-                  startPage={currentPage}
-                  {...sharedStageProps}
-                />
-              </ScaledBlock>
+              /*
+               * HandbookFsInteractionZone 包裹全屏书体，提供：
+               *   双击 → 原位 2.2× 放大（点哪大哪）/ 再双击缩回
+               *   放大态 → 透明感应层捕获 pan 手势，阻断 HTMLFlipBook 翻页
+               *   cashierMode=false（默认关闭收银广播，需主动开启）
+               */
+              <HandbookFsInteractionZone
+                currentPage={currentPage}
+                pageW={PAGE_W}
+                pageH={PAGE_H}
+                brand="zeiss"
+              >
+                <ScaledBlock scale={fsScale}>
+                  <BookStage
+                    flipRef={fsRef}
+                    startPage={currentPage}
+                    {...sharedStageProps}
+                  />
+                </ScaledBlock>
+              </HandbookFsInteractionZone>
             )}
 
-            {/* 关闭钮：absolute 相对于 fixed 壳，不再双重 fixed */}
+            {/* 关闭钮：z-100 > 感应层 z-75，确保放大态下仍可点击退出 */}
             <button
               type="button"
               onClick={() => setIsFs(false)}
               aria-label="退出全屏"
-              style={{ position: 'absolute', right: 16, top: 16, zIndex: 10 }}
+              style={{ position: 'absolute', right: 16, top: 16, zIndex: 100 }}
               className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/30 bg-slate-950/70 text-white shadow-[0_12px_40px_rgba(0,0,0,0.6)] backdrop-blur-xl transition hover:bg-slate-900/80"
             >
               <X className="h-6 w-6" strokeWidth={2.4} />

@@ -1,6 +1,6 @@
 'use client';
 
-import { forwardRef, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { forwardRef, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 
 /**
  * 透明感应层（Invisible Hit Layer）：作为 Page 的 `absolute` 子元素，**不绘制任何可见像素**。
@@ -186,6 +186,27 @@ export const ZeissHandbookPage = forwardRef<HTMLDivElement, ZeissHandbookPagePro
 
     const imgSrc = isManualTrimmed && trimImgSrc ? trimImgSrc : src;
 
+    const onRasterError = useCallback(() => {
+      setReveal(true);
+      if (!isManualTrimmed) return;
+      if (!trimImgSrc) return;
+      if (trimImgSrc.endsWith('.jpg') || trimImgSrc.endsWith('.jpeg')) {
+        const png = trimImgSrc.replace(/\.jpe?g$/i, '.png');
+        if (png !== trimImgSrc) {
+          setTrimImgSrc(png);
+          return;
+        }
+      }
+      if (trimImgSrc.endsWith('.png')) {
+        const jpg = trimImgSrc.replace(/\.png$/i, '.jpg');
+        if (jpg !== trimImgSrc) setTrimImgSrc(jpg);
+      }
+    }, [isManualTrimmed, trimImgSrc]);
+
+    const onDefaultRasterError = useCallback(() => {
+      setReveal(true);
+    }, []);
+
     const renderHitLayer = () => {
       if (isManualTrimmed) return null;
       if (!physicalTabHit) return null;
@@ -281,54 +302,49 @@ export const ZeissHandbookPage = forwardRef<HTMLDivElement, ZeissHandbookPagePro
         style={isManualTrimmed ? undefined : { boxShadow: PAPER_STACK_SHADOW }}
       >
         {isManualTrimmed ? (
-          <div className="hoya-manual-trim-media absolute inset-0 overflow-visible">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={imgSrc ?? undefined}
-              alt={title || `手册第 ${pageNumber} 页`}
-              className={[
-                'hoya-manual-trim-img pointer-events-none absolute left-1/2 top-1/2 max-h-full max-w-full -translate-x-1/2 -translate-y-1/2 select-none object-contain transition-opacity ease-out duration-300',
-                reveal ? 'opacity-100' : 'opacity-0',
-              ].join(' ')}
-              onLoad={() => setReveal(true)}
-              onError={() => {
-                setReveal(true);
-                if (!trimImgSrc) return;
-                if (trimImgSrc.endsWith('.jpg') || trimImgSrc.endsWith('.jpeg')) {
-                  const png = trimImgSrc.replace(/\.jpe?g$/i, '.png');
-                  if (png !== trimImgSrc) setTrimImgSrc(png);
-                  return;
-                }
-                if (trimImgSrc.endsWith('.png')) {
-                  const jpg = trimImgSrc.replace(/\.png$/i, '.jpg');
-                  if (jpg !== trimImgSrc) setTrimImgSrc(jpg);
-                }
-              }}
-              draggable={false}
-            />
+          <div className="hoya-manual-trim-media pointer-events-none absolute inset-0 overflow-visible">
+            {imgSrc ? (
+              // eslint-disable-next-line @next/next/no-img-element -- 价目册栅格 dataURL / 动态路径
+              <img
+                key={`${pageNumber}-hoya-${imgSrc.length}`}
+                src={imgSrc}
+                alt={title || `手册第 ${pageNumber} 页`}
+                decoding="async"
+                loading="eager"
+                draggable={false}
+                onLoad={() => setReveal(true)}
+                onError={onRasterError}
+                className={[
+                  'hoya-manual-trim-img hoya-hidpr-img pointer-events-none absolute inset-0 h-full w-full object-contain',
+                  'transition-opacity ease-out duration-300',
+                  reveal ? 'opacity-100' : 'opacity-0',
+                ].join(' ')}
+              />
+            ) : null}
           </div>
         ) : (
           <div
-            className="absolute inset-0 min-h-0 min-w-0 overflow-hidden bg-[#0a0f14] rounded-l-sm"
+            className="pointer-events-none absolute inset-0 min-h-0 min-w-0 bg-[#0a0f14] rounded-l-sm"
+            style={clipStyle}
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              key={pageNumber}
-              src={imgSrc ?? undefined}
-              alt={title || `手册第 ${pageNumber} 页`}
-              width={1536}
-              height={2048}
-              loading="eager"
-              decoding="sync"
-              onLoad={() => setReveal(true)}
-              onError={() => setReveal(true)}
-              className={[
-                'absolute inset-0 h-full w-full object-cover object-center transition-opacity ease-out duration-300',
-                reveal ? 'opacity-100' : 'opacity-0',
-              ].join(' ')}
-              style={clipStyle}
-              draggable={false}
-            />
+            {imgSrc ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                key={pageNumber}
+                src={imgSrc}
+                alt={title || `手册第 ${pageNumber} 页`}
+                decoding="async"
+                loading="eager"
+                draggable={false}
+                onLoad={() => setReveal(true)}
+                onError={onDefaultRasterError}
+                className={[
+                  'pointer-events-none absolute inset-0 h-full w-full object-cover',
+                  'transition-opacity ease-out duration-300',
+                  reveal ? 'opacity-100' : 'opacity-0',
+                ].join(' ')}
+              />
+            ) : null}
           </div>
         )}
         {renderHitLayer()}
