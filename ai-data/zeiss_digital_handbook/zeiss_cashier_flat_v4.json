@@ -1,0 +1,8912 @@
+[
+  {
+    "id": "zeiss:智锐系列:智锐单光:标配:1.5:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐单光",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "钻立方铂金膜 (可染色)",
+    "coatingCode": "DP",
+    "tintable": true,
+    "retailYuan": 2680,
+    "pdfPage": 14,
+    "coord": [
+      0.26,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐单光:标配:1.6:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐单光",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方铂金膜 (可染色)",
+    "coatingCode": "DP",
+    "tintable": true,
+    "retailYuan": 3480,
+    "pdfPage": 14,
+    "coord": [
+      0.41,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐单光:标配:1.67:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐单光",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方铂金膜 (可染色)",
+    "coatingCode": "DP",
+    "tintable": true,
+    "retailYuan": 4580,
+    "pdfPage": 14,
+    "coord": [
+      0.58,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐单光:标配:1.74:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐单光",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 5980,
+    "pdfPage": 14,
+    "coord": [
+      0.74,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐单光:标配:1.5:BP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐单光",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 2780,
+    "pdfPage": 14,
+    "coord": [
+      0.26,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐单光:标配:1.6:BP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐单光",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 3580,
+    "pdfPage": 14,
+    "coord": [
+      0.41,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐单光:标配:1.67:BP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐单光",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 4680,
+    "pdfPage": 14,
+    "coord": [
+      0.58,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐单光:标配:1.74:BP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐单光",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 6080,
+    "pdfPage": 14,
+    "coord": [
+      0.74,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐单光:标配:1.5:BLDV",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐单光",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 2980,
+    "pdfPage": 14,
+    "coord": [
+      0.26,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐单光:标配:1.6:BLDV",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐单光",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 3780,
+    "pdfPage": 14,
+    "coord": [
+      0.41,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐单光:标配:1.67:BLDV",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐单光",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 4880,
+    "pdfPage": 14,
+    "coord": [
+      0.58,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐单光:标配:1.74:BLDV",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐单光",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 6280,
+    "pdfPage": 14,
+    "coord": [
+      0.74,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐单光:标配:1.5:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐单光",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "钻立方鎏金膜 (可染色)",
+    "coatingCode": "DG",
+    "tintable": true,
+    "retailYuan": 3680,
+    "pdfPage": 14,
+    "coord": [
+      0.26,
+      0.46,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐单光:标配:1.6:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐单光",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方鎏金膜 (可染色)",
+    "coatingCode": "DG",
+    "tintable": true,
+    "retailYuan": 4480,
+    "pdfPage": 14,
+    "coord": [
+      0.41,
+      0.46,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐单光:标配:1.67:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐单光",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方鎏金膜 (可染色)",
+    "coatingCode": "DG",
+    "tintable": true,
+    "retailYuan": 5580,
+    "pdfPage": 14,
+    "coord": [
+      0.58,
+      0.46,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐单光:标配:1.74:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐单光",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 6980,
+    "pdfPage": 14,
+    "coord": [
+      0.74,
+      0.46,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐单光:偏光（灰/褐/绿）:1.5:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐单光",
+    "subsetName": "偏光（灰/褐/绿）",
+    "index": 1.5,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 3080,
+    "pdfPage": 14,
+    "coord": [
+      0.31,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐单光:偏光（灰/褐/绿）:1.6:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐单光",
+    "subsetName": "偏光（灰/褐/绿）",
+    "index": 1.6,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 4180,
+    "pdfPage": 14,
+    "coord": [
+      0.5,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐单光:偏光（灰/褐/绿）:1.67:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐单光",
+    "subsetName": "偏光（灰/褐/绿）",
+    "index": 1.67,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 5480,
+    "pdfPage": 14,
+    "coord": [
+      0.7,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐单光:偏光（灰/褐/绿）:1.5:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐单光",
+    "subsetName": "偏光（灰/褐/绿）",
+    "index": 1.5,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 4080,
+    "pdfPage": 14,
+    "coord": [
+      0.31,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐单光:偏光（灰/褐/绿）:1.6:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐单光",
+    "subsetName": "偏光（灰/褐/绿）",
+    "index": 1.6,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 5180,
+    "pdfPage": 14,
+    "coord": [
+      0.5,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐单光:偏光（灰/褐/绿）:1.67:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐单光",
+    "subsetName": "偏光（灰/褐/绿）",
+    "index": 1.67,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 6480,
+    "pdfPage": 14,
+    "coord": [
+      0.7,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐单光:焕色视界X:1.5:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐单光",
+    "subsetName": "焕色视界X",
+    "index": 1.5,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 3080,
+    "pdfPage": 14,
+    "coord": [
+      0.26,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐单光:焕色视界X:1.6:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐单光",
+    "subsetName": "焕色视界X",
+    "index": 1.6,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 4180,
+    "pdfPage": 14,
+    "coord": [
+      0.41,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐单光:焕色视界X:1.67:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐单光",
+    "subsetName": "焕色视界X",
+    "index": 1.67,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 5480,
+    "pdfPage": 14,
+    "coord": [
+      0.58,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐单光:焕色视界X:1.74:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐单光",
+    "subsetName": "焕色视界X",
+    "index": 1.74,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 7180,
+    "pdfPage": 14,
+    "coord": [
+      0.74,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐单光:焕色视界X:1.5:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐单光",
+    "subsetName": "焕色视界X",
+    "index": 1.5,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 4080,
+    "pdfPage": 14,
+    "coord": [
+      0.26,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐单光:焕色视界X:1.6:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐单光",
+    "subsetName": "焕色视界X",
+    "index": 1.6,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 5180,
+    "pdfPage": 14,
+    "coord": [
+      0.41,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐单光:焕色视界X:1.67:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐单光",
+    "subsetName": "焕色视界X",
+    "index": 1.67,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 6480,
+    "pdfPage": 14,
+    "coord": [
+      0.58,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐单光:焕色视界X:1.74:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐单光",
+    "subsetName": "焕色视界X",
+    "index": 1.74,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 8180,
+    "pdfPage": 14,
+    "coord": [
+      0.74,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐臻选版单光:标配:1.5:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐臻选版单光",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "钻立方铂金膜 (可染色)",
+    "coatingCode": "DP",
+    "tintable": true,
+    "retailYuan": 4480,
+    "pdfPage": 15,
+    "coord": [
+      0.26,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐臻选版单光:标配:1.6:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐臻选版单光",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方铂金膜 (可染色)",
+    "coatingCode": "DP",
+    "tintable": true,
+    "retailYuan": 5880,
+    "pdfPage": 15,
+    "coord": [
+      0.41,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐臻选版单光:标配:1.67:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐臻选版单光",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方铂金膜 (可染色)",
+    "coatingCode": "DP",
+    "tintable": true,
+    "retailYuan": 7980,
+    "pdfPage": 15,
+    "coord": [
+      0.58,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐臻选版单光:标配:1.74:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐臻选版单光",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 10580,
+    "pdfPage": 15,
+    "coord": [
+      0.74,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐臻选版单光:标配:1.5:BP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐臻选版单光",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 4580,
+    "pdfPage": 15,
+    "coord": [
+      0.26,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐臻选版单光:标配:1.6:BP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐臻选版单光",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 5980,
+    "pdfPage": 15,
+    "coord": [
+      0.41,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐臻选版单光:标配:1.67:BP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐臻选版单光",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 8080,
+    "pdfPage": 15,
+    "coord": [
+      0.58,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐臻选版单光:标配:1.74:BP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐臻选版单光",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 10680,
+    "pdfPage": 15,
+    "coord": [
+      0.74,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐臻选版单光:标配:1.5:BLDV",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐臻选版单光",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 4780,
+    "pdfPage": 15,
+    "coord": [
+      0.26,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐臻选版单光:标配:1.6:BLDV",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐臻选版单光",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 6180,
+    "pdfPage": 15,
+    "coord": [
+      0.41,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐臻选版单光:标配:1.67:BLDV",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐臻选版单光",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 8280,
+    "pdfPage": 15,
+    "coord": [
+      0.58,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐臻选版单光:标配:1.74:BLDV",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐臻选版单光",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 10880,
+    "pdfPage": 15,
+    "coord": [
+      0.74,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐臻选版单光:标配:1.5:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐臻选版单光",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "钻立方鎏金膜 (可染色)",
+    "coatingCode": "DG",
+    "tintable": true,
+    "retailYuan": 5480,
+    "pdfPage": 15,
+    "coord": [
+      0.26,
+      0.46,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐臻选版单光:标配:1.6:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐臻选版单光",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方鎏金膜 (可染色)",
+    "coatingCode": "DG",
+    "tintable": true,
+    "retailYuan": 6880,
+    "pdfPage": 15,
+    "coord": [
+      0.41,
+      0.46,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐臻选版单光:标配:1.67:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐臻选版单光",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方鎏金膜 (可染色)",
+    "coatingCode": "DG",
+    "tintable": true,
+    "retailYuan": 8980,
+    "pdfPage": 15,
+    "coord": [
+      0.58,
+      0.46,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐臻选版单光:标配:1.74:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐臻选版单光",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 11580,
+    "pdfPage": 15,
+    "coord": [
+      0.74,
+      0.46,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐臻选版单光:偏光（灰/褐/绿）:1.5:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐臻选版单光",
+    "subsetName": "偏光（灰/褐/绿）",
+    "index": 1.5,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 5580,
+    "pdfPage": 15,
+    "coord": [
+      0.26,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐臻选版单光:偏光（灰/褐/绿）:1.6:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐臻选版单光",
+    "subsetName": "偏光（灰/褐/绿）",
+    "index": 1.6,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 6980,
+    "pdfPage": 15,
+    "coord": [
+      0.41,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐臻选版单光:偏光（灰/褐/绿）:1.67:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐臻选版单光",
+    "subsetName": "偏光（灰/褐/绿）",
+    "index": 1.67,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 9580,
+    "pdfPage": 15,
+    "coord": [
+      0.58,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐臻选版单光:偏光（灰/褐/绿）:1.74:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐臻选版单光",
+    "subsetName": "偏光（灰/褐/绿）",
+    "index": 1.74,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 12680,
+    "pdfPage": 15,
+    "coord": [
+      0.74,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐臻选版单光:偏光（灰/褐/绿）:1.5:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐臻选版单光",
+    "subsetName": "偏光（灰/褐/绿）",
+    "index": 1.5,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 6580,
+    "pdfPage": 15,
+    "coord": [
+      0.26,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐臻选版单光:偏光（灰/褐/绿）:1.6:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐臻选版单光",
+    "subsetName": "偏光（灰/褐/绿）",
+    "index": 1.6,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 7980,
+    "pdfPage": 15,
+    "coord": [
+      0.41,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐臻选版单光:偏光（灰/褐/绿）:1.67:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐臻选版单光",
+    "subsetName": "偏光（灰/褐/绿）",
+    "index": 1.67,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 10580,
+    "pdfPage": 15,
+    "coord": [
+      0.58,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐臻选版单光:偏光（灰/褐/绿）:1.74:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐臻选版单光",
+    "subsetName": "偏光（灰/褐/绿）",
+    "index": 1.74,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 13680,
+    "pdfPage": 15,
+    "coord": [
+      0.74,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐臻选版单光:焕色视界X:1.5:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐臻选版单光",
+    "subsetName": "焕色视界X",
+    "index": 1.5,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 5580,
+    "pdfPage": 15,
+    "coord": [
+      0.26,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐臻选版单光:焕色视界X:1.6:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐臻选版单光",
+    "subsetName": "焕色视界X",
+    "index": 1.6,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 6980,
+    "pdfPage": 15,
+    "coord": [
+      0.41,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐臻选版单光:焕色视界X:1.67:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐臻选版单光",
+    "subsetName": "焕色视界X",
+    "index": 1.67,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 9580,
+    "pdfPage": 15,
+    "coord": [
+      0.58,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐臻选版单光:焕色视界X:1.74:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐臻选版单光",
+    "subsetName": "焕色视界X",
+    "index": 1.74,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 12680,
+    "pdfPage": 15,
+    "coord": [
+      0.74,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐臻选版单光:焕色视界X:1.5:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐臻选版单光",
+    "subsetName": "焕色视界X",
+    "index": 1.5,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 6580,
+    "pdfPage": 15,
+    "coord": [
+      0.26,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐臻选版单光:焕色视界X:1.6:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐臻选版单光",
+    "subsetName": "焕色视界X",
+    "index": 1.6,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 7980,
+    "pdfPage": 15,
+    "coord": [
+      0.41,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐臻选版单光:焕色视界X:1.67:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐臻选版单光",
+    "subsetName": "焕色视界X",
+    "index": 1.67,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 10580,
+    "pdfPage": 15,
+    "coord": [
+      0.58,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐臻选版单光:焕色视界X:1.74:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐臻选版单光",
+    "subsetName": "焕色视界X",
+    "index": 1.74,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 13680,
+    "pdfPage": 15,
+    "coord": [
+      0.74,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐个化版3.0单光:标配:1.5:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐个化版3.0单光",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "钻立方铂金膜 (可染色)",
+    "coatingCode": "DP",
+    "tintable": true,
+    "retailYuan": 9480,
+    "pdfPage": 16,
+    "coord": [
+      0.26,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐个化版3.0单光:标配:1.6:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐个化版3.0单光",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方铂金膜 (可染色)",
+    "coatingCode": "DP",
+    "tintable": true,
+    "retailYuan": 14680,
+    "pdfPage": 16,
+    "coord": [
+      0.41,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐个化版3.0单光:标配:1.67:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐个化版3.0单光",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方铂金膜 (可染色)",
+    "coatingCode": "DP",
+    "tintable": true,
+    "retailYuan": 17780,
+    "pdfPage": 16,
+    "coord": [
+      0.58,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐个化版3.0单光:标配:1.74:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐个化版3.0单光",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 23480,
+    "pdfPage": 16,
+    "coord": [
+      0.74,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐个化版3.0单光:标配:1.5:BP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐个化版3.0单光",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 9580,
+    "pdfPage": 16,
+    "coord": [
+      0.26,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐个化版3.0单光:标配:1.6:BP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐个化版3.0单光",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 14780,
+    "pdfPage": 16,
+    "coord": [
+      0.41,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐个化版3.0单光:标配:1.67:BP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐个化版3.0单光",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 17880,
+    "pdfPage": 16,
+    "coord": [
+      0.58,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐个化版3.0单光:标配:1.74:BP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐个化版3.0单光",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 23580,
+    "pdfPage": 16,
+    "coord": [
+      0.74,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐个化版3.0单光:标配:1.5:BLDV",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐个化版3.0单光",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 9780,
+    "pdfPage": 16,
+    "coord": [
+      0.26,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐个化版3.0单光:标配:1.6:BLDV",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐个化版3.0单光",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 14980,
+    "pdfPage": 16,
+    "coord": [
+      0.41,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐个化版3.0单光:标配:1.67:BLDV",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐个化版3.0单光",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 18080,
+    "pdfPage": 16,
+    "coord": [
+      0.58,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐个化版3.0单光:标配:1.74:BLDV",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐个化版3.0单光",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 23780,
+    "pdfPage": 16,
+    "coord": [
+      0.74,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐个化版3.0单光:标配:1.5:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐个化版3.0单光",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "钻立方鎏金膜 (可染色)",
+    "coatingCode": "DG",
+    "tintable": true,
+    "retailYuan": 10480,
+    "pdfPage": 16,
+    "coord": [
+      0.26,
+      0.46,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐个化版3.0单光:标配:1.6:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐个化版3.0单光",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方鎏金膜 (可染色)",
+    "coatingCode": "DG",
+    "tintable": true,
+    "retailYuan": 15680,
+    "pdfPage": 16,
+    "coord": [
+      0.41,
+      0.46,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐个化版3.0单光:标配:1.67:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐个化版3.0单光",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方鎏金膜 (可染色)",
+    "coatingCode": "DG",
+    "tintable": true,
+    "retailYuan": 18780,
+    "pdfPage": 16,
+    "coord": [
+      0.58,
+      0.46,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐个化版3.0单光:标配:1.74:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐个化版3.0单光",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 24480,
+    "pdfPage": 16,
+    "coord": [
+      0.74,
+      0.46,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐个化版3.0单光:偏光（灰/褐/绿）:1.5:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐个化版3.0单光",
+    "subsetName": "偏光（灰/褐/绿）",
+    "index": 1.5,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 11380,
+    "pdfPage": 16,
+    "coord": [
+      0.26,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐个化版3.0单光:偏光（灰/褐/绿）:1.6:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐个化版3.0单光",
+    "subsetName": "偏光（灰/褐/绿）",
+    "index": 1.6,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 18680,
+    "pdfPage": 16,
+    "coord": [
+      0.41,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐个化版3.0单光:偏光（灰/褐/绿）:1.67:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐个化版3.0单光",
+    "subsetName": "偏光（灰/褐/绿）",
+    "index": 1.67,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 22880,
+    "pdfPage": 16,
+    "coord": [
+      0.58,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐个化版3.0单光:偏光（灰/褐/绿）:1.74:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐个化版3.0单光",
+    "subsetName": "偏光（灰/褐/绿）",
+    "index": 1.74,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 28180,
+    "pdfPage": 16,
+    "coord": [
+      0.74,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐个化版3.0单光:偏光（灰/褐/绿）:1.5:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐个化版3.0单光",
+    "subsetName": "偏光（灰/褐/绿）",
+    "index": 1.5,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 12380,
+    "pdfPage": 16,
+    "coord": [
+      0.26,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐个化版3.0单光:偏光（灰/褐/绿）:1.6:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐个化版3.0单光",
+    "subsetName": "偏光（灰/褐/绿）",
+    "index": 1.6,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 19680,
+    "pdfPage": 16,
+    "coord": [
+      0.41,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐个化版3.0单光:偏光（灰/褐/绿）:1.67:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐个化版3.0单光",
+    "subsetName": "偏光（灰/褐/绿）",
+    "index": 1.67,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 23880,
+    "pdfPage": 16,
+    "coord": [
+      0.58,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐个化版3.0单光:偏光（灰/褐/绿）:1.74:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐个化版3.0单光",
+    "subsetName": "偏光（灰/褐/绿）",
+    "index": 1.74,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 29180,
+    "pdfPage": 16,
+    "coord": [
+      0.74,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐个化版3.0单光:焕色视界X:1.5:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐个化版3.0单光",
+    "subsetName": "焕色视界X",
+    "index": 1.5,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 11380,
+    "pdfPage": 16,
+    "coord": [
+      0.26,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐个化版3.0单光:焕色视界X:1.6:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐个化版3.0单光",
+    "subsetName": "焕色视界X",
+    "index": 1.6,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 18680,
+    "pdfPage": 16,
+    "coord": [
+      0.41,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐个化版3.0单光:焕色视界X:1.67:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐个化版3.0单光",
+    "subsetName": "焕色视界X",
+    "index": 1.67,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 22880,
+    "pdfPage": 16,
+    "coord": [
+      0.58,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐个化版3.0单光:焕色视界X:1.74:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐个化版3.0单光",
+    "subsetName": "焕色视界X",
+    "index": 1.74,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 28180,
+    "pdfPage": 16,
+    "coord": [
+      0.74,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐个化版3.0单光:焕色视界X:1.5:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐个化版3.0单光",
+    "subsetName": "焕色视界X",
+    "index": 1.5,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 12380,
+    "pdfPage": 16,
+    "coord": [
+      0.26,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐个化版3.0单光:焕色视界X:1.6:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐个化版3.0单光",
+    "subsetName": "焕色视界X",
+    "index": 1.6,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 19680,
+    "pdfPage": 16,
+    "coord": [
+      0.41,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐个化版3.0单光:焕色视界X:1.67:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐个化版3.0单光",
+    "subsetName": "焕色视界X",
+    "index": 1.67,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 23880,
+    "pdfPage": 16,
+    "coord": [
+      0.58,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐个化版3.0单光:焕色视界X:1.74:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐个化版3.0单光",
+    "subsetName": "焕色视界X",
+    "index": 1.74,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 29180,
+    "pdfPage": 16,
+    "coord": [
+      0.74,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐数码型亚洲版:标配:1.5:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐数码型亚洲版",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "钻立方铂金膜 (可染色)",
+    "coatingCode": "DP",
+    "tintable": true,
+    "retailYuan": 2780,
+    "pdfPage": 18,
+    "coord": [
+      0.26,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐数码型亚洲版:标配:1.6:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐数码型亚洲版",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方铂金膜 (可染色)",
+    "coatingCode": "DP",
+    "tintable": true,
+    "retailYuan": 3880,
+    "pdfPage": 18,
+    "coord": [
+      0.41,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐数码型亚洲版:标配:1.67:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐数码型亚洲版",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方铂金膜 (可染色)",
+    "coatingCode": "DP",
+    "tintable": true,
+    "retailYuan": 5380,
+    "pdfPage": 18,
+    "coord": [
+      0.58,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐数码型亚洲版:标配:1.74:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐数码型亚洲版",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 6880,
+    "pdfPage": 18,
+    "coord": [
+      0.74,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐数码型亚洲版:标配:1.5:BP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐数码型亚洲版",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 2880,
+    "pdfPage": 18,
+    "coord": [
+      0.26,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐数码型亚洲版:标配:1.6:BP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐数码型亚洲版",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 3980,
+    "pdfPage": 18,
+    "coord": [
+      0.41,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐数码型亚洲版:标配:1.67:BP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐数码型亚洲版",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 5480,
+    "pdfPage": 18,
+    "coord": [
+      0.58,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐数码型亚洲版:标配:1.74:BP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐数码型亚洲版",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 6980,
+    "pdfPage": 18,
+    "coord": [
+      0.74,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐数码型亚洲版:标配:1.5:BLDV",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐数码型亚洲版",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 3080,
+    "pdfPage": 18,
+    "coord": [
+      0.26,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐数码型亚洲版:标配:1.6:BLDV",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐数码型亚洲版",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 4180,
+    "pdfPage": 18,
+    "coord": [
+      0.41,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐数码型亚洲版:标配:1.67:BLDV",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐数码型亚洲版",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 5680,
+    "pdfPage": 18,
+    "coord": [
+      0.58,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐数码型亚洲版:标配:1.74:BLDV",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐数码型亚洲版",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 7180,
+    "pdfPage": 18,
+    "coord": [
+      0.74,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐数码型亚洲版:标配:1.5:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐数码型亚洲版",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "钻立方鎏金膜 (可染色)",
+    "coatingCode": "DG",
+    "tintable": true,
+    "retailYuan": 3780,
+    "pdfPage": 18,
+    "coord": [
+      0.26,
+      0.46,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐数码型亚洲版:标配:1.6:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐数码型亚洲版",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方鎏金膜 (可染色)",
+    "coatingCode": "DG",
+    "tintable": true,
+    "retailYuan": 4880,
+    "pdfPage": 18,
+    "coord": [
+      0.41,
+      0.46,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐数码型亚洲版:标配:1.67:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐数码型亚洲版",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方鎏金膜 (可染色)",
+    "coatingCode": "DG",
+    "tintable": true,
+    "retailYuan": 6380,
+    "pdfPage": 18,
+    "coord": [
+      0.58,
+      0.46,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐数码型亚洲版:标配:1.74:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐数码型亚洲版",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 7880,
+    "pdfPage": 18,
+    "coord": [
+      0.74,
+      0.46,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐数码型亚洲版:焕色视界X:1.5:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐数码型亚洲版",
+    "subsetName": "焕色视界X",
+    "index": 1.5,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 3480,
+    "pdfPage": 18,
+    "coord": [
+      0.26,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐数码型亚洲版:焕色视界X:1.6:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐数码型亚洲版",
+    "subsetName": "焕色视界X",
+    "index": 1.6,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 4680,
+    "pdfPage": 18,
+    "coord": [
+      0.41,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐数码型亚洲版:焕色视界X:1.67:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐数码型亚洲版",
+    "subsetName": "焕色视界X",
+    "index": 1.67,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 6480,
+    "pdfPage": 18,
+    "coord": [
+      0.58,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐数码型亚洲版:焕色视界X:1.74:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐数码型亚洲版",
+    "subsetName": "焕色视界X",
+    "index": 1.74,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 8280,
+    "pdfPage": 18,
+    "coord": [
+      0.74,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐数码型亚洲版:焕色视界X:1.5:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐数码型亚洲版",
+    "subsetName": "焕色视界X",
+    "index": 1.5,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 4480,
+    "pdfPage": 18,
+    "coord": [
+      0.26,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐数码型亚洲版:焕色视界X:1.6:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐数码型亚洲版",
+    "subsetName": "焕色视界X",
+    "index": 1.6,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 5680,
+    "pdfPage": 18,
+    "coord": [
+      0.41,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐数码型亚洲版:焕色视界X:1.67:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐数码型亚洲版",
+    "subsetName": "焕色视界X",
+    "index": 1.67,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 7480,
+    "pdfPage": 18,
+    "coord": [
+      0.58,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐数码型亚洲版:焕色视界X:1.74:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐数码型亚洲版",
+    "subsetName": "焕色视界X",
+    "index": 1.74,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 9280,
+    "pdfPage": 18,
+    "coord": [
+      0.74,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐数码型个化版3.0:标配:1.5:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐数码型个化版3.0",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "钻立方铂金膜 (可染色)",
+    "coatingCode": "DP",
+    "tintable": true,
+    "retailYuan": 5880,
+    "pdfPage": 19,
+    "coord": [
+      0.26,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐数码型个化版3.0:标配:1.6:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐数码型个化版3.0",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方铂金膜 (可染色)",
+    "coatingCode": "DP",
+    "tintable": true,
+    "retailYuan": 8580,
+    "pdfPage": 19,
+    "coord": [
+      0.41,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐数码型个化版3.0:标配:1.67:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐数码型个化版3.0",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方铂金膜 (可染色)",
+    "coatingCode": "DP",
+    "tintable": true,
+    "retailYuan": 12380,
+    "pdfPage": 19,
+    "coord": [
+      0.58,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐数码型个化版3.0:标配:1.74:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐数码型个化版3.0",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 16680,
+    "pdfPage": 19,
+    "coord": [
+      0.74,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐数码型个化版3.0:标配:1.5:BP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐数码型个化版3.0",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 5980,
+    "pdfPage": 19,
+    "coord": [
+      0.26,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐数码型个化版3.0:标配:1.6:BP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐数码型个化版3.0",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 8680,
+    "pdfPage": 19,
+    "coord": [
+      0.41,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐数码型个化版3.0:标配:1.67:BP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐数码型个化版3.0",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 12480,
+    "pdfPage": 19,
+    "coord": [
+      0.58,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐数码型个化版3.0:标配:1.74:BP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐数码型个化版3.0",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 16780,
+    "pdfPage": 19,
+    "coord": [
+      0.74,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐数码型个化版3.0:标配:1.5:BLDV",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐数码型个化版3.0",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 6180,
+    "pdfPage": 19,
+    "coord": [
+      0.26,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐数码型个化版3.0:标配:1.6:BLDV",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐数码型个化版3.0",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 8880,
+    "pdfPage": 19,
+    "coord": [
+      0.41,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐数码型个化版3.0:标配:1.67:BLDV",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐数码型个化版3.0",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 12680,
+    "pdfPage": 19,
+    "coord": [
+      0.58,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐数码型个化版3.0:标配:1.74:BLDV",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐数码型个化版3.0",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 16980,
+    "pdfPage": 19,
+    "coord": [
+      0.74,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐数码型个化版3.0:标配:1.5:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐数码型个化版3.0",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "钻立方鎏金膜 (可染色)",
+    "coatingCode": "DG",
+    "tintable": true,
+    "retailYuan": 6880,
+    "pdfPage": 19,
+    "coord": [
+      0.26,
+      0.46,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐数码型个化版3.0:标配:1.6:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐数码型个化版3.0",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方鎏金膜 (可染色)",
+    "coatingCode": "DG",
+    "tintable": true,
+    "retailYuan": 9580,
+    "pdfPage": 19,
+    "coord": [
+      0.41,
+      0.46,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐数码型个化版3.0:标配:1.67:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐数码型个化版3.0",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方鎏金膜 (可染色)",
+    "coatingCode": "DG",
+    "tintable": true,
+    "retailYuan": 13380,
+    "pdfPage": 19,
+    "coord": [
+      0.58,
+      0.46,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐数码型个化版3.0:标配:1.74:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐数码型个化版3.0",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 17680,
+    "pdfPage": 19,
+    "coord": [
+      0.74,
+      0.46,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐数码型个化版3.0:焕色视界X:1.5:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐数码型个化版3.0",
+    "subsetName": "焕色视界X",
+    "index": 1.5,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 7080,
+    "pdfPage": 19,
+    "coord": [
+      0.26,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐数码型个化版3.0:焕色视界X:1.6:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐数码型个化版3.0",
+    "subsetName": "焕色视界X",
+    "index": 1.6,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 10280,
+    "pdfPage": 19,
+    "coord": [
+      0.41,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐数码型个化版3.0:焕色视界X:1.67:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐数码型个化版3.0",
+    "subsetName": "焕色视界X",
+    "index": 1.67,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 14880,
+    "pdfPage": 19,
+    "coord": [
+      0.58,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐数码型个化版3.0:焕色视界X:1.74:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐数码型个化版3.0",
+    "subsetName": "焕色视界X",
+    "index": 1.74,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 20080,
+    "pdfPage": 19,
+    "coord": [
+      0.74,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐数码型个化版3.0:焕色视界X:1.5:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐数码型个化版3.0",
+    "subsetName": "焕色视界X",
+    "index": 1.5,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 8080,
+    "pdfPage": 19,
+    "coord": [
+      0.26,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐数码型个化版3.0:焕色视界X:1.6:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐数码型个化版3.0",
+    "subsetName": "焕色视界X",
+    "index": 1.6,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 11280,
+    "pdfPage": 19,
+    "coord": [
+      0.41,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐数码型个化版3.0:焕色视界X:1.67:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐数码型个化版3.0",
+    "subsetName": "焕色视界X",
+    "index": 1.67,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 15880,
+    "pdfPage": 19,
+    "coord": [
+      0.58,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐数码型个化版3.0:焕色视界X:1.74:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐数码型个化版3.0",
+    "subsetName": "焕色视界X",
+    "index": 1.74,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 21080,
+    "pdfPage": 19,
+    "coord": [
+      0.74,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐经典版渐进:标配:1.5:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐经典版渐进",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "钻立方铂金膜 (可染色)",
+    "coatingCode": "DP",
+    "tintable": true,
+    "retailYuan": 3280,
+    "pdfPage": 21,
+    "coord": [
+      0.26,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐经典版渐进:标配:1.6:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐经典版渐进",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方铂金膜 (可染色)",
+    "coatingCode": "DP",
+    "tintable": true,
+    "retailYuan": 4480,
+    "pdfPage": 21,
+    "coord": [
+      0.41,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐经典版渐进:标配:1.67:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐经典版渐进",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方铂金膜 (可染色)",
+    "coatingCode": "DP",
+    "tintable": true,
+    "retailYuan": 6280,
+    "pdfPage": 21,
+    "coord": [
+      0.58,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐经典版渐进:标配:1.74:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐经典版渐进",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 9280,
+    "pdfPage": 21,
+    "coord": [
+      0.74,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐经典版渐进:标配:1.5:BP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐经典版渐进",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 3380,
+    "pdfPage": 21,
+    "coord": [
+      0.26,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐经典版渐进:标配:1.6:BP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐经典版渐进",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 4580,
+    "pdfPage": 21,
+    "coord": [
+      0.41,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐经典版渐进:标配:1.67:BP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐经典版渐进",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 6380,
+    "pdfPage": 21,
+    "coord": [
+      0.58,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐经典版渐进:标配:1.74:BP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐经典版渐进",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 9380,
+    "pdfPage": 21,
+    "coord": [
+      0.74,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐经典版渐进:标配:1.5:BLDV",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐经典版渐进",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 3580,
+    "pdfPage": 21,
+    "coord": [
+      0.26,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐经典版渐进:标配:1.6:BLDV",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐经典版渐进",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 4780,
+    "pdfPage": 21,
+    "coord": [
+      0.41,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐经典版渐进:标配:1.67:BLDV",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐经典版渐进",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 6580,
+    "pdfPage": 21,
+    "coord": [
+      0.58,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐经典版渐进:标配:1.74:BLDV",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐经典版渐进",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 9580,
+    "pdfPage": 21,
+    "coord": [
+      0.74,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐经典版渐进:标配:1.5:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐经典版渐进",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "钻立方鎏金膜 (可染色)",
+    "coatingCode": "DG",
+    "tintable": true,
+    "retailYuan": 4280,
+    "pdfPage": 21,
+    "coord": [
+      0.26,
+      0.46,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐经典版渐进:标配:1.6:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐经典版渐进",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方鎏金膜 (可染色)",
+    "coatingCode": "DG",
+    "tintable": true,
+    "retailYuan": 5480,
+    "pdfPage": 21,
+    "coord": [
+      0.41,
+      0.46,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐经典版渐进:标配:1.67:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐经典版渐进",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方鎏金膜 (可染色)",
+    "coatingCode": "DG",
+    "tintable": true,
+    "retailYuan": 7280,
+    "pdfPage": 21,
+    "coord": [
+      0.58,
+      0.46,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐经典版渐进:标配:1.74:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐经典版渐进",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 10280,
+    "pdfPage": 21,
+    "coord": [
+      0.74,
+      0.46,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐经典版渐进:焕色视界X:1.5:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐经典版渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.5,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 3980,
+    "pdfPage": 21,
+    "coord": [
+      0.26,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐经典版渐进:焕色视界X:1.6:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐经典版渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.6,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 5380,
+    "pdfPage": 21,
+    "coord": [
+      0.41,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐经典版渐进:焕色视界X:1.67:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐经典版渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.67,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 7580,
+    "pdfPage": 21,
+    "coord": [
+      0.58,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐经典版渐进:焕色视界X:1.74:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐经典版渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.74,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 11180,
+    "pdfPage": 21,
+    "coord": [
+      0.74,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐经典版渐进:焕色视界X:1.5:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐经典版渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.5,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 4980,
+    "pdfPage": 21,
+    "coord": [
+      0.26,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐经典版渐进:焕色视界X:1.6:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐经典版渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.6,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 6380,
+    "pdfPage": 21,
+    "coord": [
+      0.41,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐经典版渐进:焕色视界X:1.67:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐经典版渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.67,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 8580,
+    "pdfPage": 21,
+    "coord": [
+      0.58,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐经典版渐进:焕色视界X:1.74:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐经典版渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.74,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 12180,
+    "pdfPage": 21,
+    "coord": [
+      0.74,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐亚洲版渐进:标配:1.5:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐亚洲版渐进",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "钻立方铂金膜 (可染色)",
+    "coatingCode": "DP",
+    "tintable": true,
+    "retailYuan": 4680,
+    "pdfPage": 22,
+    "coord": [
+      0.26,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐亚洲版渐进:标配:1.6:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐亚洲版渐进",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方铂金膜 (可染色)",
+    "coatingCode": "DP",
+    "tintable": true,
+    "retailYuan": 6280,
+    "pdfPage": 22,
+    "coord": [
+      0.41,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐亚洲版渐进:标配:1.67:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐亚洲版渐进",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方铂金膜 (可染色)",
+    "coatingCode": "DP",
+    "tintable": true,
+    "retailYuan": 8380,
+    "pdfPage": 22,
+    "coord": [
+      0.58,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐亚洲版渐进:标配:1.74:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐亚洲版渐进",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 12280,
+    "pdfPage": 22,
+    "coord": [
+      0.74,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐亚洲版渐进:标配:1.5:BP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐亚洲版渐进",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 4780,
+    "pdfPage": 22,
+    "coord": [
+      0.26,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐亚洲版渐进:标配:1.6:BP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐亚洲版渐进",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 6380,
+    "pdfPage": 22,
+    "coord": [
+      0.41,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐亚洲版渐进:标配:1.67:BP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐亚洲版渐进",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 8480,
+    "pdfPage": 22,
+    "coord": [
+      0.58,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐亚洲版渐进:标配:1.74:BP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐亚洲版渐进",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 12380,
+    "pdfPage": 22,
+    "coord": [
+      0.74,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐亚洲版渐进:标配:1.5:BLDV",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐亚洲版渐进",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 4980,
+    "pdfPage": 22,
+    "coord": [
+      0.26,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐亚洲版渐进:标配:1.6:BLDV",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐亚洲版渐进",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 6580,
+    "pdfPage": 22,
+    "coord": [
+      0.41,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐亚洲版渐进:标配:1.67:BLDV",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐亚洲版渐进",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 8680,
+    "pdfPage": 22,
+    "coord": [
+      0.58,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐亚洲版渐进:标配:1.74:BLDV",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐亚洲版渐进",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 12580,
+    "pdfPage": 22,
+    "coord": [
+      0.74,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐亚洲版渐进:标配:1.5:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐亚洲版渐进",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "钻立方鎏金膜 (可染色)",
+    "coatingCode": "DG",
+    "tintable": true,
+    "retailYuan": 5680,
+    "pdfPage": 22,
+    "coord": [
+      0.26,
+      0.46,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐亚洲版渐进:标配:1.6:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐亚洲版渐进",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方鎏金膜 (可染色)",
+    "coatingCode": "DG",
+    "tintable": true,
+    "retailYuan": 7280,
+    "pdfPage": 22,
+    "coord": [
+      0.41,
+      0.46,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐亚洲版渐进:标配:1.67:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐亚洲版渐进",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方鎏金膜 (可染色)",
+    "coatingCode": "DG",
+    "tintable": true,
+    "retailYuan": 9380,
+    "pdfPage": 22,
+    "coord": [
+      0.58,
+      0.46,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐亚洲版渐进:标配:1.74:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐亚洲版渐进",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 13280,
+    "pdfPage": 22,
+    "coord": [
+      0.74,
+      0.46,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐亚洲版渐进:焕色视界X:1.5:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐亚洲版渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.5,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 5580,
+    "pdfPage": 22,
+    "coord": [
+      0.26,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐亚洲版渐进:焕色视界X:1.6:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐亚洲版渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.6,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 7580,
+    "pdfPage": 22,
+    "coord": [
+      0.41,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐亚洲版渐进:焕色视界X:1.67:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐亚洲版渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.67,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 9880,
+    "pdfPage": 22,
+    "coord": [
+      0.58,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐亚洲版渐进:焕色视界X:1.74:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐亚洲版渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.74,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 14680,
+    "pdfPage": 22,
+    "coord": [
+      0.74,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐亚洲版渐进:焕色视界X:1.5:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐亚洲版渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.5,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 6580,
+    "pdfPage": 22,
+    "coord": [
+      0.26,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐亚洲版渐进:焕色视界X:1.6:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐亚洲版渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.6,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 8580,
+    "pdfPage": 22,
+    "coord": [
+      0.41,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐亚洲版渐进:焕色视界X:1.67:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐亚洲版渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.67,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 10880,
+    "pdfPage": 22,
+    "coord": [
+      0.58,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐亚洲版渐进:焕色视界X:1.74:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐亚洲版渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.74,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 15680,
+    "pdfPage": 22,
+    "coord": [
+      0.74,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐臻选版渐进:标配:1.5:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐臻选版渐进",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "钻立方铂金膜 (可染色)",
+    "coatingCode": "DP",
+    "tintable": true,
+    "retailYuan": 8280,
+    "pdfPage": 23,
+    "coord": [
+      0.26,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐臻选版渐进:标配:1.6:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐臻选版渐进",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方铂金膜 (可染色)",
+    "coatingCode": "DP",
+    "tintable": true,
+    "retailYuan": 10680,
+    "pdfPage": 23,
+    "coord": [
+      0.41,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐臻选版渐进:标配:1.67:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐臻选版渐进",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方铂金膜 (可染色)",
+    "coatingCode": "DP",
+    "tintable": true,
+    "retailYuan": 13480,
+    "pdfPage": 23,
+    "coord": [
+      0.58,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐臻选版渐进:标配:1.74:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐臻选版渐进",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 25980,
+    "pdfPage": 23,
+    "coord": [
+      0.74,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐臻选版渐进:标配:1.5:BP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐臻选版渐进",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 8380,
+    "pdfPage": 23,
+    "coord": [
+      0.26,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐臻选版渐进:标配:1.6:BP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐臻选版渐进",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 10780,
+    "pdfPage": 23,
+    "coord": [
+      0.41,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐臻选版渐进:标配:1.67:BP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐臻选版渐进",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 13580,
+    "pdfPage": 23,
+    "coord": [
+      0.58,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐臻选版渐进:标配:1.74:BP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐臻选版渐进",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 26080,
+    "pdfPage": 23,
+    "coord": [
+      0.74,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐臻选版渐进:标配:1.5:BLDV",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐臻选版渐进",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 8580,
+    "pdfPage": 23,
+    "coord": [
+      0.26,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐臻选版渐进:标配:1.6:BLDV",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐臻选版渐进",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 10980,
+    "pdfPage": 23,
+    "coord": [
+      0.41,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐臻选版渐进:标配:1.67:BLDV",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐臻选版渐进",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 13780,
+    "pdfPage": 23,
+    "coord": [
+      0.58,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐臻选版渐进:标配:1.74:BLDV",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐臻选版渐进",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 26280,
+    "pdfPage": 23,
+    "coord": [
+      0.74,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐臻选版渐进:标配:1.5:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐臻选版渐进",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "钻立方鎏金膜 (可染色)",
+    "coatingCode": "DG",
+    "tintable": true,
+    "retailYuan": 9280,
+    "pdfPage": 23,
+    "coord": [
+      0.26,
+      0.46,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐臻选版渐进:标配:1.6:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐臻选版渐进",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方鎏金膜 (可染色)",
+    "coatingCode": "DG",
+    "tintable": true,
+    "retailYuan": 11680,
+    "pdfPage": 23,
+    "coord": [
+      0.41,
+      0.46,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐臻选版渐进:标配:1.67:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐臻选版渐进",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方鎏金膜 (可染色)",
+    "coatingCode": "DG",
+    "tintable": true,
+    "retailYuan": 14480,
+    "pdfPage": 23,
+    "coord": [
+      0.58,
+      0.46,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐臻选版渐进:标配:1.74:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐臻选版渐进",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 26980,
+    "pdfPage": 23,
+    "coord": [
+      0.74,
+      0.46,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐臻选版渐进:焕色视界X:1.5:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐臻选版渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.5,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 9880,
+    "pdfPage": 23,
+    "coord": [
+      0.26,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐臻选版渐进:焕色视界X:1.6:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐臻选版渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.6,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 12980,
+    "pdfPage": 23,
+    "coord": [
+      0.41,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐臻选版渐进:焕色视界X:1.67:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐臻选版渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.67,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 16180,
+    "pdfPage": 23,
+    "coord": [
+      0.58,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐臻选版渐进:焕色视界X:1.74:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐臻选版渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.74,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 31180,
+    "pdfPage": 23,
+    "coord": [
+      0.74,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐臻选版渐进:焕色视界X:1.5:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐臻选版渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.5,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 10880,
+    "pdfPage": 23,
+    "coord": [
+      0.26,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐臻选版渐进:焕色视界X:1.6:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐臻选版渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.6,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 13980,
+    "pdfPage": 23,
+    "coord": [
+      0.41,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐臻选版渐进:焕色视界X:1.67:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐臻选版渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.67,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 17180,
+    "pdfPage": 23,
+    "coord": [
+      0.58,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐臻选版渐进:焕色视界X:1.74:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐臻选版渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.74,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 32180,
+    "pdfPage": 23,
+    "coord": [
+      0.74,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐个化版3.0渐进:标配:1.5:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐个化版3.0渐进",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "钻立方铂金膜 (可染色)",
+    "coatingCode": "DP",
+    "tintable": true,
+    "retailYuan": 17580,
+    "pdfPage": 24,
+    "coord": [
+      0.26,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐个化版3.0渐进:标配:1.6:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐个化版3.0渐进",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方铂金膜 (可染色)",
+    "coatingCode": "DP",
+    "tintable": true,
+    "retailYuan": 31480,
+    "pdfPage": 24,
+    "coord": [
+      0.41,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐个化版3.0渐进:标配:1.67:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐个化版3.0渐进",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 40580,
+    "pdfPage": 24,
+    "coord": [
+      0.58,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐个化版3.0渐进:标配:1.74:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐个化版3.0渐进",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 52480,
+    "pdfPage": 24,
+    "coord": [
+      0.74,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐个化版3.0渐进:标配:1.5:BP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐个化版3.0渐进",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 17680,
+    "pdfPage": 24,
+    "coord": [
+      0.26,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐个化版3.0渐进:标配:1.6:BP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐个化版3.0渐进",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 31580,
+    "pdfPage": 24,
+    "coord": [
+      0.41,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐个化版3.0渐进:标配:1.67:BP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐个化版3.0渐进",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 40680,
+    "pdfPage": 24,
+    "coord": [
+      0.58,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐个化版3.0渐进:标配:1.74:BP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐个化版3.0渐进",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 52580,
+    "pdfPage": 24,
+    "coord": [
+      0.74,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐个化版3.0渐进:标配:1.5:BLDV",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐个化版3.0渐进",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 17880,
+    "pdfPage": 24,
+    "coord": [
+      0.26,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐个化版3.0渐进:标配:1.6:BLDV",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐个化版3.0渐进",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 31780,
+    "pdfPage": 24,
+    "coord": [
+      0.41,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐个化版3.0渐进:标配:1.67:BLDV",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐个化版3.0渐进",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 40880,
+    "pdfPage": 24,
+    "coord": [
+      0.58,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐个化版3.0渐进:标配:1.74:BLDV",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐个化版3.0渐进",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 52780,
+    "pdfPage": 24,
+    "coord": [
+      0.74,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐个化版3.0渐进:标配:1.5:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐个化版3.0渐进",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "钻立方鎏金膜 (可染色)",
+    "coatingCode": "DG",
+    "tintable": true,
+    "retailYuan": 18580,
+    "pdfPage": 24,
+    "coord": [
+      0.26,
+      0.46,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐个化版3.0渐进:标配:1.6:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐个化版3.0渐进",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方鎏金膜 (可染色)",
+    "coatingCode": "DG",
+    "tintable": true,
+    "retailYuan": 32480,
+    "pdfPage": 24,
+    "coord": [
+      0.41,
+      0.46,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐个化版3.0渐进:标配:1.67:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐个化版3.0渐进",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方鎏金膜 (可染色)",
+    "coatingCode": "DG",
+    "tintable": true,
+    "retailYuan": 41580,
+    "pdfPage": 24,
+    "coord": [
+      0.58,
+      0.46,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐个化版3.0渐进:标配:1.74:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐个化版3.0渐进",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 53480,
+    "pdfPage": 24,
+    "coord": [
+      0.74,
+      0.46,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐个化版3.0渐进:焕色视界X:1.5:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐个化版3.0渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.5,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 24980,
+    "pdfPage": 24,
+    "coord": [
+      0.26,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐个化版3.0渐进:焕色视界X:1.6:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐个化版3.0渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.6,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 39680,
+    "pdfPage": 24,
+    "coord": [
+      0.41,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐个化版3.0渐进:焕色视界X:1.67:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐个化版3.0渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.67,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 51180,
+    "pdfPage": 24,
+    "coord": [
+      0.58,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐个化版3.0渐进:焕色视界X:1.74:DP",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐个化版3.0渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.74,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 62980,
+    "pdfPage": 24,
+    "coord": [
+      0.74,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐个化版3.0渐进:焕色视界X:1.5:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐个化版3.0渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.5,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 25980,
+    "pdfPage": 24,
+    "coord": [
+      0.26,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐个化版3.0渐进:焕色视界X:1.6:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐个化版3.0渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.6,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 40680,
+    "pdfPage": 24,
+    "coord": [
+      0.41,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐个化版3.0渐进:焕色视界X:1.67:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐个化版3.0渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.67,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 52180,
+    "pdfPage": 24,
+    "coord": [
+      0.58,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:智锐系列:智锐个化版3.0渐进:焕色视界X:1.74:DG",
+    "seriesGroup": "智锐系列",
+    "productName": "智锐个化版3.0渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.74,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 63980,
+    "pdfPage": 24,
+    "coord": [
+      0.74,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:青少年系列:小乐圆H版:标配:1.59:DP",
+    "seriesGroup": "青少年系列",
+    "productName": "小乐圆H版",
+    "subsetName": "标配",
+    "index": 1.59,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 3280,
+    "pdfPage": 29,
+    "coord": [
+      0.41,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:青少年系列:小乐圆H版:标配:1.5:DP",
+    "seriesGroup": "青少年系列",
+    "productName": "小乐圆H版",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 3680,
+    "pdfPage": 29,
+    "coord": [
+      0.26,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:青少年系列:小乐圆H版:标配:1.59:DP",
+    "seriesGroup": "青少年系列",
+    "productName": "小乐圆H版",
+    "subsetName": "标配",
+    "index": 1.59,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 3980,
+    "pdfPage": 29,
+    "coord": [
+      0.41,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:青少年系列:小乐圆H版:标配:1.6:DP",
+    "seriesGroup": "青少年系列",
+    "productName": "小乐圆H版",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 4580,
+    "pdfPage": 29,
+    "coord": [
+      0.58,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:青少年系列:小乐圆H版:标配:1.67:DP",
+    "seriesGroup": "青少年系列",
+    "productName": "小乐圆H版",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 5380,
+    "pdfPage": 29,
+    "coord": [
+      0.74,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:青少年系列:小乐圆H版:标配:1.5:BP",
+    "seriesGroup": "青少年系列",
+    "productName": "小乐圆H版",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 3780,
+    "pdfPage": 29,
+    "coord": [
+      0.26,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:青少年系列:小乐圆H版:标配:1.59:BP",
+    "seriesGroup": "青少年系列",
+    "productName": "小乐圆H版",
+    "subsetName": "标配",
+    "index": 1.59,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 4080,
+    "pdfPage": 29,
+    "coord": [
+      0.41,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:青少年系列:小乐圆H版:标配:1.6:BP",
+    "seriesGroup": "青少年系列",
+    "productName": "小乐圆H版",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 4680,
+    "pdfPage": 29,
+    "coord": [
+      0.58,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:青少年系列:小乐圆H版:标配:1.67:BP",
+    "seriesGroup": "青少年系列",
+    "productName": "小乐圆H版",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 5480,
+    "pdfPage": 29,
+    "coord": [
+      0.74,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:青少年系列:小乐圆S版:标配:1.59:DVK",
+    "seriesGroup": "青少年系列",
+    "productName": "小乐圆S版",
+    "subsetName": "标配",
+    "index": 1.59,
+    "coating": "钻立方爱动膜",
+    "coatingCode": "DVK",
+    "tintable": false,
+    "retailYuan": 2980,
+    "pdfPage": 30,
+    "coord": [
+      0.41,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:青少年系列:小乐圆S版:标配:1.5:DP",
+    "seriesGroup": "青少年系列",
+    "productName": "小乐圆S版",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 3680,
+    "pdfPage": 30,
+    "coord": [
+      0.26,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:青少年系列:小乐圆S版:标配:1.59:DP",
+    "seriesGroup": "青少年系列",
+    "productName": "小乐圆S版",
+    "subsetName": "标配",
+    "index": 1.59,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 3980,
+    "pdfPage": 30,
+    "coord": [
+      0.41,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:青少年系列:小乐圆S版:标配:1.6:DP",
+    "seriesGroup": "青少年系列",
+    "productName": "小乐圆S版",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 4580,
+    "pdfPage": 30,
+    "coord": [
+      0.58,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:青少年系列:小乐圆S版:标配:1.67:DP",
+    "seriesGroup": "青少年系列",
+    "productName": "小乐圆S版",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 5380,
+    "pdfPage": 30,
+    "coord": [
+      0.74,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:青少年系列:小乐圆S版:标配:1.5:BP",
+    "seriesGroup": "青少年系列",
+    "productName": "小乐圆S版",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 3780,
+    "pdfPage": 30,
+    "coord": [
+      0.26,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:青少年系列:小乐圆S版:标配:1.59:BP",
+    "seriesGroup": "青少年系列",
+    "productName": "小乐圆S版",
+    "subsetName": "标配",
+    "index": 1.59,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 4080,
+    "pdfPage": 30,
+    "coord": [
+      0.41,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:青少年系列:小乐圆S版:标配:1.6:BP",
+    "seriesGroup": "青少年系列",
+    "productName": "小乐圆S版",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 4680,
+    "pdfPage": 30,
+    "coord": [
+      0.58,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:青少年系列:小乐圆S版:标配:1.67:BP",
+    "seriesGroup": "青少年系列",
+    "productName": "小乐圆S版",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 5480,
+    "pdfPage": 30,
+    "coord": [
+      0.74,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:青少年系列:成长怡:标配:1.59:DVK",
+    "seriesGroup": "青少年系列",
+    "productName": "成长怡",
+    "subsetName": "标配",
+    "index": 1.59,
+    "coating": "钻立方爱动膜",
+    "coatingCode": "DVK",
+    "tintable": false,
+    "retailYuan": 2180,
+    "pdfPage": 32,
+    "coord": [
+      0.26,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:青少年系列:成长怡:标配:1.59:DVK",
+    "seriesGroup": "青少年系列",
+    "productName": "成长怡",
+    "subsetName": "标配",
+    "index": 1.59,
+    "coating": "钻立方爱动膜",
+    "coatingCode": "DVK",
+    "tintable": false,
+    "retailYuan": 2380,
+    "pdfPage": 32,
+    "coord": [
+      0.26,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:泽锐单光:标配:1.56:DVC",
+    "seriesGroup": "单光系列",
+    "productName": "泽锐单光",
+    "subsetName": "标配",
+    "index": 1.56,
+    "coating": "钻立方绿晶膜",
+    "coatingCode": "DVC",
+    "tintable": false,
+    "retailYuan": 1480,
+    "pdfPage": 36,
+    "coord": [
+      0.22,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:泽锐单光:标配:1.56:DP",
+    "seriesGroup": "单光系列",
+    "productName": "泽锐单光",
+    "subsetName": "标配",
+    "index": 1.56,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 1980,
+    "pdfPage": 36,
+    "coord": [
+      0.22,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:泽锐单光:标配:1.56:BP",
+    "seriesGroup": "单光系列",
+    "productName": "泽锐单光",
+    "subsetName": "标配",
+    "index": 1.56,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 2080,
+    "pdfPage": 36,
+    "coord": [
+      0.22,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:泽锐单光:标配:1.56:BLDP",
+    "seriesGroup": "单光系列",
+    "productName": "泽锐单光",
+    "subsetName": "标配",
+    "index": 1.56,
+    "coating": "防蓝光Plus+钻立方铂金膜",
+    "coatingCode": "BLDP",
+    "tintable": false,
+    "retailYuan": 2280,
+    "pdfPage": 36,
+    "coord": [
+      0.22,
+      0.46,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:泽锐单光:标配:1.56:DG",
+    "seriesGroup": "单光系列",
+    "productName": "泽锐单光",
+    "subsetName": "标配",
+    "index": 1.56,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 2980,
+    "pdfPage": 36,
+    "coord": [
+      0.22,
+      0.525,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:泽锐单光:标配:1.59:DP",
+    "seriesGroup": "单光系列",
+    "productName": "泽锐单光",
+    "subsetName": "标配",
+    "index": 1.59,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 2380,
+    "pdfPage": 36,
+    "coord": [
+      0.34,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:泽锐单光:标配:1.6:DP",
+    "seriesGroup": "单光系列",
+    "productName": "泽锐单光",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 2580,
+    "pdfPage": 36,
+    "coord": [
+      0.46,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:泽锐单光:标配:1.6:BP",
+    "seriesGroup": "单光系列",
+    "productName": "泽锐单光",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 2680,
+    "pdfPage": 36,
+    "coord": [
+      0.46,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:泽锐单光:标配:1.6:BLDP",
+    "seriesGroup": "单光系列",
+    "productName": "泽锐单光",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "防蓝光Plus+钻立方铂金膜",
+    "coatingCode": "BLDP",
+    "tintable": false,
+    "retailYuan": 2880,
+    "pdfPage": 36,
+    "coord": [
+      0.46,
+      0.46,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:泽锐单光:标配:1.6:DG",
+    "seriesGroup": "单光系列",
+    "productName": "泽锐单光",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 3580,
+    "pdfPage": 36,
+    "coord": [
+      0.46,
+      0.525,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:泽锐单光:标配:1.6:BLDG",
+    "seriesGroup": "单光系列",
+    "productName": "泽锐单光",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "防蓝光Plus+钻立方鎏金膜",
+    "coatingCode": "BLDG",
+    "tintable": false,
+    "retailYuan": 3880,
+    "pdfPage": 36,
+    "coord": [
+      0.46,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:泽锐单光:标配:1.67:DP",
+    "seriesGroup": "单光系列",
+    "productName": "泽锐单光",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 3480,
+    "pdfPage": 36,
+    "coord": [
+      0.6,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:泽锐单光:标配:1.67:BP",
+    "seriesGroup": "单光系列",
+    "productName": "泽锐单光",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 3580,
+    "pdfPage": 36,
+    "coord": [
+      0.6,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:泽锐单光:标配:1.67:BLDP",
+    "seriesGroup": "单光系列",
+    "productName": "泽锐单光",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "防蓝光Plus+钻立方铂金膜",
+    "coatingCode": "BLDP",
+    "tintable": false,
+    "retailYuan": 3780,
+    "pdfPage": 36,
+    "coord": [
+      0.6,
+      0.46,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:泽锐单光:标配:1.67:DG",
+    "seriesGroup": "单光系列",
+    "productName": "泽锐单光",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 4480,
+    "pdfPage": 36,
+    "coord": [
+      0.6,
+      0.525,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:泽锐单光:标配:1.67:BLDG",
+    "seriesGroup": "单光系列",
+    "productName": "泽锐单光",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "防蓝光Plus+钻立方鎏金膜",
+    "coatingCode": "BLDG",
+    "tintable": false,
+    "retailYuan": 4780,
+    "pdfPage": 36,
+    "coord": [
+      0.6,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:泽锐单光:标配:1.74:DP",
+    "seriesGroup": "单光系列",
+    "productName": "泽锐单光",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 4480,
+    "pdfPage": 36,
+    "coord": [
+      0.74,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:泽锐单光:标配:1.74:BP",
+    "seriesGroup": "单光系列",
+    "productName": "泽锐单光",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 4580,
+    "pdfPage": 36,
+    "coord": [
+      0.74,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:泽锐单光:标配:1.74:BLDP",
+    "seriesGroup": "单光系列",
+    "productName": "泽锐单光",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "防蓝光Plus+钻立方铂金膜",
+    "coatingCode": "BLDP",
+    "tintable": false,
+    "retailYuan": 4780,
+    "pdfPage": 36,
+    "coord": [
+      0.74,
+      0.46,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:泽锐单光:标配:1.74:DG",
+    "seriesGroup": "单光系列",
+    "productName": "泽锐单光",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 5480,
+    "pdfPage": 36,
+    "coord": [
+      0.74,
+      0.525,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:泽锐单光:标配:1.74:BLDG",
+    "seriesGroup": "单光系列",
+    "productName": "泽锐单光",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "防蓝光Plus+钻立方鎏金膜",
+    "coatingCode": "BLDG",
+    "tintable": false,
+    "retailYuan": 5780,
+    "pdfPage": 36,
+    "coord": [
+      0.74,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:泽锐单光:标配:1.6:DVC",
+    "seriesGroup": "单光系列",
+    "productName": "泽锐单光",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方绿晶膜 (可染色)",
+    "coatingCode": "DVC",
+    "tintable": true,
+    "retailYuan": 2280,
+    "pdfPage": 36,
+    "coord": [
+      0.46,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:泽锐单光:标配:1.67:DVC",
+    "seriesGroup": "单光系列",
+    "productName": "泽锐单光",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方绿晶膜 (可染色)",
+    "coatingCode": "DVC",
+    "tintable": true,
+    "retailYuan": 3180,
+    "pdfPage": 36,
+    "coord": [
+      0.6,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:泽锐单光:标配:1.6:DP",
+    "seriesGroup": "单光系列",
+    "productName": "泽锐单光",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方铂金膜 (可染色)",
+    "coatingCode": "DP",
+    "tintable": true,
+    "retailYuan": 2780,
+    "pdfPage": 36,
+    "coord": [
+      0.46,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:泽锐单光:标配:1.67:DP",
+    "seriesGroup": "单光系列",
+    "productName": "泽锐单光",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方铂金膜 (可染色)",
+    "coatingCode": "DP",
+    "tintable": true,
+    "retailYuan": 3680,
+    "pdfPage": 36,
+    "coord": [
+      0.6,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:泽锐单光:标配:1.74:DP",
+    "seriesGroup": "单光系列",
+    "productName": "泽锐单光",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 4180,
+    "pdfPage": 36,
+    "coord": [
+      0.74,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:泽锐单光:偏光视界X:1.56:DVC",
+    "seriesGroup": "单光系列",
+    "productName": "泽锐单光",
+    "subsetName": "偏光视界X",
+    "index": 1.56,
+    "coating": "钻立方绿晶膜",
+    "coatingCode": "DVC",
+    "tintable": false,
+    "retailYuan": 1980,
+    "pdfPage": 36,
+    "coord": [
+      0.38,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:泽锐单光:偏光视界X:1.6:DVC",
+    "seriesGroup": "单光系列",
+    "productName": "泽锐单光",
+    "subsetName": "偏光视界X",
+    "index": 1.6,
+    "coating": "钻立方绿晶膜",
+    "coatingCode": "DVC",
+    "tintable": false,
+    "retailYuan": 2480,
+    "pdfPage": 36,
+    "coord": [
+      0.62,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:泽锐单光:偏光视界X:1.56:DP",
+    "seriesGroup": "单光系列",
+    "productName": "泽锐单光",
+    "subsetName": "偏光视界X",
+    "index": 1.56,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 2480,
+    "pdfPage": 36,
+    "coord": [
+      0.38,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:泽锐单光:偏光视界X:1.6:DP",
+    "seriesGroup": "单光系列",
+    "productName": "泽锐单光",
+    "subsetName": "偏光视界X",
+    "index": 1.6,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 2980,
+    "pdfPage": 36,
+    "coord": [
+      0.62,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:泽锐单光:焕色视界X:1.6:DVC",
+    "seriesGroup": "单光系列",
+    "productName": "泽锐单光",
+    "subsetName": "焕色视界X",
+    "index": 1.6,
+    "coating": "钻立方绿晶膜",
+    "coatingCode": "DVC",
+    "tintable": false,
+    "retailYuan": 3080,
+    "pdfPage": 36,
+    "coord": [
+      0.31,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:泽锐单光:焕色视界X:1.67:DVC",
+    "seriesGroup": "单光系列",
+    "productName": "泽锐单光",
+    "subsetName": "焕色视界X",
+    "index": 1.67,
+    "coating": "钻立方绿晶膜",
+    "coatingCode": "DVC",
+    "tintable": false,
+    "retailYuan": 3980,
+    "pdfPage": 36,
+    "coord": [
+      0.5,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:泽锐单光:焕色视界X:1.6:DP",
+    "seriesGroup": "单光系列",
+    "productName": "泽锐单光",
+    "subsetName": "焕色视界X",
+    "index": 1.6,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 3580,
+    "pdfPage": 36,
+    "coord": [
+      0.31,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:泽锐单光:焕色视界X:1.67:DP",
+    "seriesGroup": "单光系列",
+    "productName": "泽锐单光",
+    "subsetName": "焕色视界X",
+    "index": 1.67,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 4980,
+    "pdfPage": 36,
+    "coord": [
+      0.5,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:泽锐单光:焕色视界X:1.74:DP",
+    "seriesGroup": "单光系列",
+    "productName": "泽锐单光",
+    "subsetName": "焕色视界X",
+    "index": 1.74,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 5380,
+    "pdfPage": 36,
+    "coord": [
+      0.7,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:泽锐单光:焕色视界X:1.6:DG",
+    "seriesGroup": "单光系列",
+    "productName": "泽锐单光",
+    "subsetName": "焕色视界X",
+    "index": 1.6,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 4580,
+    "pdfPage": 36,
+    "coord": [
+      0.31,
+      0.72,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:泽锐单光:焕色视界X:1.67:DG",
+    "seriesGroup": "单光系列",
+    "productName": "泽锐单光",
+    "subsetName": "焕色视界X",
+    "index": 1.67,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 5980,
+    "pdfPage": 36,
+    "coord": [
+      0.5,
+      0.72,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:泽锐单光:焕色视界X:1.74:DG",
+    "seriesGroup": "单光系列",
+    "productName": "泽锐单光",
+    "subsetName": "焕色视界X",
+    "index": 1.74,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 6880,
+    "pdfPage": 36,
+    "coord": [
+      0.7,
+      0.72,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:新清锐非球面:标配:1.56:DP",
+    "seriesGroup": "单光系列",
+    "productName": "新清锐非球面",
+    "subsetName": "标配",
+    "index": 1.56,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 1580,
+    "pdfPage": 37,
+    "coord": [
+      0.26,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:新清锐非球面:标配:1.6:DP",
+    "seriesGroup": "单光系列",
+    "productName": "新清锐非球面",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 2380,
+    "pdfPage": 37,
+    "coord": [
+      0.41,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:新清锐非球面:标配:1.67:DP",
+    "seriesGroup": "单光系列",
+    "productName": "新清锐非球面",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 3280,
+    "pdfPage": 37,
+    "coord": [
+      0.58,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:新清锐非球面:标配:1.74:DP",
+    "seriesGroup": "单光系列",
+    "productName": "新清锐非球面",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 4280,
+    "pdfPage": 37,
+    "coord": [
+      0.74,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:新清锐非球面:标配:1.6:DP",
+    "seriesGroup": "单光系列",
+    "productName": "新清锐非球面",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方铂金膜 (可染色)",
+    "coatingCode": "DP",
+    "tintable": true,
+    "retailYuan": 2980,
+    "pdfPage": 37,
+    "coord": [
+      0.41,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:新清锐非球面:标配:1.67:DP",
+    "seriesGroup": "单光系列",
+    "productName": "新清锐非球面",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方铂金膜 (可染色)",
+    "coatingCode": "DP",
+    "tintable": true,
+    "retailYuan": 4080,
+    "pdfPage": 37,
+    "coord": [
+      0.58,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:新清锐非球面:焕色视界X:1.6:DP",
+    "seriesGroup": "单光系列",
+    "productName": "新清锐非球面",
+    "subsetName": "焕色视界X",
+    "index": 1.6,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 3580,
+    "pdfPage": 37,
+    "coord": [
+      0.38,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:新清锐非球面:焕色视界X:1.67:DP",
+    "seriesGroup": "单光系列",
+    "productName": "新清锐非球面",
+    "subsetName": "焕色视界X",
+    "index": 1.67,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 5880,
+    "pdfPage": 37,
+    "coord": [
+      0.62,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:防蓝光单光:标配:1.5:BP",
+    "seriesGroup": "单光系列",
+    "productName": "防蓝光单光",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 1180,
+    "pdfPage": 38,
+    "coord": [
+      0.22,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:防蓝光单光:标配:1.56:BP",
+    "seriesGroup": "单光系列",
+    "productName": "防蓝光单光",
+    "subsetName": "标配",
+    "index": 1.56,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 1480,
+    "pdfPage": 38,
+    "coord": [
+      0.34,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:防蓝光单光:标配:1.6:BP",
+    "seriesGroup": "单光系列",
+    "productName": "防蓝光单光",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 2080,
+    "pdfPage": 38,
+    "coord": [
+      0.46,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:防蓝光单光:标配:1.67:BP",
+    "seriesGroup": "单光系列",
+    "productName": "防蓝光单光",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 2980,
+    "pdfPage": 38,
+    "coord": [
+      0.6,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:防蓝光单光:标配:1.74:BP",
+    "seriesGroup": "单光系列",
+    "productName": "防蓝光单光",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 3980,
+    "pdfPage": 38,
+    "coord": [
+      0.74,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:A系列2.0单光:标配:1.5:DVJ",
+    "seriesGroup": "单光系列",
+    "productName": "A系列2.0单光",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "蔡司清晖膜",
+    "coatingCode": "DVJ",
+    "tintable": false,
+    "retailYuan": 680,
+    "pdfPage": 39,
+    "coord": [
+      0.22,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:A系列2.0单光:标配:1.56:DVJ",
+    "seriesGroup": "单光系列",
+    "productName": "A系列2.0单光",
+    "subsetName": "标配",
+    "index": 1.56,
+    "coating": "蔡司清晖膜",
+    "coatingCode": "DVJ",
+    "tintable": false,
+    "retailYuan": 980,
+    "pdfPage": 39,
+    "coord": [
+      0.34,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:A系列2.0单光:标配:1.6:DVJ",
+    "seriesGroup": "单光系列",
+    "productName": "A系列2.0单光",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "蔡司清晖膜",
+    "coatingCode": "DVJ",
+    "tintable": false,
+    "retailYuan": 1380,
+    "pdfPage": 39,
+    "coord": [
+      0.46,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:A系列2.0单光:标配:1.67:DVJ",
+    "seriesGroup": "单光系列",
+    "productName": "A系列2.0单光",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "蔡司清晖膜",
+    "coatingCode": "DVJ",
+    "tintable": false,
+    "retailYuan": 1980,
+    "pdfPage": 39,
+    "coord": [
+      0.6,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:A系列2.0单光:标配:1.74:DVJ",
+    "seriesGroup": "单光系列",
+    "productName": "A系列2.0单光",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "蔡司清晖膜",
+    "coatingCode": "DVJ",
+    "tintable": false,
+    "retailYuan": 3280,
+    "pdfPage": 39,
+    "coord": [
+      0.74,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:A系列2.0单光:标配:1.6:BLDVJ",
+    "seriesGroup": "单光系列",
+    "productName": "A系列2.0单光",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "防蓝光Plus+清晖膜",
+    "coatingCode": "BLDVJ",
+    "tintable": false,
+    "retailYuan": 1680,
+    "pdfPage": 39,
+    "coord": [
+      0.46,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:A系列2.0单光:标配:1.67:BLDVJ",
+    "seriesGroup": "单光系列",
+    "productName": "A系列2.0单光",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "防蓝光Plus+清晖膜",
+    "coatingCode": "BLDVJ",
+    "tintable": false,
+    "retailYuan": 2380,
+    "pdfPage": 39,
+    "coord": [
+      0.6,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:A系列2.0单光:标配:1.6:DVJ",
+    "seriesGroup": "单光系列",
+    "productName": "A系列2.0单光",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "蔡司清晖膜 (可染色)",
+    "coatingCode": "DVJ",
+    "tintable": true,
+    "retailYuan": 1780,
+    "pdfPage": 39,
+    "coord": [
+      0.46,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:A系列2.0单光:标配:1.67:DVJ",
+    "seriesGroup": "单光系列",
+    "productName": "A系列2.0单光",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "蔡司清晖膜 (可染色)",
+    "coatingCode": "DVJ",
+    "tintable": true,
+    "retailYuan": 2380,
+    "pdfPage": 39,
+    "coord": [
+      0.6,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:A系列2.0单光:标配:1.74:DVJ",
+    "seriesGroup": "单光系列",
+    "productName": "A系列2.0单光",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "蔡司清晖膜",
+    "coatingCode": "DVJ",
+    "tintable": false,
+    "retailYuan": 3580,
+    "pdfPage": 39,
+    "coord": [
+      0.74,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:A系列2.0单光:焕色视界X:1.5:DVJ",
+    "seriesGroup": "单光系列",
+    "productName": "A系列2.0单光",
+    "subsetName": "焕色视界X",
+    "index": 1.5,
+    "coating": "蔡司清晖膜",
+    "coatingCode": "DVJ",
+    "tintable": false,
+    "retailYuan": 1580,
+    "pdfPage": 39,
+    "coord": [
+      0.26,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:A系列2.0单光:焕色视界X:1.6:DVJ",
+    "seriesGroup": "单光系列",
+    "productName": "A系列2.0单光",
+    "subsetName": "焕色视界X",
+    "index": 1.6,
+    "coating": "蔡司清晖膜",
+    "coatingCode": "DVJ",
+    "tintable": false,
+    "retailYuan": 2180,
+    "pdfPage": 39,
+    "coord": [
+      0.41,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:A系列2.0单光:焕色视界X:1.67:DVJ",
+    "seriesGroup": "单光系列",
+    "productName": "A系列2.0单光",
+    "subsetName": "焕色视界X",
+    "index": 1.67,
+    "coating": "蔡司清晖膜",
+    "coatingCode": "DVJ",
+    "tintable": false,
+    "retailYuan": 3580,
+    "pdfPage": 39,
+    "coord": [
+      0.58,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:A系列2.0单光:焕色视界X:1.74:DVJ",
+    "seriesGroup": "单光系列",
+    "productName": "A系列2.0单光",
+    "subsetName": "焕色视界X",
+    "index": 1.74,
+    "coating": "蔡司清晖膜",
+    "coatingCode": "DVJ",
+    "tintable": false,
+    "retailYuan": 4580,
+    "pdfPage": 39,
+    "coord": [
+      0.74,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:A系列时尚型单光:标配:1.6:LT",
+    "seriesGroup": "单光系列",
+    "productName": "A系列时尚型单光",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "蔡司莲花膜 (可染色)",
+    "coatingCode": "LT",
+    "tintable": true,
+    "retailYuan": 1980,
+    "pdfPage": 40,
+    "coord": [
+      0.38,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:单光系列:A系列时尚型单光:标配:1.67:LT",
+    "seriesGroup": "单光系列",
+    "productName": "A系列时尚型单光",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "蔡司莲花膜 (可染色)",
+    "coatingCode": "LT",
+    "tintable": true,
+    "retailYuan": 2680,
+    "pdfPage": 40,
+    "coord": [
+      0.62,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0轻渐进专业版:标配:1.5:DVC",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0轻渐进专业版",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "钻立方绿晶膜 (可染色)",
+    "coatingCode": "DVC",
+    "tintable": true,
+    "retailYuan": 1580,
+    "pdfPage": 43,
+    "coord": [
+      0.26,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0轻渐进专业版:标配:1.6:DVC",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0轻渐进专业版",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方绿晶膜 (可染色)",
+    "coatingCode": "DVC",
+    "tintable": true,
+    "retailYuan": 2580,
+    "pdfPage": 43,
+    "coord": [
+      0.41,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0轻渐进专业版:标配:1.67:DVC",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0轻渐进专业版",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方绿晶膜 (可染色)",
+    "coatingCode": "DVC",
+    "tintable": true,
+    "retailYuan": 3780,
+    "pdfPage": 43,
+    "coord": [
+      0.58,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0轻渐进专业版:标配:1.74:DVC",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0轻渐进专业版",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "钻立方绿晶膜",
+    "coatingCode": "DVC",
+    "tintable": false,
+    "retailYuan": 5080,
+    "pdfPage": 43,
+    "coord": [
+      0.74,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0轻渐进专业版:标配:1.5:DP",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0轻渐进专业版",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "钻立方铂金膜 (可染色)",
+    "coatingCode": "DP",
+    "tintable": true,
+    "retailYuan": 2080,
+    "pdfPage": 43,
+    "coord": [
+      0.26,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0轻渐进专业版:标配:1.6:DP",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0轻渐进专业版",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方铂金膜 (可染色)",
+    "coatingCode": "DP",
+    "tintable": true,
+    "retailYuan": 3080,
+    "pdfPage": 43,
+    "coord": [
+      0.41,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0轻渐进专业版:标配:1.67:DP",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0轻渐进专业版",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方铂金膜 (可染色)",
+    "coatingCode": "DP",
+    "tintable": true,
+    "retailYuan": 4280,
+    "pdfPage": 43,
+    "coord": [
+      0.58,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0轻渐进专业版:标配:1.74:DP",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0轻渐进专业版",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 5580,
+    "pdfPage": 43,
+    "coord": [
+      0.74,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0轻渐进专业版:标配:1.5:BP",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0轻渐进专业版",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 2180,
+    "pdfPage": 43,
+    "coord": [
+      0.26,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0轻渐进专业版:标配:1.6:BP",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0轻渐进专业版",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 3180,
+    "pdfPage": 43,
+    "coord": [
+      0.41,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0轻渐进专业版:标配:1.67:BP",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0轻渐进专业版",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 4380,
+    "pdfPage": 43,
+    "coord": [
+      0.58,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0轻渐进专业版:标配:1.74:BP",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0轻渐进专业版",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 5680,
+    "pdfPage": 43,
+    "coord": [
+      0.74,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0轻渐进专业版:标配:1.5:BLDV",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0轻渐进专业版",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 2380,
+    "pdfPage": 43,
+    "coord": [
+      0.26,
+      0.46,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0轻渐进专业版:标配:1.6:BLDV",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0轻渐进专业版",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 3380,
+    "pdfPage": 43,
+    "coord": [
+      0.41,
+      0.46,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0轻渐进专业版:标配:1.67:BLDV",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0轻渐进专业版",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 4580,
+    "pdfPage": 43,
+    "coord": [
+      0.58,
+      0.46,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0轻渐进专业版:标配:1.74:BLDV",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0轻渐进专业版",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 5880,
+    "pdfPage": 43,
+    "coord": [
+      0.74,
+      0.46,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0轻渐进专业版:标配:1.5:DG",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0轻渐进专业版",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "钻立方鎏金膜 (可染色)",
+    "coatingCode": "DG",
+    "tintable": true,
+    "retailYuan": 3080,
+    "pdfPage": 43,
+    "coord": [
+      0.26,
+      0.525,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0轻渐进专业版:标配:1.6:DG",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0轻渐进专业版",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方鎏金膜 (可染色)",
+    "coatingCode": "DG",
+    "tintable": true,
+    "retailYuan": 4080,
+    "pdfPage": 43,
+    "coord": [
+      0.41,
+      0.525,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0轻渐进专业版:标配:1.67:DG",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0轻渐进专业版",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方鎏金膜 (可染色)",
+    "coatingCode": "DG",
+    "tintable": true,
+    "retailYuan": 5280,
+    "pdfPage": 43,
+    "coord": [
+      0.58,
+      0.525,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0轻渐进专业版:标配:1.74:DG",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0轻渐进专业版",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 6580,
+    "pdfPage": 43,
+    "coord": [
+      0.74,
+      0.525,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0轻渐进专业版:焕色视界X:1.5:DVC",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0轻渐进专业版",
+    "subsetName": "焕色视界X",
+    "index": 1.5,
+    "coating": "钻立方绿晶膜",
+    "coatingCode": "DVC",
+    "tintable": false,
+    "retailYuan": 2180,
+    "pdfPage": 43,
+    "coord": [
+      0.31,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0轻渐进专业版:焕色视界X:1.6:DVC",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0轻渐进专业版",
+    "subsetName": "焕色视界X",
+    "index": 1.6,
+    "coating": "钻立方绿晶膜",
+    "coatingCode": "DVC",
+    "tintable": false,
+    "retailYuan": 3480,
+    "pdfPage": 43,
+    "coord": [
+      0.5,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0轻渐进专业版:焕色视界X:1.67:DVC",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0轻渐进专业版",
+    "subsetName": "焕色视界X",
+    "index": 1.67,
+    "coating": "钻立方绿晶膜",
+    "coatingCode": "DVC",
+    "tintable": false,
+    "retailYuan": 4980,
+    "pdfPage": 43,
+    "coord": [
+      0.7,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0轻渐进专业版:焕色视界X:1.5:DP",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0轻渐进专业版",
+    "subsetName": "焕色视界X",
+    "index": 1.5,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 2680,
+    "pdfPage": 43,
+    "coord": [
+      0.31,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0轻渐进专业版:焕色视界X:1.6:DP",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0轻渐进专业版",
+    "subsetName": "焕色视界X",
+    "index": 1.6,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 3980,
+    "pdfPage": 43,
+    "coord": [
+      0.5,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0轻渐进专业版:焕色视界X:1.67:DP",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0轻渐进专业版",
+    "subsetName": "焕色视界X",
+    "index": 1.67,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 5480,
+    "pdfPage": 43,
+    "coord": [
+      0.7,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0轻渐进专业版:焕色视界X:1.5:DG",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0轻渐进专业版",
+    "subsetName": "焕色视界X",
+    "index": 1.5,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 3680,
+    "pdfPage": 43,
+    "coord": [
+      0.31,
+      0.72,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0轻渐进专业版:焕色视界X:1.6:DG",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0轻渐进专业版",
+    "subsetName": "焕色视界X",
+    "index": 1.6,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 4980,
+    "pdfPage": 43,
+    "coord": [
+      0.5,
+      0.72,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0轻渐进专业版:焕色视界X:1.67:DG",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0轻渐进专业版",
+    "subsetName": "焕色视界X",
+    "index": 1.67,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 6480,
+    "pdfPage": 43,
+    "coord": [
+      0.7,
+      0.72,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0轻渐进个化版:标配:1.5:DP",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0轻渐进个化版",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "钻立方铂金膜 (可染色)",
+    "coatingCode": "DP",
+    "tintable": true,
+    "retailYuan": 3380,
+    "pdfPage": 44,
+    "coord": [
+      0.26,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0轻渐进个化版:标配:1.6:DP",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0轻渐进个化版",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方铂金膜 (可染色)",
+    "coatingCode": "DP",
+    "tintable": true,
+    "retailYuan": 4680,
+    "pdfPage": 44,
+    "coord": [
+      0.41,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0轻渐进个化版:标配:1.67:DP",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0轻渐进个化版",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方铂金膜 (可染色)",
+    "coatingCode": "DP",
+    "tintable": true,
+    "retailYuan": 6680,
+    "pdfPage": 44,
+    "coord": [
+      0.58,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0轻渐进个化版:标配:1.74:DP",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0轻渐进个化版",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 8880,
+    "pdfPage": 44,
+    "coord": [
+      0.74,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0轻渐进个化版:标配:1.5:BP",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0轻渐进个化版",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 3480,
+    "pdfPage": 44,
+    "coord": [
+      0.26,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0轻渐进个化版:标配:1.6:BP",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0轻渐进个化版",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 4780,
+    "pdfPage": 44,
+    "coord": [
+      0.41,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0轻渐进个化版:标配:1.67:BP",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0轻渐进个化版",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 6780,
+    "pdfPage": 44,
+    "coord": [
+      0.58,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0轻渐进个化版:标配:1.74:BP",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0轻渐进个化版",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 8980,
+    "pdfPage": 44,
+    "coord": [
+      0.74,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0轻渐进个化版:标配:1.5:BLDV",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0轻渐进个化版",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 3680,
+    "pdfPage": 44,
+    "coord": [
+      0.26,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0轻渐进个化版:标配:1.6:BLDV",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0轻渐进个化版",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 4980,
+    "pdfPage": 44,
+    "coord": [
+      0.41,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0轻渐进个化版:标配:1.67:BLDV",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0轻渐进个化版",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 6980,
+    "pdfPage": 44,
+    "coord": [
+      0.58,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0轻渐进个化版:标配:1.74:BLDV",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0轻渐进个化版",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 9180,
+    "pdfPage": 44,
+    "coord": [
+      0.74,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0轻渐进个化版:标配:1.5:DG",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0轻渐进个化版",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "钻立方鎏金膜 (可染色)",
+    "coatingCode": "DG",
+    "tintable": true,
+    "retailYuan": 4380,
+    "pdfPage": 44,
+    "coord": [
+      0.26,
+      0.46,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0轻渐进个化版:标配:1.6:DG",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0轻渐进个化版",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方鎏金膜 (可染色)",
+    "coatingCode": "DG",
+    "tintable": true,
+    "retailYuan": 5680,
+    "pdfPage": 44,
+    "coord": [
+      0.41,
+      0.46,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0轻渐进个化版:标配:1.67:DG",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0轻渐进个化版",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方鎏金膜 (可染色)",
+    "coatingCode": "DG",
+    "tintable": true,
+    "retailYuan": 7680,
+    "pdfPage": 44,
+    "coord": [
+      0.58,
+      0.46,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0轻渐进个化版:标配:1.74:DG",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0轻渐进个化版",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 9880,
+    "pdfPage": 44,
+    "coord": [
+      0.74,
+      0.46,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0轻渐进个化版:焕色视界X:1.5:DP",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0轻渐进个化版",
+    "subsetName": "焕色视界X",
+    "index": 1.5,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 4280,
+    "pdfPage": 44,
+    "coord": [
+      0.31,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0轻渐进个化版:焕色视界X:1.6:DP",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0轻渐进个化版",
+    "subsetName": "焕色视界X",
+    "index": 1.6,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 5880,
+    "pdfPage": 44,
+    "coord": [
+      0.5,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0轻渐进个化版:焕色视界X:1.67:DP",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0轻渐进个化版",
+    "subsetName": "焕色视界X",
+    "index": 1.67,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 8680,
+    "pdfPage": 44,
+    "coord": [
+      0.7,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0轻渐进个化版:焕色视界X:1.5:DG",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0轻渐进个化版",
+    "subsetName": "焕色视界X",
+    "index": 1.5,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 5280,
+    "pdfPage": 44,
+    "coord": [
+      0.31,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0轻渐进个化版:焕色视界X:1.6:DG",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0轻渐进个化版",
+    "subsetName": "焕色视界X",
+    "index": 1.6,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 6880,
+    "pdfPage": 44,
+    "coord": [
+      0.5,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0轻渐进个化版:焕色视界X:1.67:DG",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0轻渐进个化版",
+    "subsetName": "焕色视界X",
+    "index": 1.67,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 9680,
+    "pdfPage": 44,
+    "coord": [
+      0.7,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0 D渐进:标配:1.5:DVC",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0 D渐进",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "钻立方绿晶膜 (可染色)",
+    "coatingCode": "DVC",
+    "tintable": true,
+    "retailYuan": 1660,
+    "pdfPage": 46,
+    "coord": [
+      0.26,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0 D渐进:标配:1.6:DVC",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0 D渐进",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方绿晶膜 (可染色)",
+    "coatingCode": "DVC",
+    "tintable": true,
+    "retailYuan": 2660,
+    "pdfPage": 46,
+    "coord": [
+      0.41,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0 D渐进:标配:1.67:DVC",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0 D渐进",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方绿晶膜 (可染色)",
+    "coatingCode": "DVC",
+    "tintable": true,
+    "retailYuan": 3880,
+    "pdfPage": 46,
+    "coord": [
+      0.58,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0 D渐进:标配:1.74:DVC",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0 D渐进",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "钻立方绿晶膜",
+    "coatingCode": "DVC",
+    "tintable": false,
+    "retailYuan": 5180,
+    "pdfPage": 46,
+    "coord": [
+      0.74,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0 D渐进:标配:1.5:DP",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0 D渐进",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "钻立方铂金膜 (可染色)",
+    "coatingCode": "DP",
+    "tintable": true,
+    "retailYuan": 2180,
+    "pdfPage": 46,
+    "coord": [
+      0.26,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0 D渐进:标配:1.6:DP",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0 D渐进",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方铂金膜 (可染色)",
+    "coatingCode": "DP",
+    "tintable": true,
+    "retailYuan": 3180,
+    "pdfPage": 46,
+    "coord": [
+      0.41,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0 D渐进:标配:1.67:DP",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0 D渐进",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方铂金膜 (可染色)",
+    "coatingCode": "DP",
+    "tintable": true,
+    "retailYuan": 4380,
+    "pdfPage": 46,
+    "coord": [
+      0.58,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0 D渐进:标配:1.74:DP",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0 D渐进",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 5680,
+    "pdfPage": 46,
+    "coord": [
+      0.74,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0 D渐进:标配:1.5:BP",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0 D渐进",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 2280,
+    "pdfPage": 46,
+    "coord": [
+      0.26,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0 D渐进:标配:1.6:BP",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0 D渐进",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 3280,
+    "pdfPage": 46,
+    "coord": [
+      0.41,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0 D渐进:标配:1.67:BP",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0 D渐进",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 4480,
+    "pdfPage": 46,
+    "coord": [
+      0.58,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0 D渐进:标配:1.74:BP",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0 D渐进",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 5780,
+    "pdfPage": 46,
+    "coord": [
+      0.74,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0 D渐进:标配:1.5:BLDV",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0 D渐进",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 2480,
+    "pdfPage": 46,
+    "coord": [
+      0.26,
+      0.46,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0 D渐进:标配:1.6:BLDV",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0 D渐进",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 3480,
+    "pdfPage": 46,
+    "coord": [
+      0.41,
+      0.46,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0 D渐进:标配:1.67:BLDV",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0 D渐进",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 4680,
+    "pdfPage": 46,
+    "coord": [
+      0.58,
+      0.46,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0 D渐进:标配:1.5:DG",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0 D渐进",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "钻立方鎏金膜 (可染色)",
+    "coatingCode": "DG",
+    "tintable": true,
+    "retailYuan": 3180,
+    "pdfPage": 46,
+    "coord": [
+      0.26,
+      0.525,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0 D渐进:标配:1.6:DG",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0 D渐进",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方鎏金膜 (可染色)",
+    "coatingCode": "DG",
+    "tintable": true,
+    "retailYuan": 4180,
+    "pdfPage": 46,
+    "coord": [
+      0.41,
+      0.525,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0 D渐进:标配:1.67:DG",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0 D渐进",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方鎏金膜 (可染色)",
+    "coatingCode": "DG",
+    "tintable": true,
+    "retailYuan": 5380,
+    "pdfPage": 46,
+    "coord": [
+      0.58,
+      0.525,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0 D渐进:标配:1.74:DG",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0 D渐进",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 6680,
+    "pdfPage": 46,
+    "coord": [
+      0.74,
+      0.525,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0 D渐进:焕色视界X:1.5:DVC",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0 D渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.5,
+    "coating": "钻立方绿晶膜",
+    "coatingCode": "DVC",
+    "tintable": false,
+    "retailYuan": 2480,
+    "pdfPage": 46,
+    "coord": [
+      0.26,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0 D渐进:焕色视界X:1.6:DVC",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0 D渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.6,
+    "coating": "钻立方绿晶膜",
+    "coatingCode": "DVC",
+    "tintable": false,
+    "retailYuan": 3880,
+    "pdfPage": 46,
+    "coord": [
+      0.41,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0 D渐进:焕色视界X:1.67:DVC",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0 D渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.67,
+    "coating": "钻立方绿晶膜",
+    "coatingCode": "DVC",
+    "tintable": false,
+    "retailYuan": 5480,
+    "pdfPage": 46,
+    "coord": [
+      0.58,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0 D渐进:焕色视界X:1.74:DVC",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0 D渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.74,
+    "coating": "钻立方绿晶膜",
+    "coatingCode": "DVC",
+    "tintable": false,
+    "retailYuan": 6380,
+    "pdfPage": 46,
+    "coord": [
+      0.74,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0 D渐进:焕色视界X:1.5:DP",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0 D渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.5,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 2980,
+    "pdfPage": 46,
+    "coord": [
+      0.26,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0 D渐进:焕色视界X:1.6:DP",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0 D渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.6,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 4380,
+    "pdfPage": 46,
+    "coord": [
+      0.41,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0 D渐进:焕色视界X:1.67:DP",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0 D渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.67,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 5980,
+    "pdfPage": 46,
+    "coord": [
+      0.58,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0 D渐进:焕色视界X:1.74:DP",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0 D渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.74,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 6880,
+    "pdfPage": 46,
+    "coord": [
+      0.74,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0 D渐进:焕色视界X:1.5:DG",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0 D渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.5,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 3980,
+    "pdfPage": 46,
+    "coord": [
+      0.26,
+      0.72,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0 D渐进:焕色视界X:1.6:DG",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0 D渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.6,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 5380,
+    "pdfPage": 46,
+    "coord": [
+      0.41,
+      0.72,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0 D渐进:焕色视界X:1.67:DG",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0 D渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.67,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 6980,
+    "pdfPage": 46,
+    "coord": [
+      0.58,
+      0.72,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0 D渐进:焕色视界X:1.74:DG",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0 D渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.74,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 7880,
+    "pdfPage": 46,
+    "coord": [
+      0.74,
+      0.72,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0 3D渐进:标配:1.5:DP",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0 3D渐进",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "钻立方铂金膜 (可染色)",
+    "coatingCode": "DP",
+    "tintable": true,
+    "retailYuan": 2780,
+    "pdfPage": 47,
+    "coord": [
+      0.26,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0 3D渐进:标配:1.6:DP",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0 3D渐进",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方铂金膜 (可染色)",
+    "coatingCode": "DP",
+    "tintable": true,
+    "retailYuan": 4080,
+    "pdfPage": 47,
+    "coord": [
+      0.41,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0 3D渐进:标配:1.67:DP",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0 3D渐进",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方铂金膜 (可染色)",
+    "coatingCode": "DP",
+    "tintable": true,
+    "retailYuan": 5980,
+    "pdfPage": 47,
+    "coord": [
+      0.58,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0 3D渐进:标配:1.74:DP",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0 3D渐进",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 7780,
+    "pdfPage": 47,
+    "coord": [
+      0.74,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0 3D渐进:标配:1.5:BP",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0 3D渐进",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 2880,
+    "pdfPage": 47,
+    "coord": [
+      0.26,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0 3D渐进:标配:1.6:BP",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0 3D渐进",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 4180,
+    "pdfPage": 47,
+    "coord": [
+      0.41,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0 3D渐进:标配:1.67:BP",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0 3D渐进",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 6080,
+    "pdfPage": 47,
+    "coord": [
+      0.58,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0 3D渐进:标配:1.74:BP",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0 3D渐进",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 7880,
+    "pdfPage": 47,
+    "coord": [
+      0.74,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0 3D渐进:标配:1.5:BLDV",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0 3D渐进",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 3080,
+    "pdfPage": 47,
+    "coord": [
+      0.26,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0 3D渐进:标配:1.6:BLDV",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0 3D渐进",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 4380,
+    "pdfPage": 47,
+    "coord": [
+      0.41,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0 3D渐进:标配:1.67:BLDV",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0 3D渐进",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 6280,
+    "pdfPage": 47,
+    "coord": [
+      0.58,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0 3D渐进:标配:1.5:DG",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0 3D渐进",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "钻立方鎏金膜 (可染色)",
+    "coatingCode": "DG",
+    "tintable": true,
+    "retailYuan": 3780,
+    "pdfPage": 47,
+    "coord": [
+      0.26,
+      0.46,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0 3D渐进:标配:1.6:DG",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0 3D渐进",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方鎏金膜 (可染色)",
+    "coatingCode": "DG",
+    "tintable": true,
+    "retailYuan": 5080,
+    "pdfPage": 47,
+    "coord": [
+      0.41,
+      0.46,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0 3D渐进:标配:1.67:DG",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0 3D渐进",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方鎏金膜 (可染色)",
+    "coatingCode": "DG",
+    "tintable": true,
+    "retailYuan": 6980,
+    "pdfPage": 47,
+    "coord": [
+      0.58,
+      0.46,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0 3D渐进:标配:1.74:DG",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0 3D渐进",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 8780,
+    "pdfPage": 47,
+    "coord": [
+      0.74,
+      0.46,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0 3D渐进:焕色视界X:1.5:DP",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0 3D渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.5,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 3780,
+    "pdfPage": 47,
+    "coord": [
+      0.26,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0 3D渐进:焕色视界X:1.6:DP",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0 3D渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.6,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 5580,
+    "pdfPage": 47,
+    "coord": [
+      0.41,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0 3D渐进:焕色视界X:1.67:DP",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0 3D渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.67,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 8280,
+    "pdfPage": 47,
+    "coord": [
+      0.58,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0 3D渐进:焕色视界X:1.74:DP",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0 3D渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.74,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 9480,
+    "pdfPage": 47,
+    "coord": [
+      0.74,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0 3D渐进:焕色视界X:1.5:DG",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0 3D渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.5,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 4780,
+    "pdfPage": 47,
+    "coord": [
+      0.26,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0 3D渐进:焕色视界X:1.6:DG",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0 3D渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.6,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 6580,
+    "pdfPage": 47,
+    "coord": [
+      0.41,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0 3D渐进:焕色视界X:1.67:DG",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0 3D渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.67,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 9280,
+    "pdfPage": 47,
+    "coord": [
+      0.58,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:睐光2.0 3D渐进:焕色视界X:1.74:DG",
+    "seriesGroup": "渐进系列",
+    "productName": "睐光2.0 3D渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.74,
+    "coating": "钻立方鎏金膜",
+    "coatingCode": "DG",
+    "tintable": false,
+    "retailYuan": 10480,
+    "pdfPage": 47,
+    "coord": [
+      0.74,
+      0.655,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:室内型三维博锐2.0:标配:1.5:DP",
+    "seriesGroup": "渐进系列",
+    "productName": "室内型三维博锐2.0",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "钻立方铂金膜 (可染色)",
+    "coatingCode": "DP",
+    "tintable": true,
+    "retailYuan": 3480,
+    "pdfPage": 49,
+    "coord": [
+      0.31,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:室内型三维博锐2.0:标配:1.6:DP",
+    "seriesGroup": "渐进系列",
+    "productName": "室内型三维博锐2.0",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方铂金膜 (可染色)",
+    "coatingCode": "DP",
+    "tintable": true,
+    "retailYuan": 4480,
+    "pdfPage": 49,
+    "coord": [
+      0.5,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:室内型三维博锐2.0:标配:1.67:DP",
+    "seriesGroup": "渐进系列",
+    "productName": "室内型三维博锐2.0",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方铂金膜 (可染色)",
+    "coatingCode": "DP",
+    "tintable": true,
+    "retailYuan": 5480,
+    "pdfPage": 49,
+    "coord": [
+      0.7,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:室内型三维博锐2.0:标配:1.5:BP",
+    "seriesGroup": "渐进系列",
+    "productName": "室内型三维博锐2.0",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 3580,
+    "pdfPage": 49,
+    "coord": [
+      0.31,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:室内型三维博锐2.0:标配:1.6:BP",
+    "seriesGroup": "渐进系列",
+    "productName": "室内型三维博锐2.0",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 4580,
+    "pdfPage": 49,
+    "coord": [
+      0.5,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:室内型三维博锐2.0:标配:1.67:BP",
+    "seriesGroup": "渐进系列",
+    "productName": "室内型三维博锐2.0",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 5580,
+    "pdfPage": 49,
+    "coord": [
+      0.7,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:室内型三维博锐2.0:标配:1.5:BLDV",
+    "seriesGroup": "渐进系列",
+    "productName": "室内型三维博锐2.0",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 3780,
+    "pdfPage": 49,
+    "coord": [
+      0.31,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:室内型三维博锐2.0:标配:1.6:BLDV",
+    "seriesGroup": "渐进系列",
+    "productName": "室内型三维博锐2.0",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 4780,
+    "pdfPage": 49,
+    "coord": [
+      0.5,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:室内型三维博锐2.0:标配:1.67:BLDV",
+    "seriesGroup": "渐进系列",
+    "productName": "室内型三维博锐2.0",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 5780,
+    "pdfPage": 49,
+    "coord": [
+      0.7,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:室内型臻锐:标配:1.5:DP",
+    "seriesGroup": "渐进系列",
+    "productName": "室内型臻锐",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "钻立方铂金膜 (可染色)",
+    "coatingCode": "DP",
+    "tintable": true,
+    "retailYuan": 5480,
+    "pdfPage": 50,
+    "coord": [
+      0.31,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:室内型臻锐:标配:1.6:DP",
+    "seriesGroup": "渐进系列",
+    "productName": "室内型臻锐",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方铂金膜 (可染色)",
+    "coatingCode": "DP",
+    "tintable": true,
+    "retailYuan": 8480,
+    "pdfPage": 50,
+    "coord": [
+      0.5,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:室内型臻锐:标配:1.67:DP",
+    "seriesGroup": "渐进系列",
+    "productName": "室内型臻锐",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方铂金膜 (可染色)",
+    "coatingCode": "DP",
+    "tintable": true,
+    "retailYuan": 11300,
+    "pdfPage": 50,
+    "coord": [
+      0.7,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:室内型臻锐:标配:1.5:BP",
+    "seriesGroup": "渐进系列",
+    "productName": "室内型臻锐",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 5580,
+    "pdfPage": 50,
+    "coord": [
+      0.31,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:室内型臻锐:标配:1.6:BP",
+    "seriesGroup": "渐进系列",
+    "productName": "室内型臻锐",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 8580,
+    "pdfPage": 50,
+    "coord": [
+      0.5,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:室内型臻锐:标配:1.67:BP",
+    "seriesGroup": "渐进系列",
+    "productName": "室内型臻锐",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 11400,
+    "pdfPage": 50,
+    "coord": [
+      0.7,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:室内型臻锐:标配:1.5:BLDV",
+    "seriesGroup": "渐进系列",
+    "productName": "室内型臻锐",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 5780,
+    "pdfPage": 50,
+    "coord": [
+      0.31,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:室内型臻锐:标配:1.6:BLDV",
+    "seriesGroup": "渐进系列",
+    "productName": "室内型臻锐",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 8780,
+    "pdfPage": 50,
+    "coord": [
+      0.5,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:室内型臻锐:标配:1.67:BLDV",
+    "seriesGroup": "渐进系列",
+    "productName": "室内型臻锐",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 11600,
+    "pdfPage": 50,
+    "coord": [
+      0.7,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:A系列2.0渐进:标配:1.5:CPJ",
+    "seriesGroup": "渐进系列",
+    "productName": "A系列2.0渐进",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "蔡司清晖膜 (可染色)",
+    "coatingCode": "CPJ",
+    "tintable": true,
+    "retailYuan": 1380,
+    "pdfPage": 51,
+    "coord": [
+      0.26,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:A系列2.0渐进:标配:1.6:CPJ",
+    "seriesGroup": "渐进系列",
+    "productName": "A系列2.0渐进",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "蔡司清晖膜 (可染色)",
+    "coatingCode": "CPJ",
+    "tintable": true,
+    "retailYuan": 1980,
+    "pdfPage": 51,
+    "coord": [
+      0.41,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:A系列2.0渐进:标配:1.67:CPJ",
+    "seriesGroup": "渐进系列",
+    "productName": "A系列2.0渐进",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "蔡司清晖膜 (可染色)",
+    "coatingCode": "CPJ",
+    "tintable": true,
+    "retailYuan": 2980,
+    "pdfPage": 51,
+    "coord": [
+      0.58,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:A系列2.0渐进:标配:1.74:CPJ",
+    "seriesGroup": "渐进系列",
+    "productName": "A系列2.0渐进",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "蔡司清晖膜",
+    "coatingCode": "CPJ",
+    "tintable": false,
+    "retailYuan": 3980,
+    "pdfPage": 51,
+    "coord": [
+      0.74,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:A系列2.0渐进:焕色视界X:1.5:CPJ",
+    "seriesGroup": "渐进系列",
+    "productName": "A系列2.0渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.5,
+    "coating": "蔡司清晖膜",
+    "coatingCode": "CPJ",
+    "tintable": false,
+    "retailYuan": 2180,
+    "pdfPage": 51,
+    "coord": [
+      0.31,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:A系列2.0渐进:焕色视界X:1.6:CPJ",
+    "seriesGroup": "渐进系列",
+    "productName": "A系列2.0渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.6,
+    "coating": "蔡司清晖膜",
+    "coatingCode": "CPJ",
+    "tintable": false,
+    "retailYuan": 2980,
+    "pdfPage": 51,
+    "coord": [
+      0.5,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:A系列2.0渐进:焕色视界X:1.67:CPJ",
+    "seriesGroup": "渐进系列",
+    "productName": "A系列2.0渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.67,
+    "coating": "蔡司清晖膜",
+    "coatingCode": "CPJ",
+    "tintable": false,
+    "retailYuan": 4480,
+    "pdfPage": 51,
+    "coord": [
+      0.7,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:A系列康乐型:标配:1.5:LT",
+    "seriesGroup": "渐进系列",
+    "productName": "A系列康乐型",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "蔡司莲花膜 (可染色)",
+    "coatingCode": "LT",
+    "tintable": true,
+    "retailYuan": 1080,
+    "pdfPage": 52,
+    "coord": [
+      0.31,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:A系列康乐型:标配:1.6:LT",
+    "seriesGroup": "渐进系列",
+    "productName": "A系列康乐型",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "蔡司莲花膜 (可染色)",
+    "coatingCode": "LT",
+    "tintable": true,
+    "retailYuan": 1680,
+    "pdfPage": 52,
+    "coord": [
+      0.5,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:渐进系列:A系列康乐型:标配:1.67:LT",
+    "seriesGroup": "渐进系列",
+    "productName": "A系列康乐型",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "蔡司莲花膜 (可染色)",
+    "coatingCode": "LT",
+    "tintable": true,
+    "retailYuan": 2680,
+    "pdfPage": 52,
+    "coord": [
+      0.7,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:数码型:数码型(标准级):标配:1.5:LT",
+    "seriesGroup": "数码型",
+    "productName": "数码型(标准级)",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "蔡司莲花膜 (可染色)",
+    "coatingCode": "LT",
+    "tintable": true,
+    "retailYuan": 1180,
+    "pdfPage": 54,
+    "coord": [
+      0.38,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:数码型:数码型(标准级):标配:1.6:LT",
+    "seriesGroup": "数码型",
+    "productName": "数码型(标准级)",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "蔡司莲花膜 (可染色)",
+    "coatingCode": "LT",
+    "tintable": true,
+    "retailYuan": 1880,
+    "pdfPage": 54,
+    "coord": [
+      0.62,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:数码型:数码型(标准级):标配:1.5:BP",
+    "seriesGroup": "数码型",
+    "productName": "数码型(标准级)",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 1780,
+    "pdfPage": 54,
+    "coord": [
+      0.38,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:数码型:数码型(标准级):标配:1.6:BP",
+    "seriesGroup": "数码型",
+    "productName": "数码型(标准级)",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 2480,
+    "pdfPage": 54,
+    "coord": [
+      0.62,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:数码型:数码型:标配:1.5:DP",
+    "seriesGroup": "数码型",
+    "productName": "数码型",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "钻立方铂金膜 (可染色)",
+    "coatingCode": "DP",
+    "tintable": true,
+    "retailYuan": 1880,
+    "pdfPage": 55,
+    "coord": [
+      0.26,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:数码型:数码型:标配:1.6:DP",
+    "seriesGroup": "数码型",
+    "productName": "数码型",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方铂金膜 (可染色)",
+    "coatingCode": "DP",
+    "tintable": true,
+    "retailYuan": 2880,
+    "pdfPage": 55,
+    "coord": [
+      0.41,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:数码型:数码型:标配:1.67:DP",
+    "seriesGroup": "数码型",
+    "productName": "数码型",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方铂金膜 (可染色)",
+    "coatingCode": "DP",
+    "tintable": true,
+    "retailYuan": 4280,
+    "pdfPage": 55,
+    "coord": [
+      0.58,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:数码型:数码型:标配:1.74:DP",
+    "seriesGroup": "数码型",
+    "productName": "数码型",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "钻立方铂金膜 (可染色)",
+    "coatingCode": "DP",
+    "tintable": true,
+    "retailYuan": 5880,
+    "pdfPage": 55,
+    "coord": [
+      0.74,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:数码型:数码型:标配:1.5:BP",
+    "seriesGroup": "数码型",
+    "productName": "数码型",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 1980,
+    "pdfPage": 55,
+    "coord": [
+      0.26,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:数码型:数码型:标配:1.6:BP",
+    "seriesGroup": "数码型",
+    "productName": "数码型",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 2980,
+    "pdfPage": 55,
+    "coord": [
+      0.41,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:数码型:数码型:标配:1.67:BP",
+    "seriesGroup": "数码型",
+    "productName": "数码型",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 4380,
+    "pdfPage": 55,
+    "coord": [
+      0.58,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:数码型:数码型:标配:1.74:BP",
+    "seriesGroup": "数码型",
+    "productName": "数码型",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "钻立方防蓝光膜",
+    "coatingCode": "BP",
+    "tintable": false,
+    "retailYuan": 5980,
+    "pdfPage": 55,
+    "coord": [
+      0.74,
+      0.33,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:数码型:数码型:标配:1.5:BLDV",
+    "seriesGroup": "数码型",
+    "productName": "数码型",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 2180,
+    "pdfPage": 55,
+    "coord": [
+      0.26,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:数码型:数码型:标配:1.6:BLDV",
+    "seriesGroup": "数码型",
+    "productName": "数码型",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 3180,
+    "pdfPage": 55,
+    "coord": [
+      0.41,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:数码型:数码型:标配:1.67:BLDV",
+    "seriesGroup": "数码型",
+    "productName": "数码型",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "防蓝光Plus+钻立方铂金膜防卫版",
+    "coatingCode": "BLDV",
+    "tintable": false,
+    "retailYuan": 4580,
+    "pdfPage": 55,
+    "coord": [
+      0.58,
+      0.395,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:数码型:数码型:焕色视界X:1.5:DP",
+    "seriesGroup": "数码型",
+    "productName": "数码型",
+    "subsetName": "焕色视界X",
+    "index": 1.5,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 3480,
+    "pdfPage": 55,
+    "coord": [
+      0.31,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:数码型:数码型:焕色视界X:1.6:DP",
+    "seriesGroup": "数码型",
+    "productName": "数码型",
+    "subsetName": "焕色视界X",
+    "index": 1.6,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 4480,
+    "pdfPage": 55,
+    "coord": [
+      0.5,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:数码型:数码型:焕色视界X:1.67:DP",
+    "seriesGroup": "数码型",
+    "productName": "数码型",
+    "subsetName": "焕色视界X",
+    "index": 1.67,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 6080,
+    "pdfPage": 55,
+    "coord": [
+      0.7,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:驾驶型:驾驶型单光:标配:1.5:DD",
+    "seriesGroup": "驾驶型",
+    "productName": "驾驶型单光",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "钻立方极光膜",
+    "coatingCode": "DD",
+    "tintable": false,
+    "retailYuan": 2980,
+    "pdfPage": 58,
+    "coord": [
+      0.26,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:驾驶型:驾驶型单光:标配:1.6:DD",
+    "seriesGroup": "驾驶型",
+    "productName": "驾驶型单光",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方极光膜",
+    "coatingCode": "DD",
+    "tintable": false,
+    "retailYuan": 4380,
+    "pdfPage": 58,
+    "coord": [
+      0.41,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:驾驶型:驾驶型单光:标配:1.67:DD",
+    "seriesGroup": "驾驶型",
+    "productName": "驾驶型单光",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方极光膜",
+    "coatingCode": "DD",
+    "tintable": false,
+    "retailYuan": 5680,
+    "pdfPage": 58,
+    "coord": [
+      0.58,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:驾驶型:驾驶型单光:标配:1.74:DD",
+    "seriesGroup": "驾驶型",
+    "productName": "驾驶型单光",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "钻立方极光膜",
+    "coatingCode": "DD",
+    "tintable": false,
+    "retailYuan": 7680,
+    "pdfPage": 58,
+    "coord": [
+      0.74,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:驾驶型:驾驶型单光:焕色视界X:1.5:DD",
+    "seriesGroup": "驾驶型",
+    "productName": "驾驶型单光",
+    "subsetName": "焕色视界X",
+    "index": 1.5,
+    "coating": "钻立方极光膜",
+    "coatingCode": "DD",
+    "tintable": false,
+    "retailYuan": 4380,
+    "pdfPage": 58,
+    "coord": [
+      0.31,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:驾驶型:驾驶型单光:焕色视界X:1.6:DD",
+    "seriesGroup": "驾驶型",
+    "productName": "驾驶型单光",
+    "subsetName": "焕色视界X",
+    "index": 1.6,
+    "coating": "钻立方极光膜",
+    "coatingCode": "DD",
+    "tintable": false,
+    "retailYuan": 6580,
+    "pdfPage": 58,
+    "coord": [
+      0.5,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:驾驶型:驾驶型单光:焕色视界X:1.67:DD",
+    "seriesGroup": "驾驶型",
+    "productName": "驾驶型单光",
+    "subsetName": "焕色视界X",
+    "index": 1.67,
+    "coating": "钻立方极光膜",
+    "coatingCode": "DD",
+    "tintable": false,
+    "retailYuan": 8580,
+    "pdfPage": 58,
+    "coord": [
+      0.7,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:驾驶型:驾驶型渐进:标配:1.5:DD",
+    "seriesGroup": "驾驶型",
+    "productName": "驾驶型渐进",
+    "subsetName": "标配",
+    "index": 1.5,
+    "coating": "钻立方极光膜",
+    "coatingCode": "DD",
+    "tintable": false,
+    "retailYuan": 5580,
+    "pdfPage": 59,
+    "coord": [
+      0.26,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:驾驶型:驾驶型渐进:标配:1.6:DD",
+    "seriesGroup": "驾驶型",
+    "productName": "驾驶型渐进",
+    "subsetName": "标配",
+    "index": 1.6,
+    "coating": "钻立方极光膜",
+    "coatingCode": "DD",
+    "tintable": false,
+    "retailYuan": 6780,
+    "pdfPage": 59,
+    "coord": [
+      0.41,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:驾驶型:驾驶型渐进:标配:1.67:DD",
+    "seriesGroup": "驾驶型",
+    "productName": "驾驶型渐进",
+    "subsetName": "标配",
+    "index": 1.67,
+    "coating": "钻立方极光膜",
+    "coatingCode": "DD",
+    "tintable": false,
+    "retailYuan": 7580,
+    "pdfPage": 59,
+    "coord": [
+      0.58,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:驾驶型:驾驶型渐进:标配:1.74:DD",
+    "seriesGroup": "驾驶型",
+    "productName": "驾驶型渐进",
+    "subsetName": "标配",
+    "index": 1.74,
+    "coating": "钻立方极光膜",
+    "coatingCode": "DD",
+    "tintable": false,
+    "retailYuan": 12880,
+    "pdfPage": 59,
+    "coord": [
+      0.74,
+      0.265,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:驾驶型:驾驶型渐进:焕色视界X:1.5:DD",
+    "seriesGroup": "驾驶型",
+    "productName": "驾驶型渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.5,
+    "coating": "钻立方极光膜",
+    "coatingCode": "DD",
+    "tintable": false,
+    "retailYuan": 8380,
+    "pdfPage": 59,
+    "coord": [
+      0.31,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:驾驶型:驾驶型渐进:焕色视界X:1.6:DD",
+    "seriesGroup": "驾驶型",
+    "productName": "驾驶型渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.6,
+    "coating": "钻立方极光膜",
+    "coatingCode": "DD",
+    "tintable": false,
+    "retailYuan": 10180,
+    "pdfPage": 59,
+    "coord": [
+      0.5,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:驾驶型:驾驶型渐进:焕色视界X:1.67:DD",
+    "seriesGroup": "驾驶型",
+    "productName": "驾驶型渐进",
+    "subsetName": "焕色视界X",
+    "index": 1.67,
+    "coating": "钻立方极光膜",
+    "coatingCode": "DD",
+    "tintable": false,
+    "retailYuan": 11380,
+    "pdfPage": 59,
+    "coord": [
+      0.7,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:户外镜片:悦慕偏光单光:偏光视界X:1.5:DP",
+    "seriesGroup": "户外镜片",
+    "productName": "悦慕偏光单光",
+    "subsetName": "偏光视界X",
+    "index": 1.5,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 1680,
+    "pdfPage": 62,
+    "coord": [
+      0.31,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:户外镜片:悦慕偏光单光:偏光视界X:1.6:DP",
+    "seriesGroup": "户外镜片",
+    "productName": "悦慕偏光单光",
+    "subsetName": "偏光视界X",
+    "index": 1.6,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 2680,
+    "pdfPage": 62,
+    "coord": [
+      0.5,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:户外镜片:悦慕偏光单光:偏光视界X:1.67:DP",
+    "seriesGroup": "户外镜片",
+    "productName": "悦慕偏光单光",
+    "subsetName": "偏光视界X",
+    "index": 1.67,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 3680,
+    "pdfPage": 62,
+    "coord": [
+      0.7,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:户外镜片:悦慕偏光变色单光:偏光变色:1.5:DP",
+    "seriesGroup": "户外镜片",
+    "productName": "悦慕偏光变色单光",
+    "subsetName": "偏光变色",
+    "index": 1.5,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 3680,
+    "pdfPage": 63,
+    "coord": [
+      0.38,
+      0.59,
+      0.155,
+      0.055
+    ]
+  },
+  {
+    "id": "zeiss:户外镜片:悦慕偏光变色单光:偏光变色:1.6:DP",
+    "seriesGroup": "户外镜片",
+    "productName": "悦慕偏光变色单光",
+    "subsetName": "偏光变色",
+    "index": 1.6,
+    "coating": "钻立方铂金膜",
+    "coatingCode": "DP",
+    "tintable": false,
+    "retailYuan": 4680,
+    "pdfPage": 63,
+    "coord": [
+      0.62,
+      0.59,
+      0.155,
+      0.055
+    ]
+  }
+]

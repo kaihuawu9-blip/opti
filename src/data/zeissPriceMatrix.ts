@@ -46,13 +46,19 @@ export interface ZeissPriceRow {
   coating: string;
   coatingCode?: string;
   retailYuan: number;
-  /** 是否可染色（染色服务可叠加） */
+  /** 是否可染色（染色服务可叠加）；收银展示层在膜层名后追加「(可染色)」 */
   tintable: boolean;
   designCode?: string;
   note?: string;
   material?: string;
   /** 焕色/偏光可选颜色（局部覆盖系列级 colorsBy） */
   colors?: string[];
+  /**
+   * StandardEye 4.0：价目格归一化坐标 [centerX, centerY, width, height]（0–1，单页宽高基准）。
+   * 由 `scripts/zeiss-matrix-v4-rebuild.mjs` 自动计算后写入 JSON；
+   * 供 `ProductHotspot` 系统精准触发收银台自动填装。
+   */
+  coord?: [number, number, number, number];
 }
 
 /** 子系列（同一 productName 下按"变色 / 偏光 / 标配"再切分） */
@@ -94,6 +100,11 @@ export interface ZeissProductMatrix {
    * 收银「选择品牌」下拉与 `ZEISS_PRICE_MATRIX.filter(...)` 均依赖此字段。
    */
   brand?: string;
+  /**
+   * StandardEye 4.0 — 一级字段【大系列】，与手册右侧物理凸起标签 1:1 对应。
+   * 取值：'智锐系列' | '青少年系列' | '单光系列' | '渐进系列' | '数码型' | '驾驶型' | '户外镜片'
+   */
+  seriesGroup?: string;
   printedPage?: number;
   /** 可选：与产品价目同页的图（data:image/webp;base64,...），图文合一时的产品级备援 */
   imageData?: string;

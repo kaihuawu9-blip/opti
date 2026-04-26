@@ -112,7 +112,88 @@ export interface HandbookPageEntry {
 }
 
 export const ZEISS_HANDBOOK_PAGE_MAP: readonly HandbookPageEntry[] = Object.freeze([
-  // 前言（封面 / 品牌 / 产品总览）
+  // ─── 物理凸起标签入口（StandardEye 4.0，7 大系列）──────────────────────────
+  // 每条 pageKind:'series_entry' + physicalTabVerified:true 驱动侧栏凸标渲染。
+  // vOffsetPercent 为凸标在整页可视高度上的 % 位置（0=顶，100=底），由手册扫描校准。
+  {
+    pdfPage: 10,
+    printedPage: null,
+    section: 'smartlife-series-opening',
+    title: '智锐系列扉页',
+    pageKind: 'series_entry',
+    physicalTabVerified: true,
+    physicalTabLabel: '智锐系列',
+    vOffsetPercent: 18,
+    seriesAliasKey: 'smartlife',
+  },
+  {
+    pdfPage: 25,
+    printedPage: 16,
+    section: 'myopia-control-intro',
+    title: '青少年系列扉页',
+    pageKind: 'series_entry',
+    physicalTabVerified: true,
+    physicalTabLabel: '青少年系列',
+    vOffsetPercent: 32,
+    seriesAliasKey: 'youth',
+  },
+  {
+    pdfPage: 33,
+    printedPage: 24,
+    section: 'single-vision-ladder',
+    title: '单光系列扉页',
+    pageKind: 'series_entry',
+    physicalTabVerified: true,
+    physicalTabLabel: '单光系列',
+    vOffsetPercent: 46,
+    seriesAliasKey: 'sv',
+  },
+  {
+    pdfPage: 41,
+    printedPage: 32,
+    section: 'pal-intro',
+    title: '渐进系列扉页',
+    pageKind: 'series_entry',
+    physicalTabVerified: true,
+    physicalTabLabel: '渐进系列',
+    vOffsetPercent: 59,
+    seriesAliasKey: 'pal',
+  },
+  {
+    pdfPage: 53,
+    printedPage: 44,
+    section: 'office-intro',
+    title: '数码型扉页',
+    pageKind: 'series_entry',
+    physicalTabVerified: true,
+    physicalTabLabel: '数码型',
+    vOffsetPercent: 71,
+    seriesAliasKey: 'digital',
+  },
+  {
+    pdfPage: 56,
+    printedPage: 47,
+    section: 'driving-intro',
+    title: '驾驶型扉页',
+    pageKind: 'series_entry',
+    physicalTabVerified: true,
+    physicalTabLabel: '驾驶型',
+    vOffsetPercent: 82,
+    seriesAliasKey: 'drive',
+  },
+  {
+    pdfPage: 60,
+    printedPage: 51,
+    section: 'outdoor-intro',
+    title: '户外镜片扉页',
+    pageKind: 'series_entry',
+    physicalTabVerified: true,
+    physicalTabLabel: '户外镜片',
+    vOffsetPercent: 92,
+    seriesAliasKey: 'outdoor',
+  },
+
+  // ─── 前言（封面 / 品牌 / 产品总览）────────────────────────────────────────
   {
     pdfPage: 1,
     printedPage: null,
@@ -165,9 +246,9 @@ export const ZEISS_HANDBOOK_PAGE_MAP: readonly HandbookPageEntry[] = Object.free
   // 泽锐 / 新清锐 / A 系列 & 单光附录
   { pdfPage: 36, printedPage: 27, section: 'price', productName: '泽锐单光',         title: '泽锐单光' },
   { pdfPage: 37, printedPage: 28, section: 'price', productName: '新清锐非球面',     title: '新清锐非球面' },
-  { pdfPage: 38, printedPage: 29, section: 'price', title: '单光系列附录' },
-  { pdfPage: 39, printedPage: 30, section: 'price', title: '单光系列附录' },
-  { pdfPage: 40, printedPage: 31, section: 'price', title: 'A 系列时尚型单光' },
+  { pdfPage: 38, printedPage: 29, section: 'price', productName: '防蓝光单光',     title: '防蓝光单光镜片' },
+  { pdfPage: 39, printedPage: 30, section: 'price', productName: 'A系列2.0单光',   title: 'A 系列 2.0 单光' },
+  { pdfPage: 40, printedPage: 31, section: 'price', productName: 'A系列时尚型单光', title: 'A 系列时尚型单光' },
 
   // 睐光 / 渐进
   { pdfPage: 41, printedPage: 32, section: 'pal-intro', title: '睐光 2.0 介绍' },
