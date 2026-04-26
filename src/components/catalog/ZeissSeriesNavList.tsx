@@ -205,17 +205,18 @@ export function ZeissSeriesNavList({
                 });
               }}
               className={[
-                'relative w-full min-w-0 overflow-hidden rounded-[2px] bg-transparent text-left',
+                'relative w-full min-w-0 overflow-hidden rounded-[2px] text-left',
                 'px-0.5',
                 compact ? 'py-px' : 'py-0.5',
                 useTwoColumn && wide ? 'col-span-2' : 'col-span-1',
+                active ? 'bg-[#F5F8FF]/[0.12]' : 'bg-transparent',
                 integrityWarn ? 'ring-1 ring-red-500/70 ring-inset' : '',
               ].join(' ')}
             >
               <span
                 aria-hidden
                 className={[
-                  'pointer-events-none absolute left-0 top-[11%] z-[1] h-[78%] w-1',
+                  'pointer-events-none absolute left-0 top-[11%] z-[2] h-[78%] w-[3px]',
                   active ? 'bg-[#005AAA] opacity-100' : 'opacity-0',
                 ].join(' ')}
               />

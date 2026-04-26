@@ -325,3 +325,25 @@ export function resolveMatrixRetailYuan(
   const y = Number(hit.row.retailYuan);
   return Number.isFinite(y) ? y : null;
 }
+
+/** 某产品的全部子系列，保持价目册原始顺序 */
+export function listSubsetsForProduct(productName: string): ZeissSeriesSubset[] {
+  return findZeissProductMatrix(productName)?.series ?? [];
+}
+
+/** 某子系列下给定折射率的全部膜层（不跨子系列汇总） */
+export function listCoatingsForSubsetAndIndex(
+  productName: string,
+  subsetName: string,
+  index: number,
+): string[] {
+  const s = findZeissSubset(productName, subsetName);
+  if (!s) return [];
+  const set = new Set<string>();
+  for (const r of s.rows) {
+    if (Number(r.index) !== Number(index)) continue;
+    const label = r.coating?.trim();
+    if (label) set.add(label);
+  }
+  return Array.from(set).sort((a, b) => a.localeCompare(b, 'zh-CN'));
+}

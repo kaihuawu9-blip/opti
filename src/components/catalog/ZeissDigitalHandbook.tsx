@@ -10,7 +10,7 @@
  * 2. 全屏缩放直接读 window.innerWidth / innerHeight（免疫祖先 containing block）。
  * 3. 预览书保持 visibility:hidden（不卸载），全屏关闭后无需重新初始化。
  * 4. isFsRef 同步 isFs 状态，防止 onFlip/onInit 等长寿回调拿到旧闭包值。
- * 5. 全屏允许 scale 最大到 MAX_FS_SCALE=1.8；预览上限 1.0 保持清晰。
+ * 5. 全屏：cover 缩放 + 100vw/100vh 皮面 + InteractionZone 禁手势缩放；页图 CSS fill 贴齐槽位。
  */
 
 import dynamic from 'next/dynamic';
@@ -41,14 +41,27 @@ const SPREAD_W = 2 * PAGE_W;                     // 900 — 纯书宽
 
 /* ─── 缩放策略 ────────────────────────────────────────────────────────────── */
 
-const FIT             = 0.92;   // 离容器边缘留 8% 余量
-const MAX_FS_SCALE    = 1.8;    // 全屏允许放大（大屏充分利用空间）
-const MAX_PREV_SCALE  = 1.0;    // 预览上限：不超过物理像素（避免模糊）
+/** StandardEye 4.0：预览「装入」容器；全屏另用 cover 缩放（见 calcFullscreenCoverScale） */
+const FIT             = 1;
+/** 预览上限：不超过物理像素（避免模糊） */
+const MAX_PREV_SCALE  = 1.0;
+/** 全屏 cover 缩放上限（防止极端大屏单点过大） */
+const MAX_FULLSCREEN_COVER_SCALE = 4;
 
 function calcScale(containerW: number, containerH: number, maxS: number): number {
   if (containerW < 4 || containerH < 4) return 0.45;
   const raw = Math.min(containerW / PHYS_W, containerH / PHYS_H) * FIT;
   return Math.max(0.15, Math.min(maxS, raw));
+}
+
+/**
+ * 全屏沉浸：按视口 **cover** 书体物理尺寸（PHYS_W×PHYS_H），消除黑边「缩一圈」；
+ * 外层 `overflow:hidden` 裁切溢出；页内图再用 CSS `object-fit:fill` 贴齐单页槽。
+ */
+function calcFullscreenCoverScale(containerW: number, containerH: number): number {
+  if (containerW < 4 || containerH < 4) return 0.45;
+  const raw = Math.max(containerW / PHYS_W, containerH / PHYS_H);
+  return Math.max(0.15, Math.min(MAX_FULLSCREEN_COVER_SCALE, raw));
 }
 
 /* ─── 静态样式 ────────────────────────────────────────────────────────────── */
@@ -251,7 +264,7 @@ export function ZeissDigitalHandbook() {
     [previewSize.w, previewSize.h],
   );
   const fsScale = useMemo(
-    () => calcScale(fsViewport.w, fsViewport.h, MAX_FS_SCALE),
+    () => calcFullscreenCoverScale(fsViewport.w, fsViewport.h),
     [fsViewport.w, fsViewport.h],
   );
 
@@ -400,8 +413,8 @@ export function ZeissDigitalHandbook() {
    *   - startPage=0（预览书首次挂载在第 0 页，后续由 turnToPage 跳转）
    *
    * 全屏层（createPortal → document.body）：
-   *   - position:fixed; inset:0 → 100% 视口，脱离任何祖先 transform
-   *   - scale 由 window.innerWidth/innerHeight 计算，最大 MAX_FS_SCALE
+   *   - position:fixed + 100vw×100vh，脱离任何祖先 transform
+   *   - cover 缩放（calcFullscreenCoverScale）+ 页图 object-fit:fill，黑边不留缝
    *   - startPage=currentPage → FS 书初始化到当前页码
    *   - fsViewport.w > 0 防止首帧视口未读到时渲染出邮票大小的书
    * ───────────────────────────────────────────────────────────────────────── */
@@ -431,7 +444,7 @@ export function ZeissDigitalHandbook() {
       {/* ★ 预览壳（始终挂载，isFs 期间隐藏） ★ */}
       <div
         ref={previewShellRef}
-        className="relative flex w-full items-center justify-center overflow-visible rounded-2xl border border-white/10 bg-slate-950/60 shadow-[0_30px_80px_rgba(0,0,0,0.5)]"
+        className="relative flex w-full items-center justify-center overflow-visible rounded-2xl border border-white/10 bg-slate-950/60 p-0 shadow-[0_30px_80px_rgba(0,0,0,0.5)]"
         style={{
           height: 'clamp(280px, 55vh, 660px)',
           visibility: isFs ? 'hidden' : 'visible',
@@ -451,9 +464,23 @@ export function ZeissDigitalHandbook() {
       {mounted && isFs &&
         createPortal(
           <div
-            className="leather-field pointer-events-auto flex items-center justify-center"
+            className="leather-field pointer-events-auto relative m-0 rounded-none p-0"
             style={{
-              position: 'fixed', inset: 0, zIndex: 999999,
+              position: 'fixed',
+              left: 0,
+              top: 0,
+              right: 0,
+              bottom: 0,
+              width: '100vw',
+              height: '100vh',
+              maxWidth: '100vw',
+              maxHeight: '100vh',
+              zIndex: 999999,
+              padding: 0,
+              margin: 0,
+              borderRadius: 0,
+              boxSizing: 'border-box',
+              overflow: 'hidden',
               /* 防止浏览器将双指合拢误判为"退出"或触发系统页面缩放 */
               touchAction: 'none',
               overscrollBehavior: 'none',
@@ -467,25 +494,29 @@ export function ZeissDigitalHandbook() {
             {/* 视口尺寸就绪后才渲染书，防止首帧 scale=0.45 的邮票闪现 */}
             {fsViewport.w > 0 && (
               /*
-               * HandbookFsInteractionZone 包裹全屏书体，提供：
-               *   双击 → 原位 2.2× 放大（点哪大哪）/ 再双击缩回
-               *   放大态 → 透明感应层捕获 pan 手势，阻断 HTMLFlipBook 翻页
-               *   cashierMode=false（默认关闭收银广播，需主动开启）
+               * HandbookFsInteractionZone：铺满视口（absolute inset-0），inner transform 恒等，
+               * 点击坐标与 getBoundingClientRect 视口像素一致；userZoomEnabled=false 禁手势缩放。
                */
-              <HandbookFsInteractionZone
-                currentPage={currentPage}
-                pageW={PAGE_W}
-                pageH={PAGE_H}
-                brand="zeiss"
-              >
-                <ScaledBlock scale={fsScale}>
-                  <BookStage
-                    flipRef={fsRef}
-                    startPage={currentPage}
-                    {...sharedStageProps}
-                  />
-                </ScaledBlock>
-              </HandbookFsInteractionZone>
+              <div className="absolute inset-0 m-0 min-h-0 w-full overflow-hidden rounded-none p-0">
+                <HandbookFsInteractionZone
+                  userZoomEnabled={false}
+                  currentPage={currentPage}
+                  pageW={PAGE_W}
+                  pageH={PAGE_H}
+                  brand="zeiss"
+                  className="h-full min-h-0 w-full"
+                >
+                  <div className="flex h-full min-h-0 w-full items-center justify-center overflow-hidden rounded-none p-0 m-0">
+                    <ScaledBlock scale={fsScale}>
+                      <BookStage
+                        flipRef={fsRef}
+                        startPage={currentPage}
+                        {...sharedStageProps}
+                      />
+                    </ScaledBlock>
+                  </div>
+                </HandbookFsInteractionZone>
+              </div>
             )}
 
             {/* 关闭钮：z-100 > 感应层 z-75，确保放大态下仍可点击退出 */}

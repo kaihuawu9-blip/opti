@@ -799,8 +799,9 @@ export default function CashierPage() {
   const [lensManualCoating, setLensManualCoating] = useState('');
   /** 镜片行：价目表选购（蔡司样例基线）与自由手工填报 */
   const [lensPriceMode, setLensPriceMode] = useState<LensPriceEntryMode>('catalog');
-  const [zeissSearch, setZeissSearch] = useState('');
   const [zeissProductName, setZeissProductName] = useState('');
+  /** StandardEye 4.0 二级字段：子系列/版次（空串 = 全部汇总） */
+  const [zeissSubsetName, setZeissSubsetName] = useState('');
   const [zeissIndexStr, setZeissIndexStr] = useState('');
   const [zeissCoating, setZeissCoating] = useState('');
   /** 价目表选购：品牌 Tab（蔡司 / 依视路占位等） */
@@ -1049,7 +1050,7 @@ export default function CashierPage() {
     setLensManualIndex('');
     setLensManualCoating('');
     setLensPriceMode('catalog');
-    setZeissSearch('');
+    setZeissSubsetName('');
     const defaultBrand = listUniqueMatrixBrandKeys()[0] ?? 'ZEISS';
     setLensCatalogBrand(defaultBrand);
     setLensCatalogTint(false);
@@ -1092,6 +1093,7 @@ export default function CashierPage() {
 
   const handleZeissProductNameChange = useCallback((name: string) => {
     setZeissProductName(name);
+    setZeissSubsetName(''); // 产品变更时重置子系列
     const idxs = listIndicesForProduct(name);
     const i0 = idxs[0];
     if (i0 != null) {
@@ -1394,8 +1396,19 @@ export default function CashierPage() {
   }, []);
 
   // MATRIX_PROTOCOL_V1 · 监听手册页「加入收银」：透传品牌/系列/折射率/膜层/价格/tintable/powerRange
+  // Bridge Fix（StandardEye 4.0）：匹配成功时强制写入 selectedSeries / selectedIndex / selectedCoating
   useEffect(() => {
     const off = onHandbookAddToCart((payload) => {
+      // 强制切换到「价目表选购」模式并回填三级联动状态
+      setLensPriceMode('catalog');
+      const brandKey = payload.brand.toUpperCase();
+      setLensCatalogBrand(brandKey);
+      setZeissProductName(payload.productName);
+      if (payload.subsetName) setZeissSubsetName(payload.subsetName);
+      setZeissIndexStr(String(payload.index));
+      setZeissCoating(payload.coating);
+      setLensCatalogTint(payload.tintable);
+
       const base = toCashierLensProduct(payload);
       addToCart(base as unknown as Product, {
         zeissMatrixRxRef: {
@@ -3759,10 +3772,10 @@ export default function CashierPage() {
                       <LensSelectionSection
                         brand={lensCatalogBrand}
                         onBrandChange={handleLensCatalogBrandChange}
-                        search={zeissSearch}
-                        onSearchChange={setZeissSearch}
                         productName={zeissProductName}
                         onProductNameChange={handleZeissProductNameChange}
+                        subsetName={zeissSubsetName}
+                        onSubsetNameChange={setZeissSubsetName}
                         indexStr={zeissIndexStr}
                         onIndexStrChange={handleZeissIndexStrChange}
                         coating={zeissCoating}

@@ -103,6 +103,8 @@ export interface ZeissCoatingMeta {
   polarizedAvailable: boolean;
   powerRange: ZeissPowerRange | null;
   hint: string | null;
+  /** StandardEye 4.0：该膜层对应的零售价（元），供收银下拉直接显示 */
+  retailYuan: number | null;
 }
 
 /** 从 ZEISS_PRICE_MATRIX 任一 subset 里找匹配（product, index, coating） */
@@ -172,6 +174,7 @@ export function coatingsForZeissSelectionDetailed(
       polarizedAvailable,
       powerRange,
       hint: hints.length ? hints.join(' · ') : null,
+      retailYuan: hit ? (Number.isFinite(Number(hit.row.retailYuan)) ? Number(hit.row.retailYuan) : null) : null,
     };
   });
 }
@@ -231,6 +234,7 @@ export function coatingsForMatrixIndexDetailed(
       polarizedAvailable,
       powerRange,
       hint: hints.length ? hints.join(' · ') : null,
+      retailYuan: hit ? (Number.isFinite(Number(hit.row.retailYuan)) ? Number(hit.row.retailYuan) : null) : null,
     };
   });
 }

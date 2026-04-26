@@ -99,6 +99,8 @@ export interface HandbookFsInteractionZoneProps {
   children: ReactNode;
   style?: CSSProperties;
   className?: string;
+  /** 为 false 时锁定 translate+scale=恒等，禁用双指/双击缩放，便于坐标与视口 1:1（StandardEye 4.0 全屏价目） */
+  userZoomEnabled?: boolean;
   cashierMode?: boolean;
   currentPage: number;
   pageW: number;
@@ -113,6 +115,7 @@ export function HandbookFsInteractionZone({
   children,
   style,
   className,
+  userZoomEnabled = true,
   cashierMode = false,
   currentPage,
   pageW,
@@ -125,6 +128,8 @@ export function HandbookFsInteractionZone({
   const outerRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
   const router = useMemo(() => new HandbookInteractionRouter(16), []);
+  const userZoomEnabledRef = useRef(userZoomEnabled);
+  userZoomEnabledRef.current = userZoomEnabled;
 
   const xformRef = useRef<Xform>(IDENTITY);
   const pendingXform = useRef<Xform | null>(null);
@@ -180,8 +185,9 @@ export function HandbookFsInteractionZone({
   }, [commitTransform, router]);
 
   const scheduleApply = useCallback((next: Xform): void => {
-    xformRef.current = next;
-    pendingXform.current = next;
+    const eff = userZoomEnabledRef.current ? next : { ...IDENTITY };
+    xformRef.current = eff;
+    pendingXform.current = eff;
     if (!rafId.current) {
       rafId.current = requestAnimationFrame(flushTransform);
     }
@@ -194,7 +200,23 @@ export function HandbookFsInteractionZone({
     }
   }, []);
 
+  /** 锁定缩放：恒等变换，坐标与视口 1:1（须置于 commitTransform / cancelSpring 之后） */
+  useEffect(() => {
+    if (userZoomEnabled) return;
+    cancelSpring();
+    xformRef.current = IDENTITY;
+    pendingXform.current = null;
+    if (rafId.current) {
+      cancelAnimationFrame(rafId.current);
+      rafId.current = 0;
+    }
+    commitTransform(IDENTITY);
+    zoomedRef.current = false;
+    setIsZoomed(false);
+  }, [userZoomEnabled, cancelSpring, commitTransform]);
+
   const getConstrainedXform = useCallback((t: Xform): Xform => {
+    if (!userZoomEnabledRef.current) return { ...IDENTITY };
     const outer = outerRef.current;
     if (!outer) return t;
     return getViewportLimit(t, outer.clientWidth || 1, outer.clientHeight || 1);
@@ -243,6 +265,10 @@ export function HandbookFsInteractionZone({
     /*
      * 单次布局读取：shell 与实际书槽各读取一次，后续全部用纯数学反投影。
      * 严禁假设书槽在 shell 居中，.stf__parent 是动态基准层的唯一真值。
+     *
+     * StandardEye 4.0：全屏模式下 shell 铺满视口（fixed inset-0 子层 width/height 100%），
+     * `getBoundingClientRect()` 即视口绝对像素坐标系；userZoomEnabled=false 时 inner scale≡1，
+     * pct/rel 与 PDF 槽位严格对齐。
      */
     const shellRect = shell.getBoundingClientRect();
     const bookRect = spreadEl.getBoundingClientRect();
@@ -383,6 +409,7 @@ export function HandbookFsInteractionZone({
       cancelSpring();
 
       if (e.touches.length >= 2) {
+        if (!userZoomEnabledRef.current) return;
         e.preventDefault();
         e.stopPropagation();
         clearLongPress();
@@ -421,6 +448,7 @@ export function HandbookFsInteractionZone({
 
     function onMove(e: TouchEvent): void {
       if (e.touches.length >= 2 && pinch.active) {
+        if (!userZoomEnabledRef.current) return;
         e.preventDefault();
         e.stopPropagation();
         clearLongPress();
@@ -527,6 +555,7 @@ export function HandbookFsInteractionZone({
   const handleDblClick = useCallback((e: ReactMouseEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
+    if (!userZoomEnabledRef.current) return;
     cancelSpring();
 
     const outer = outerRef.current;
@@ -591,15 +620,21 @@ export function HandbookFsInteractionZone({
   return (
     <div
       ref={outerRef}
+      data-handbook-fs-interaction="1"
       style={{
         position: 'relative',
+        width: '100%',
+        height: '100%',
+        minWidth: 0,
+        minHeight: 0,
+        boxSizing: 'border-box',
         touchAction: 'none',
         overscrollBehavior: 'none',
         userSelect: 'none',
         WebkitUserSelect: 'none',
         ...style,
       }}
-      className={className}
+      className={['handbook-fs-interaction-zone', className].filter(Boolean).join(' ')}
       onDoubleClick={handleDblClick}
     >
       <div

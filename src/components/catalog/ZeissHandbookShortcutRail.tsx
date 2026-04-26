@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * 工业级静态规约：壳无 blur/外阴影；行无 hover/active 底、无字重/字色差；**唯一**激活态为左侧 4px #005AAA 实线。
+ * 工业级静态规约：壳无 blur/外阴影；激活态为左侧 3px #005AAA 实线 + 浅底 #F5F8FF（低透明度），禁止 scale 缩小选中感。
  * 高亮由 {@link getZeissHandbookMapActiveId} 双页修正后决定，随 `onFlip` 的页码更新。
  */
 
@@ -62,16 +62,19 @@ export function ZeissHandbookShortcutRail({ currentPageIndex0, pageCount, classN
             aria-current={active || undefined}
             aria-label={`${it.label}（第 ${it.page} 页）`}
             title={`${it.label} · P${it.page}`}
-            className="relative flex min-h-0 min-w-0 flex-1 select-none items-center justify-center overflow-hidden bg-transparent px-1.5"
+            className={[
+              'relative flex min-h-0 min-w-0 flex-1 select-none items-center justify-center overflow-hidden px-0',
+              active ? 'bg-[#F5F8FF]/[0.14]' : 'bg-transparent',
+            ].join(' ')}
           >
             <span
               aria-hidden
               className={[
-                'pointer-events-none absolute left-0 top-[11%] h-[78%] w-1 rounded-none',
+                'pointer-events-none absolute left-0 top-[11%] z-[2] h-[78%] w-[3px] rounded-none',
                 active ? 'bg-[#005AAA] opacity-100' : 'opacity-0',
               ].join(' ')}
             />
-            <span className="relative z-[1] w-full min-w-0 pl-1.5 text-center text-[11px] font-medium leading-tight text-white">
+            <span className="relative z-[1] w-full min-w-0 pl-1 text-center text-[11px] font-medium leading-tight text-white">
               {it.label}
             </span>
           </button>

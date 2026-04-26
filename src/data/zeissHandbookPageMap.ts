@@ -819,8 +819,12 @@ const CASHIER_SECTION_TO_OPTGROUP: Partial<Record<HandbookSection, string>> = {
   'appendix': '附录',
 };
 
-/** 收银台品种下拉：按手册 section + 矩阵 lensType 推导 optgroup 标签 */
+/**
+ * StandardEye 4.0：收银台「系列」下拉 optgroup 标签。
+ * 优先使用 `seriesGroup`（与物理凸起标签 1:1），回退到旧的 section 推导。
+ */
 export function getCashierLensOptgroupLabelForProduct(product: ZeissProductMatrix): string {
+  if (product.seriesGroup) return product.seriesGroup;
   const name = product.productName.trim();
   const entry = ZEISS_HANDBOOK_PAGE_MAP.find((e) => e.productName === name);
   if (!entry) return matrixLensTypeGroupLabel(product);
@@ -833,6 +837,15 @@ export function getCashierLensOptgroupLabelForProduct(product: ZeissProductMatri
 }
 
 const CASHIER_OPTGROUP_SORT_PRIOR: string[] = [
+  // StandardEye 4.0 物理凸起标签（7 大系列）——优先展示
+  '智锐系列',
+  '青少年系列',
+  '单光系列',
+  '渐进系列',
+  '数码型',
+  '驾驶型',
+  '户外镜片',
+  // 旧 section 分组（兼容未迁移品牌）
   '封面与品牌',
   '品牌矩阵',
   '重点推荐',
@@ -843,9 +856,6 @@ const CASHIER_OPTGROUP_SORT_PRIOR: string[] = [
   '青少年与近视管理',
   '单光',
   '渐进 / 睐光',
-  '数码型',
-  '驾驶型',
-  '户外系列',
   '办公型',
   '镜架',
   '儿童镜架',

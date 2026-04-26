@@ -315,3 +315,44 @@ html:has(.zeiss-digital-handbook) main {
 
 /* (蔡司舞台居中由父级 flex + JS dataset 处理，无需在此覆盖 react-pageflip 内部尺寸) */
 
+/* ── StandardEye 4.0：视口 1:1 / 禁止「选中页缩小」错觉 ─────────────────────── */
+/* 侧栏、快捷条等激活态不得叠 scale；命中区与物理像素一致 */
+[data-handbook-flip-shell='1'] [data-active='true'],
+[data-handbook-flip-shell='1'] [data-zeiss-nav-active='true'],
+[data-zeiss-fullscreen-overlay='1'] [data-active='true'],
+[data-zeiss-fullscreen-overlay='1'] [data-zeiss-nav-active='true'] {
+  transform: scale(1) !important;
+}
+
+/* 全屏感应层：占满父级，无额外盒模型内边距 */
+[data-handbook-fs-interaction='1'].handbook-fs-interaction-zone {
+  box-sizing: border-box;
+}
+
+/* ── 蔡司全屏沉浸：容器贴齐视口 + 页图 fill（消除黑边缝） ─────────────────── */
+[data-zeiss-fullscreen-overlay='1'] {
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: 100vw !important;
+  max-height: 100vh !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  box-sizing: border-box !important;
+}
+/* 价目页主图（非豪雅精修）：槽内 fill，白底直抵槽缘；允许极细微拉伸 */
+[data-zeiss-fullscreen-overlay='1'] .stf__page-root img:not(.hoya-manual-trim-img) {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: fill !important;
+}
+/* 单页槽圆角会在黑底上形成「缝」，全屏一律直角 */
+[data-zeiss-fullscreen-overlay='1'] .stf__page-root {
+  border-radius: 0 !important;
+}
+/* 常见「焦点/选中缩小」装饰：侧栏/快捷条按钮禁止 scale≠1（仅限全屏层） */
+[data-zeiss-fullscreen-overlay='1'] nav button,
+[data-zeiss-fullscreen-overlay='1'] .zeiss-handbook-side-rail button {
+  transform: scale(1) !important;
+}
+
