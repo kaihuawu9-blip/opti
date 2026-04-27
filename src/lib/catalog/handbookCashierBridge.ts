@@ -185,9 +185,9 @@ export interface HandbookPageClickCoord {
   relX: number;
   /** 单页内相对 Y（0.0–1.0，上 → 下） */
   relY: number;
-  /** 相对 layout 视口宽（`document.documentElement.clientWidth`） */
+  /** 相对 `window.innerWidth`（StandardEye 4.0 Hard-Fill 指纹分母） */
   screenRelX: number;
-  /** 相对 layout 视口高（`document.documentElement.clientHeight`） */
+  /** 相对 `window.innerHeight` */
   screenRelY: number;
   /** 跨幅书槽 bbox 内横向比 */
   spreadRelX: number;

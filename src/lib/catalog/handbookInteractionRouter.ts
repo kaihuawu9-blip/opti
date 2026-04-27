@@ -7,9 +7,9 @@
  *
  * 2. **状态机**：任何手势输入都要先经过状态机判断，确保互斥性（缩放中不会开启收银等）。
  *
- * 3. **输出端坐标（StandardEye 4.0）**：路由器输出 `PageCoord` 为 **比例语义** ——
- *    视口归一化、跨幅归一化、单页 rel 均由 **实时 getBoundingClientRect 分母** 导出；
- *    **禁止**用固定 CSS 像素常量（如 450）参与点击命中或指纹；热区仍仅用 relX/relY（0–1）。
+ * 3. **输出端坐标（StandardEye 4.0 Hard-Fill）**：`PageCoord` 为比例语义 ——
+ *    `screenRelX/Y` 由 `clientX / window.innerWidth` 等导出；单页 rel 由其拆半；
+ *    **禁止**固定 px 参与指纹；热区仍仅用 relX/relY（0–1）。
  *
  * 4. **16ms 节流门**：高频手势（touchmove）调用 `canProcessGesture()` 过门，
  *    返回 false 则丢弃该帧输入（由 rAF 层缓存最新值），确保不阻塞渲染。
@@ -57,12 +57,10 @@ export type InteractionMode = 'IDLE' | 'ZOOMING' | 'PANNING' | 'CASHIER_PENDING'
 /* ─── 坐标类型 ──────────────────────────────────────────────────────────────── */
 
 /**
- * StandardEye 4.0 横纵比例语义坐标。
+ * StandardEye 4.0 横纵比例语义坐标（Hard-Fill 全屏）。
  *
- * 计算路径（无固定 px 分母）：
- *   client → layout 视口（`documentElement.client*`）得 screenRel*；
- *   书槽 `spreadEl.getBoundingClientRect()`（已含祖先 transform）得 spreadRel*；
- *   由 spreadRel* 拆 half → 单页 relX / relY。
+ * `screenRel*` 与 `spreadRel*` 在全屏镜像下同源（window.inner* 分母）；
+ * 由 screenRelX 拆半得单页 relX / relY。
  */
 export interface PageCoord {
   side:  'left' | 'right';
@@ -70,9 +68,9 @@ export interface PageCoord {
   relX:  number;
   /** 单页内相对 Y（0.0–1.0） */
   relY:  number;
-  /** 相对 layout 视口宽（`document.documentElement.clientWidth`，与全屏 cover 分母一致） */
+  /** `clientX / window.innerWidth`（全屏 Hard-Fill 与指纹分母一致） */
   screenRelX: number;
-  /** 相对 layout 视口高（`document.documentElement.clientHeight`） */
+  /** `clientY / window.innerHeight` */
   screenRelY: number;
   /** 当前跨幅几何框（书槽 bbox）内横向比 [0,1] */
   spreadRelX: number;

@@ -56,15 +56,7 @@ html:has(.zeiss-digital-handbook) main {
   pointer-events: auto !important;
 }
 
-/* 全屏侧栏：fixed 视口右缘，压在书体与手势层之上 */
-[data-zeiss-fs-rail-fixed='1'] {
-  position: fixed !important;
-  right: 0 !important;
-  top: 0 !important;
-  height: 100vh !important;
-  z-index: 80 !important;
-  pointer-events: auto !important;
-}
+/* 全屏镜像 / 侧栏 / Hard-Fill img → 见 zeiss-fs-mirror-portal.css（Portal 独立引入，避免 page-flip 幽灵） */
 
 @media print {
   html:has(.zeiss-digital-handbook),

@@ -17,9 +17,8 @@
  *    - 双图直接撞边（左 0→50%，右 50%→100%，中缝焊死 50% 中轴）
  *
  * 3. 中央路由主权（Router Sovereignty）
- *    HandbookFsInteractionZone 三区路由：
- *      左 15% → prev · 中心 70% → 指纹 dispatch → 收银 · 右 15% → next
- *    键盘路由由 ZeissFullscreenMirror 独立持有，不经任何父级中转。
+ *    全屏仅经 {@link ZeissFsMirrorPortal} → ZeissFullscreenMirror；独立 CSS 与 DOM 变量，
+ *    与 page-flip 样式链物理隔离。
  */
 
 import dynamic from 'next/dynamic';
@@ -27,14 +26,13 @@ import {
   useCallback, useEffect, useLayoutEffect,
   useMemo, useRef, useState,
 } from 'react';
-import { createPortal } from 'react-dom';
 import type { ComponentType, CSSProperties, ReactNode } from 'react';
-import { Maximize2, X } from 'lucide-react';
+import { Maximize2 } from 'lucide-react';
 import '@/styles/page-flip.css';
 import { ZeissHandbookPage } from '@/components/catalog/ZeissHandbookPage';
 import { ZeissHandbookShortcutRail } from '@/components/catalog/ZeissHandbookShortcutRail';
 import type { ReactPageFlipProps, ReactPageFlipRef } from '@/components/catalog/reactPageFlipTypes';
-import { HandbookFsInteractionZone } from '@/components/catalog/HandbookFsInteractionZone';
+import { ZeissFsMirrorPortal } from '@/components/catalog/ZeissFsMirrorPortal';
 import { getHandbookPageCount, getPageData } from '@/data/zeissHandbookPageMap';
 
 /* ─── 物理常数 ────────────────────────────────────────────────────────────── */
@@ -44,7 +42,6 @@ const PAGE_W     = 450;
 const PAGE_H     = Math.floor(PAGE_W * PAGE_RATIO); // 636
 const RAIL_W     = 60;
 const FLIP_MS    = 700;
-const ZEISS_FS_FORCE_IMG_SCALE_TEST = false;
 const PHYS_H     = PAGE_H;
 const SPREAD_W   = 2 * PAGE_W;
 
@@ -105,30 +102,6 @@ function ZeissHandbookRailDockSpread({ currentPageIndex0, pageCount }: { current
   );
 }
 
-function ZeissHandbookRailDockViewport({
-  currentPageIndex0,
-  pageCount,
-  onNavigateToPageIndex0,
-}: {
-  currentPageIndex0: number;
-  pageCount: number;
-  onNavigateToPageIndex0?: (pageIndex0: number) => void;
-}) {
-  return (
-    <div
-      className="zeiss-handbook-side-rail zeiss-series-nav-container pointer-events-auto"
-      data-zeiss-fs-rail-fixed="1"
-      style={{ position: 'fixed', right: 0, top: 0, height: '100vh', width: RAIL_W, zIndex: 80 }}
-    >
-      <ZeissHandbookShortcutRail
-        currentPageIndex0={currentPageIndex0}
-        pageCount={pageCount}
-        onNavigateToPageIndex0={onNavigateToPageIndex0}
-      />
-    </div>
-  );
-}
-
 /* ─── BookStage（仅预览书槽，与全屏物理层完全隔离）────────────────────────── */
 
 interface BookStageProps {
@@ -182,179 +155,6 @@ function BookStage({
   );
 }
 
-/* ─── ZeissFullscreenMirror — 纯净全屏镜像层 ────────────────────────────── */
-
-interface ZeissFullscreenMirrorProps {
-  /** 当前跨幅左页 0-based 索引（与父组件共享同一 state） */
-  currentPage: number;
-  total: number;
-  /** 翻页主权回调：delta=+2 下翻，delta=-2 上翻 */
-  onNavigate: (delta: number) => void;
-  /** 侧栏绝对跳转回调 */
-  onNavigateToPage: (page0: number) => void;
-  onClose: () => void;
-}
-
-/**
- * ZeissFullscreenMirror — StandardEye 4.0 · 物理隔离全屏层
- *
- * 三大主权：
- *   - 键盘主权：Esc / Arrow* 由本组件独立持有，不经父级中转
- *   - 图像主权：双图直接撞边，无 page-flip 引用，无 stf__ 类名
- *   - 路由主权：HandbookFsInteractionZone 三区路由（15% / 70% / 15%）
- *
- * 翻页路径：用户操作 → onNavigate(delta) → 父级 setCurrentPage(clamp) →
- *   React re-render → img.src 更新（已缓存则秒显示）
- */
-function ZeissFullscreenMirror({
-  currentPage, total, onNavigate, onNavigateToPage, onClose,
-}: ZeissFullscreenMirrorProps) {
-  const fsSpreadsRef = useRef<HTMLDivElement>(null);
-
-  /* 手势层变换同步到图像层（zoom/pan 视觉一致性） */
-  const handleFsTransformChange = useCallback(
-    (xform: { x: number; y: number; scale: number }) => {
-      const el = fsSpreadsRef.current;
-      if (!el) return;
-      el.style.transformOrigin = '0 0';
-      el.style.transform = `translate3d(${xform.x}px, ${xform.y}px, 0) scale(${xform.scale})`;
-    },
-    [],
-  );
-
-  /* 键盘主权：Esc / Arrow 由本组件独立持有 */
-  useEffect(() => {
-    const h = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') { onClose(); return; }
-      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); onNavigate(2); return; }
-      if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   { e.preventDefault(); onNavigate(-2); }
-    };
-    window.addEventListener('keydown', h);
-    return () => window.removeEventListener('keydown', h);
-  }, [onNavigate, onClose]);
-
-  /* 图像数据：仅依赖 currentPage + total，不依赖 page-flip 引擎 */
-  const spread = useMemo(() => {
-    const getImg = (p1: number) => {
-      const pd = getPageData(p1, 'zeiss');
-      const url = pd?.imageUrl?.trim();
-      return {
-        src: (url && url.length > 0 ? url : null) ?? pd?.imageData ?? '',
-        alt: pd?.title ?? `第 ${p1} 页`,
-      };
-    };
-    if (total <= 0) return { left: null, right: null };
-    const leftP1  = Math.min(total, Math.max(1, currentPage + 1));
-    const rightP1 = leftP1 + 1;
-    return {
-      left:  getImg(leftP1),
-      right: rightP1 <= total ? getImg(rightP1) : null,
-    };
-  }, [currentPage, total]);
-
-  /* 页槽公共样式 */
-  const slotImgStyle: CSSProperties = {
-    position: 'absolute', inset: 0,
-    width: '100%', height: '100%',
-    objectFit: 'fill', objectPosition: 'center',
-    display: 'block', userSelect: 'none',
-  };
-  const slotFallbackStyle: CSSProperties = { position: 'absolute', inset: 0, background: '#111' };
-
-  return (
-    <div
-      role="dialog"
-      aria-modal
-      aria-label="蔡司价目手册 · 全屏沉浸"
-      data-zeiss-fs-mirror="1"
-      data-zeiss-fs-img-scale-test={ZEISS_FS_FORCE_IMG_SCALE_TEST ? '1' : undefined}
-      style={{
-        position: 'fixed', left: 0, top: 0,
-        width: '100vw', height: '100vh',
-        maxWidth: 'none', maxHeight: 'none',
-        zIndex: 1, padding: 0, margin: 0, borderRadius: 0,
-        boxSizing: 'border-box', overflow: 'visible',
-        background: '#000', touchAction: 'none', overscrollBehavior: 'none',
-      }}
-    >
-      {/*
-       * Layer 0 — 双图物理镜像
-       * 左槽 [0, 50%)  右槽 [50%, 100%)，中缝焊死 50% 中轴。
-       * 无 stf__ / flip 类名；翻页 = img.src 切换，无引擎调用。
-       */}
-      <div
-        ref={fsSpreadsRef}
-        data-zeiss-fs-image-layer="1"
-        style={{
-          position: 'fixed', top: 0, left: 0,
-          width: '100vw', height: '100vh',
-          maxWidth: 'none', maxHeight: 'none',
-          margin: 0, zIndex: 1, transformOrigin: '0 0',
-        }}
-      >
-        {/* 左页槽 */}
-        <div
-          data-zeiss-fs-page-slot="left"
-          style={{ position: 'absolute', top: 0, left: 0, width: '50%', height: '100%', boxSizing: 'border-box' }}
-        >
-          {spread.left?.src
-            ? <img data-zeiss-fs-layer0-img="left" src={spread.left.src} alt={spread.left.alt} style={slotImgStyle} decoding="async" draggable={false} />
-            : <div style={slotFallbackStyle} />
-          }
-        </div>
-        {/* 右页槽 */}
-        <div
-          data-zeiss-fs-page-slot="right"
-          style={{ position: 'absolute', top: 0, left: '50%', width: '50%', height: '100%', boxSizing: 'border-box' }}
-        >
-          {spread.right?.src
-            ? <img data-zeiss-fs-layer0-img="right" src={spread.right.src} alt={spread.right.alt} style={slotImgStyle} decoding="async" draggable={false} />
-            : <div style={slotFallbackStyle} />
-          }
-        </div>
-      </div>
-
-      {/*
-       * Layer 1 — 透明手势雷达
-       * 三区路由（15%/70%/15%）+ 双指 zoom/pan；onTransformChange 同步 Layer 0。
-       */}
-      <HandbookFsInteractionZone
-        innerFill
-        userZoomEnabled
-        baseScale={1}
-        onTransformChange={handleFsTransformChange}
-        onNavigate={onNavigate}
-        currentPage={currentPage}
-        pageW={PAGE_W}
-        pageH={PAGE_H}
-        brand="zeiss"
-        style={{ position: 'absolute', inset: 0, zIndex: 10, background: 'transparent' }}
-      >
-        {/* anchor div：与 Layer0 同尺寸，供 buildPageCoord 边界参照（非必须，保留向后兼容） */}
-        <div data-handbook-fs-spread-anchor="1" style={{ position: 'absolute', inset: 0 }} />
-      </HandbookFsInteractionZone>
-
-      {/* Layer 2 — fixed 侧栏（不占书宽） */}
-      <ZeissHandbookRailDockViewport
-        currentPageIndex0={currentPage}
-        pageCount={total}
-        onNavigateToPageIndex0={onNavigateToPage}
-      />
-
-      {/* 关闭按钮 */}
-      <button
-        type="button"
-        onClick={onClose}
-        aria-label="退出全屏"
-        style={{ position: 'absolute', right: 16, top: 16, zIndex: 100 }}
-        className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/30 bg-slate-950/70 text-white shadow-[0_12px_40px_rgba(0,0,0,0.6)] backdrop-blur-xl transition hover:bg-slate-900/80"
-      >
-        <X className="h-6 w-6" strokeWidth={2.4} />
-      </button>
-    </div>
-  );
-}
-
 /* ─── ZeissDigitalHandbook（主组件）────────────────────────────────────── */
 
 export function ZeissDigitalHandbook() {
@@ -373,7 +173,8 @@ export function ZeissDigitalHandbook() {
   const [currentPage,  setCurrentPage]  = useState(0);
   const [isFs,         setIsFs]         = useState(false);
   const [mounted,      setMounted]      = useState(false);
-  const [fsPortalHost, setFsPortalHost] = useState<HTMLElement | null>(null);
+  /** 每次进入全屏递增，与 currentPage 组成 Portal 子树 key，强制销毁旧 DOM（cache bust） */
+  const [fsEpoch,      setFsEpoch]      = useState(0);
 
   /* isFsRef 随 isFs state 同步（layout effect 保证渲染帧内一致） */
   useLayoutEffect(() => { isFsRef.current = isFs; }, [isFs]);
@@ -382,23 +183,10 @@ export function ZeissDigitalHandbook() {
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { setMounted(true); }, []);
 
-  /* 全屏 portal 宿主（挂 body 末级，脱离祖先 transform / max-width 约束） */
-  useLayoutEffect(() => {
-    if (!mounted || !isFs) {
-      setFsPortalHost((prev) => {
-        if (prev?.isConnected) prev.remove();
-        return null;
-      });
-      return;
-    }
-    const host = document.createElement('div');
-    host.setAttribute('data-zeiss-fs-portal-host', '1');
-    host.style.cssText =
-      'position:fixed;left:0;top:0;width:100vw;height:100vh;max-width:none;max-height:none;margin:0;padding:0;border:0;overflow:visible;z-index:2147483646;pointer-events:auto;box-sizing:border-box;';
-    document.body.appendChild(host);
-    setFsPortalHost(host);
-    return () => { host.remove(); setFsPortalHost(null); };
-  }, [mounted, isFs]);
+  const openFullscreen = useCallback(() => {
+    setFsEpoch((e) => e + 1);
+    setIsFs(true);
+  }, []);
 
   /* 预览壳尺寸观察 */
   useLayoutEffect(() => {
@@ -551,7 +339,7 @@ export function ZeissDigitalHandbook() {
           </h2>
           <button
             type="button"
-            onClick={() => setIsFs(true)}
+            onClick={openFullscreen}
             className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-white/85 backdrop-blur-md transition hover:bg-white/10"
             aria-label="全屏沉浸阅读"
           >
@@ -588,22 +376,16 @@ export function ZeissDigitalHandbook() {
         <ZeissHandbookRailDockSpread currentPageIndex0={currentPage} pageCount={total} />
       </div>
 
-      {/*
-       * 全屏镜像层：ZeissFullscreenMirror（完全独立，物理层纯净）
-       * portal → body 末级宿主，脱离祖先 transform / max-width 约束。
-       */}
-      {mounted && isFs && fsPortalHost &&
-        createPortal(
-          <ZeissFullscreenMirror
-            currentPage={currentPage}
-            total={total}
-            onNavigate={goToPageDelta}
-            onNavigateToPage={goToPage}
-            onClose={() => setIsFs(false)}
-          />,
-          fsPortalHost,
-        )
-      }
+      <ZeissFsMirrorPortal
+        open={isFs}
+        appMounted={mounted}
+        portalReactKey={`${fsEpoch}-${currentPage}`}
+        currentPage={currentPage}
+        total={total}
+        onNavigate={goToPageDelta}
+        onNavigateToPage={goToPage}
+        onClose={() => setIsFs(false)}
+      />
 
       {!isFs && (
         <p className="mt-2 text-center text-[10px] text-white/45">

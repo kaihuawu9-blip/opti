@@ -4,10 +4,10 @@
  * 物理主权保证：全屏双图已「暴力撞边」，左页 [0, 50%) 右页 [50%, 100%)，
  * 中缝焊死在视口 50% 中轴。因此：
  *
- *   screenRelX = clientX / layoutVW  ← 跨幅几何的唯一真值，无需任何 px 修正
- *   screenRelY = clientY / layoutVH
+ *   screenRelX = clientX / window.innerWidth  ← 跨幅几何唯一真值（与 Hard-Fill 中缝对齐）
+ *   screenRelY = clientY / window.innerHeight
  *
- * 调用方只需采集 `(clientX / window.innerWidth, clientY / window.innerHeight)`
+ * 调用方采集 `(clientX / window.innerWidth, clientY / window.innerHeight)`
  * 并直接输入本函数，即可自动生成 [系列 + 折射率 + 膜层] 指纹并驱动收银台。
  *
  * **注意**：纵向区间与矩阵键映射为可迭代占位，后续按真实价目版式调参。
@@ -34,8 +34,8 @@ const DIGITAL_SERIES_MATRIX_KEY = '智锐数码型亚洲版';
 /**
  * 根据物理层归一化坐标生成蔡司指纹。
  *
- * @param screenRelX  `clientX / layoutVW`（0–1，跨幅横向；< 0.5 为左页，≥ 0.5 为右页）
- * @param screenRelY  `clientY / layoutVH`（0–1，纵向）
+ * @param screenRelX  `clientX / window.innerWidth`（0–1；< 0.5 左半屏，≥ 0.5 右半屏）
+ * @param screenRelY  `clientY / window.innerHeight`（0–1）
  * @param activeMapId 当前快捷图激活 ID（用于精确映射，可为 null）
  */
 export function generateZeissHandbookFingerprint(

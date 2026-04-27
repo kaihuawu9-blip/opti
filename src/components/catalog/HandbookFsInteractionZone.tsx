@@ -5,11 +5,11 @@
  *
  * 架构原则：
  *   物理层（Layer 0）已保证左图撞左缘、右图撞右缘、中缝焊死在 50% 视口中轴。
- *   因此 `screenRelX = clientX / layoutVW` 即为跨幅几何的绝对真值，
- *   无需再借助 `getBoundingClientRect` 推算书槽坐标。
+ *   全屏 Hard-Fill 下：`screenRelX = clientX / window.innerWidth` 为跨幅真值
+ *   （与物理中缝 innerWidth/2 对齐），无 layout 视口与 inner 视口分裂。
  *
- *   坐标唯一基准：tap 事件只采集 (clientX / layoutVW, clientY / layoutVH)，
- *   直接输入指纹引擎，驱动收银台。双击放大已废弃（取消点击放大）。
+ *   `visualTransformOrigin`：全屏双图镜像与手势 inner 共用同一原点，
+ *   捏合缩放直接作用于底层镜像层时抑制中缝漂移。
  */
 
 import {
@@ -28,7 +28,6 @@ import {
   type PageCoord,
   type ProductHotspot,
 } from '@/lib/catalog/handbookInteractionRouter';
-import { getLayoutViewportCssSize } from '@/lib/catalog/layoutViewportSize';
 
 const MIN_SCALE = 1;
 /** 含全屏 `baseScale`（screen-cover 可 >4）与捏合上限 */
@@ -116,6 +115,11 @@ export interface HandbookFsInteractionZoneProps {
    * 用于将手势层的变换同步给独立渲染的图像层（视觉层与手势层分离时使用）。
    */
   onTransformChange?: (xform: { x: number; y: number; scale: number }) => void;
+  /**
+   * 手势 inner 与父级镜像层的 `transform-origin`（全屏建议 `50vw 0` 锁中缝）。
+   * 默认 `0 0`。
+   */
+  visualTransformOrigin?: string;
   cashierMode?: boolean;
   currentPage: number;
   pageW: number;
@@ -139,6 +143,7 @@ export function HandbookFsInteractionZone({
   baseScale = 1,
   innerFill = false,
   onTransformChange,
+  visualTransformOrigin = '0 0',
   cashierMode = false,
   currentPage,
   pageW,
@@ -210,11 +215,14 @@ export function HandbookFsInteractionZone({
   const onTransformChangeRef = useRef(onTransformChange);
   onTransformChangeRef.current = onTransformChange;
 
+  const visualTransformOriginRef = useRef(visualTransformOrigin);
+  visualTransformOriginRef.current = visualTransformOrigin;
+
   const commitTransform = useCallback((t: Xform): void => {
     const inner = innerRef.current;
     if (!inner) return;
 
-    inner.style.transformOrigin = '0 0';
+    inner.style.transformOrigin = visualTransformOriginRef.current;
     inner.style.transform = `translate3d(${t.x}px, ${t.y}px, 0) scale(${t.scale})`;
 
     onTransformChangeRef.current?.({ x: t.x, y: t.y, scale: t.scale });
@@ -269,7 +277,7 @@ export function HandbookFsInteractionZone({
     commitTransform(rest);
     zoomedRef.current = false;
     setIsZoomed(false);
-  }, [userZoomEnabled, baseScale, cancelSpring, commitTransform, restXform]);
+  }, [userZoomEnabled, baseScale, visualTransformOrigin, cancelSpring, commitTransform, restXform]);
 
   /**
    * 可缩放手势：首帧 resting = translate3d(0,0,0) + scale(baseScale)，禁止 ref/DOM 双轨。
@@ -288,7 +296,7 @@ export function HandbookFsInteractionZone({
     commitTransform(rest);
     zoomedRef.current = false;
     setIsZoomed(false);
-  }, [userZoomEnabled, baseScale, cancelSpring, commitTransform, restXform]);
+  }, [userZoomEnabled, baseScale, visualTransformOrigin, cancelSpring, commitTransform, restXform]);
 
   const getConstrainedXform = useCallback(
     (t: Xform): Xform => {
@@ -339,13 +347,14 @@ export function HandbookFsInteractionZone({
   }, [getConstrainedXform, springTo]);
 
   /**
-   * 物理主权坐标（StandardEye 4.0）：
-   *   物理层已保证左图 [0, 50%) 右图 [50%, 100%] 精确撞边，
-   *   因此 screenRelX = clientX / layoutVW 即为跨幅几何的绝对真值。
-   *   不再依赖 getBoundingClientRect；无 DOM 查询，无 bbox 误差。
+   * 比例指纹坐标（StandardEye 4.0 · Hard-Fill）：
+   *   仅采集 clientX / window.innerWidth、clientY / window.innerHeight；
+   *   与物理中缝 innerWidth/2 对齐，零固定 px 命中判断。
    */
   const buildPageCoord = useCallback((clientX: number, clientY: number): PageCoord | null => {
-    const { w: vw, h: vh } = getLayoutViewportCssSize();
+    if (typeof window === 'undefined') return null;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
     if (vw <= 0 || vh <= 0) return null;
 
     const screenRelX = Math.max(0, Math.min(1, clientX / vw));
@@ -708,7 +717,7 @@ export function HandbookFsInteractionZone({
                 inset: 0,
               }
             : {}),
-          transformOrigin: '0 0',
+          transformOrigin: visualTransformOrigin,
           willChange: 'transform',
         }}
       >

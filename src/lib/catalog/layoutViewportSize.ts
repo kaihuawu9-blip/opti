@@ -1,7 +1,7 @@
 /**
  * Layout viewport CSS 像素（`document.documentElement.clientWidth/Height`）。
- * 用于全屏 cover 分母与 `screenRel*` 指纹，优先于 `window.innerWidth/Height`，
- * 以减少高分屏 / 平板上与 visualViewport 或 UI 缩放相关的漂移。
+ * 用于非全屏手册等场景；**蔡司全屏 Hard-Fill 指纹分母请用 `window.innerWidth/Height`**
+ * （见 {@link mountZeissFullscreenDomVars} / HandbookFsInteractionZone），勿用本函数替代。
  */
 export function getLayoutViewportCssSize(): { w: number; h: number } {
   if (typeof document === 'undefined') return { w: 1, h: 1 };
@@ -27,4 +27,42 @@ export function getPhysicalScreenCssSize(): { w: number; h: number } {
   const h = typeof sh === 'number' && sh > 0 ? sh : 0;
   if (w > 0 && h > 0) return { w, h };
   return getLayoutViewportCssSize();
+}
+
+const CSS_VAR_FS_W = '--fs-w';
+const CSS_VAR_FS_H = '--fs-h';
+
+/**
+ * 在 `document.documentElement` 上写入 `--fs-w` / `--fs-h`（像素），与 `window.innerWidth/Height`
+ * 同步，并在 **resize** 与 **visualViewport** resize/scroll 时重新采样，避免「只在挂载时算一次」冻结。
+ *
+ * 全屏关闭时务必调用返回的 `revoke()` 移除监听与变量。
+ */
+export function mountZeissFullscreenDomVars(): () => void {
+  if (typeof document === 'undefined' || typeof window === 'undefined') {
+    return () => {};
+  }
+  const root = document.documentElement;
+
+  const apply = (): void => {
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    if (w > 0) root.style.setProperty(CSS_VAR_FS_W, `${w}px`);
+    if (h > 0) root.style.setProperty(CSS_VAR_FS_H, `${h}px`);
+  };
+
+  apply();
+
+  window.addEventListener('resize', apply);
+  const vv = window.visualViewport;
+  vv?.addEventListener('resize', apply);
+  vv?.addEventListener('scroll', apply);
+
+  return () => {
+    window.removeEventListener('resize', apply);
+    vv?.removeEventListener('resize', apply);
+    vv?.removeEventListener('scroll', apply);
+    root.style.removeProperty(CSS_VAR_FS_W);
+    root.style.removeProperty(CSS_VAR_FS_H);
+  };
 }

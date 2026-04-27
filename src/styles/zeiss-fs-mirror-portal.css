@@ -1,0 +1,71 @@
+/**
+ * Zeiss 全屏镜像 — 独立样式（焦土层）
+ * 严禁依赖 page-flip / stf__*；仅由 ZeissFsMirrorPortal 引入。
+ */
+
+/* ── Portal 唯一壳层：fixed inset-0 撞满视口 ───────────────────────────── */
+[data-zeiss-fs-portal-root='1'] {
+  position: fixed;
+  inset: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+  background: #000;
+  touch-action: none;
+  overscroll-behavior: none;
+  user-select: none;
+  -webkit-user-select: none;
+  z-index: 1;
+}
+
+/* 双图底座：捏合/平移矩阵只作用于此层 */
+[data-zeiss-fs-dual-base='1'] {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/*
+ * 物理撞边：左 50vw 贴左缘，右 50vw 贴 50vw 中缝 — 中轴锁定视口正中央
+ * 强制 50vw / 100vh + fill，不依赖中间层 width:100% 继承链
+ */
+[data-zeiss-fs-portal-root='1'] .zeiss-fs-mirror-img {
+  position: absolute !important;
+  top: 0 !important;
+  width: 50vw !important;
+  height: 100vh !important;
+  max-width: none !important;
+  max-height: none !important;
+  object-fit: fill !important;
+  object-position: center !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: block !important;
+  box-sizing: border-box !important;
+}
+
+[data-zeiss-fs-portal-root='1'] .zeiss-fs-mirror-img[data-zeiss-fs-half='L'] {
+  left: 0 !important;
+  right: auto !important;
+}
+
+[data-zeiss-fs-portal-root='1'] .zeiss-fs-mirror-img[data-zeiss-fs-half='R'] {
+  left: 50vw !important;
+  right: auto !important;
+}
+
+/* 全屏侧栏：fixed 悬浮，不参与主文档 Flex/Grid */
+[data-zeiss-fs-rail-fixed='1'] {
+  position: fixed !important;
+  right: 0 !important;
+  top: 0 !important;
+  height: 100vh !important;
+  z-index: 99 !important;
+  pointer-events: auto !important;
+  box-sizing: border-box !important;
+}
+
+/* 暴力撞边验证：NEXT_PUBLIC_ZEISS_FS_VIOLENCE_TEST=1 */
+html[data-zeiss-fs-violence-test='1'] [data-zeiss-fs-portal-root='1'] .zeiss-fs-mirror-img {
+  transform: scale(1.1) !important;
+}

@@ -1,0 +1,101 @@
+'use client';
+
+/**
+ * ZeissFsMirrorPortal — 全屏镜像唯一入口（body 末级 Portal）
+ *
+ * 焦土规约：
+ * - 严禁 `@/styles/page-flip.css` / stf__* / ScaledBlock。
+ * - Portal 的 React 子树仅 **一个** `div.fixed.inset-0`（`data-zeiss-fs-portal-root`），其内为镜像与路由器。
+ * - {@link mountZeissFullscreenDomVars} 焊 `--fs-w` / `--fs-h`（随 resize 重采样）。
+ */
+
+import { useLayoutEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import '@/styles/zeiss-fs-mirror-portal.css';
+import { mountZeissFullscreenDomVars } from '@/lib/catalog/layoutViewportSize';
+import { ZeissFullscreenMirror } from '@/components/catalog/ZeissFullscreenMirror';
+
+export interface ZeissFsMirrorPortalProps {
+  open: boolean;
+  appMounted: boolean;
+  portalReactKey: string | number;
+  currentPage: number;
+  total: number;
+  onNavigate: (delta: number) => void;
+  onNavigateToPage: (page0: number) => void;
+  onClose: () => void;
+}
+
+export function ZeissFsMirrorPortal({
+  open,
+  appMounted,
+  portalReactKey,
+  currentPage,
+  total,
+  onNavigate,
+  onNavigateToPage,
+  onClose,
+}: ZeissFsMirrorPortalProps) {
+  const [portalHost, setPortalHost] = useState<HTMLElement | null>(null);
+  const revokeDomVars = useRef<(() => void) | null>(null);
+
+  useLayoutEffect(() => {
+    if (!appMounted || !open) {
+      setPortalHost((prev) => {
+        if (prev?.isConnected) prev.remove();
+        return null;
+      });
+      return;
+    }
+    const host = document.createElement('div');
+    host.setAttribute('data-zeiss-fs-portal-host', '1');
+    host.style.cssText =
+      'position:fixed;left:0;top:0;width:100vw;height:100vh;max-width:none;max-height:none;margin:0;padding:0;border:0;overflow:visible;z-index:2147483646;pointer-events:auto;box-sizing:border-box;';
+    document.body.appendChild(host);
+    setPortalHost(host);
+    return () => {
+      host.remove();
+      setPortalHost(null);
+    };
+  }, [appMounted, open]);
+
+  useLayoutEffect(() => {
+    if (!open || !appMounted) {
+      revokeDomVars.current?.();
+      revokeDomVars.current = null;
+      document.documentElement.removeAttribute('data-zeiss-fs-violence-test');
+      return;
+    }
+    revokeDomVars.current = mountZeissFullscreenDomVars();
+    if (process.env.NEXT_PUBLIC_ZEISS_FS_VIOLENCE_TEST === '1') {
+      document.documentElement.setAttribute('data-zeiss-fs-violence-test', '1');
+    }
+    return () => {
+      revokeDomVars.current?.();
+      revokeDomVars.current = null;
+      document.documentElement.removeAttribute('data-zeiss-fs-violence-test');
+    };
+  }, [open, appMounted]);
+
+  if (!portalHost || !open || !appMounted) return null;
+
+  return createPortal(
+    <div
+      key={portalReactKey}
+      data-zeiss-fs-portal-root="1"
+      role="dialog"
+      aria-modal
+      aria-label="蔡司价目手册 · 全屏沉浸"
+      className="fixed inset-0"
+    >
+      <ZeissFullscreenMirror
+        currentPage={currentPage}
+        total={total}
+        onNavigate={onNavigate}
+        onNavigateToPage={onNavigateToPage}
+        onClose={onClose}
+      />
+    </div>,
+    portalHost,
+  );
+}
