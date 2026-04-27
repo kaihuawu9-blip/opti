@@ -5,14 +5,12 @@
  *
  * 焦土规约：
  * - 严禁 `@/styles/page-flip.css` / stf__* / ScaledBlock。
- * - Portal 的 React 子树仅 **一个** `div.fixed.inset-0`（`data-zeiss-fs-portal-root`），其内为镜像与路由器。
- * - {@link mountZeissFullscreenDomVars} 焊 `--fs-w` / `--fs-h`（随 resize 重采样）。
+ * - Portal 的 React 子树仅 **一个** `div.fixed.inset-0`（`data-zeiss-fs-portal-root`），其内为双图 + 透明路由 + 侧栏。
  */
 
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useLayoutEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import '@/styles/zeiss-fs-mirror-portal.css';
-import { mountZeissFullscreenDomVars } from '@/lib/catalog/layoutViewportSize';
 import { ZeissFullscreenMirror } from '@/components/catalog/ZeissFullscreenMirror';
 
 export interface ZeissFsMirrorPortalProps {
@@ -37,7 +35,6 @@ export function ZeissFsMirrorPortal({
   onClose,
 }: ZeissFsMirrorPortalProps) {
   const [portalHost, setPortalHost] = useState<HTMLElement | null>(null);
-  const revokeDomVars = useRef<(() => void) | null>(null);
 
   useLayoutEffect(() => {
     if (!appMounted || !open) {
@@ -58,24 +55,6 @@ export function ZeissFsMirrorPortal({
       setPortalHost(null);
     };
   }, [appMounted, open]);
-
-  useLayoutEffect(() => {
-    if (!open || !appMounted) {
-      revokeDomVars.current?.();
-      revokeDomVars.current = null;
-      document.documentElement.removeAttribute('data-zeiss-fs-violence-test');
-      return;
-    }
-    revokeDomVars.current = mountZeissFullscreenDomVars();
-    if (process.env.NEXT_PUBLIC_ZEISS_FS_VIOLENCE_TEST === '1') {
-      document.documentElement.setAttribute('data-zeiss-fs-violence-test', '1');
-    }
-    return () => {
-      revokeDomVars.current?.();
-      revokeDomVars.current = null;
-      document.documentElement.removeAttribute('data-zeiss-fs-violence-test');
-    };
-  }, [open, appMounted]);
 
   if (!portalHost || !open || !appMounted) return null;
 
