@@ -1,26 +1,19 @@
 'use client';
 
 /**
- * HandbookFsInteractionZone v5 - rAF router + physical spring monitor.
+ * HandbookFsInteractionZone v7 — StandardEye 4.0 · Physical Supremacy
  *
- * Coordinate replay:
- *   visualX = outerLeft + translateX + contentX * scale
- *   contentX = (visualX - outerLeft - translateX) / scale
+ * 架构原则：
+ *   物理层（Layer 0）已保证左图撞左缘、右图撞右缘、中缝焊死在 50% 视口中轴。
+ *   因此 `screenRelX = clientX / layoutVW` 即为跨幅几何的绝对真值，
+ *   无需再借助 `getBoundingClientRect` 推算书槽坐标。
  *
- * Spread base rect is recovered from the transformed .stf__parent:
- *   baseLeft  = (spreadRect.left - outerRect.left - translateX) / scale
- *   baseWidth = spreadRect.width / scale
- *
- * Final relative hit:
- *   relSpreadX = (contentX - baseLeft) / baseWidth
- *   relPageX   = left ? relSpreadX * 2 : (relSpreadX - 0.5) * 2
- *
- * The formula explicitly compensates both pan offset and zoom scale, so cashier
- * output remains 1:1 regardless of current viewport transform.
+ *   坐标唯一基准：tap 事件只采集 (clientX / layoutVW, clientY / layoutVH)，
+ *   直接输入指纹引擎，驱动收银台。双击放大已废弃（取消点击放大）。
  */
 
 import {
-  useCallback, useEffect, useMemo, useRef, useState,
+  useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState,
   type CSSProperties, type MouseEvent as ReactMouseEvent,
   type PointerEvent as ReactPointerEvent, type ReactNode,
 } from 'react';
@@ -35,10 +28,11 @@ import {
   type PageCoord,
   type ProductHotspot,
 } from '@/lib/catalog/handbookInteractionRouter';
+import { getLayoutViewportCssSize } from '@/lib/catalog/layoutViewportSize';
 
 const MIN_SCALE = 1;
-const MAX_SCALE = 4;
-const DOUBLE_TAP_SCALE = 2.5;
+/** 含全屏 `baseScale`（screen-cover 可 >4）与捏合上限 */
+const MAX_SCALE = 10;
 const TAP_SLOP = 10;
 const TAP_TIME = 280;
 const LONG_PRESS_MS = 500;
@@ -51,8 +45,6 @@ interface Xform {
   y: number;
   scale: number;
 }
-
-const IDENTITY: Xform = { x: 0, y: 0, scale: 1 };
 
 function touchDist(a: Touch, b: Touch): number {
   return Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
@@ -70,8 +62,14 @@ function almostSame(a: Xform, b: Xform): boolean {
   );
 }
 
-function getViewportLimit(t: Xform, w: number, h: number): Xform {
-  const scale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, t.scale));
+function viewportMinScale(baseScale: number): number {
+  const s = Number(baseScale);
+  if (!Number.isFinite(s) || s <= 0) return MIN_SCALE;
+  return Math.max(0.08, Math.min(MAX_SCALE, s));
+}
+
+function getViewportLimit(t: Xform, w: number, h: number, minScale: number): Xform {
+  const scale = Math.min(MAX_SCALE, Math.max(minScale, t.scale));
   const scaledW = w * scale;
   const scaledH = h * scale;
 
@@ -99,8 +97,25 @@ export interface HandbookFsInteractionZoneProps {
   children: ReactNode;
   style?: CSSProperties;
   className?: string;
-  /** 为 false 时锁定 translate+scale=恒等，禁用双指/双击缩放，便于坐标与视口 1:1（StandardEye 4.0 全屏价目） */
+  /**
+   * 为 false 时锁定手势缩放：平移恒为 0，`scale` 恒为 `baseScale`（非 1）。
+   * 全屏语义填充下「正常态」= 撞边比例，由父级传入（如 `innerHeight / pageH * 1.05`）。
+   */
   userZoomEnabled?: boolean;
+  /** `userZoomEnabled=false` 时的 resting `scale`；默认 `1` */
+  baseScale?: number;
+  /**
+   * CSS-fill 模式（StandardEye 4.0 物理主权）：
+   * `true` → `innerRef` 使用 `position:absolute;inset:0`，内容由 CSS 撑满容器；
+   * `baseScale` 应为 `1`，交互层在已撑满内容上叠加缩放/平移。
+   * `false`（默认）→ 保持静态块布局，由父层传入 `baseScale` 做视觉缩放。
+   */
+  innerFill?: boolean;
+  /**
+   * 每次 `commitTransform` 后调用，携带最新 `{ x, y, scale }`。
+   * 用于将手势层的变换同步给独立渲染的图像层（视觉层与手势层分离时使用）。
+   */
+  onTransformChange?: (xform: { x: number; y: number; scale: number }) => void;
   cashierMode?: boolean;
   currentPage: number;
   pageW: number;
@@ -109,6 +124,11 @@ export interface HandbookFsInteractionZoneProps {
   hotspots?: readonly ProductHotspot[];
   onLongPress?: (coord: PageCoord, hotspot: ProductHotspot | null) => void;
   onSidebarToggle?: () => void;
+  /**
+   * 全屏翻页回调：delta=+2 前进，delta=-2 后退。
+   * 在 tap（touch）和单击（mouse）未触发 cashier/zoom 动作时调用。
+   */
+  onNavigate?: (delta: number) => void;
 }
 
 export function HandbookFsInteractionZone({
@@ -116,6 +136,9 @@ export function HandbookFsInteractionZone({
   style,
   className,
   userZoomEnabled = true,
+  baseScale = 1,
+  innerFill = false,
+  onTransformChange,
   cashierMode = false,
   currentPage,
   pageW,
@@ -124,14 +147,34 @@ export function HandbookFsInteractionZone({
   hotspots = [],
   onLongPress,
   onSidebarToggle,
+  onNavigate,
 }: HandbookFsInteractionZoneProps) {
   const outerRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
   const router = useMemo(() => new HandbookInteractionRouter(16), []);
   const userZoomEnabledRef = useRef(userZoomEnabled);
   userZoomEnabledRef.current = userZoomEnabled;
+  const baseScaleRef = useRef(baseScale);
+  baseScaleRef.current = baseScale;
 
-  const xformRef = useRef<Xform>(IDENTITY);
+  const restXform = useCallback((): Xform => {
+    const s = Number(baseScaleRef.current);
+    const scale = Number.isFinite(s) && s > 0 ? Math.max(0.08, Math.min(MAX_SCALE, s)) : 1;
+    return { x: 0, y: 0, scale };
+  }, []);
+
+  /** 首帧 inner `scale`：全屏 cover 与锁定态均用 `baseScale`，禁止从 1 闪一下 */
+  const innerRestScale = useMemo(() => {
+    const s = Number(baseScale);
+    if (!Number.isFinite(s) || s <= 0) return 1;
+    return Math.max(0.08, Math.min(MAX_SCALE, s));
+  }, [baseScale]);
+
+  /**
+   * 与首屏 inner 一致：translate 恒 (0,0)，scale = `innerRestScale`（全屏 cover 时 ≠1）。
+   * 禁止 ref 首值为 scale=1 而 DOM 已为 baseScale 的「缩进」漂移；`transform` 仅由 commitTransform 写 DOM，避免父重渲染覆盖手势矩阵。
+   */
+  const xformRef = useRef<Xform>({ x: 0, y: 0, scale: innerRestScale });
   const pendingXform = useRef<Xform | null>(null);
   const rafId = useRef(0);
   const springId = useRef(0);
@@ -147,6 +190,7 @@ export function HandbookFsInteractionZone({
     hotspots,
     onLongPress,
     onSidebarToggle,
+    onNavigate,
   });
 
   useEffect(() => {
@@ -159,16 +203,24 @@ export function HandbookFsInteractionZone({
       hotspots,
       onLongPress,
       onSidebarToggle,
+      onNavigate,
     };
   });
+
+  const onTransformChangeRef = useRef(onTransformChange);
+  onTransformChangeRef.current = onTransformChange;
 
   const commitTransform = useCallback((t: Xform): void => {
     const inner = innerRef.current;
     if (!inner) return;
 
+    inner.style.transformOrigin = '0 0';
     inner.style.transform = `translate3d(${t.x}px, ${t.y}px, 0) scale(${t.scale})`;
 
-    const nextZoomed = t.scale > 1.01;
+    onTransformChangeRef.current?.({ x: t.x, y: t.y, scale: t.scale });
+
+    const baseline = viewportMinScale(baseScaleRef.current);
+    const nextZoomed = t.scale > baseline + 0.02;
     if (nextZoomed !== zoomedRef.current) {
       zoomedRef.current = nextZoomed;
       setIsZoomed(nextZoomed);
@@ -184,14 +236,17 @@ export function HandbookFsInteractionZone({
     router.canProcessGesture();
   }, [commitTransform, router]);
 
-  const scheduleApply = useCallback((next: Xform): void => {
-    const eff = userZoomEnabledRef.current ? next : { ...IDENTITY };
-    xformRef.current = eff;
-    pendingXform.current = eff;
-    if (!rafId.current) {
-      rafId.current = requestAnimationFrame(flushTransform);
-    }
-  }, [flushTransform]);
+  const scheduleApply = useCallback(
+    (next: Xform): void => {
+      const eff = userZoomEnabledRef.current ? next : restXform();
+      xformRef.current = eff;
+      pendingXform.current = eff;
+      if (!rafId.current) {
+        rafId.current = requestAnimationFrame(flushTransform);
+      }
+    },
+    [flushTransform, restXform],
+  );
 
   const cancelSpring = useCallback((): void => {
     if (springId.current) {
@@ -200,27 +255,55 @@ export function HandbookFsInteractionZone({
     }
   }, []);
 
-  /** 锁定缩放：恒等变换，坐标与视口 1:1（须置于 commitTransform / cancelSpring 之后） */
-  useEffect(() => {
+  /** 锁定缩放：resting = translate(0)+`baseScale` */
+  useLayoutEffect(() => {
     if (userZoomEnabled) return;
     cancelSpring();
-    xformRef.current = IDENTITY;
+    const rest = restXform();
+    xformRef.current = rest;
     pendingXform.current = null;
     if (rafId.current) {
       cancelAnimationFrame(rafId.current);
       rafId.current = 0;
     }
-    commitTransform(IDENTITY);
+    commitTransform(rest);
     zoomedRef.current = false;
     setIsZoomed(false);
-  }, [userZoomEnabled, cancelSpring, commitTransform]);
+  }, [userZoomEnabled, baseScale, cancelSpring, commitTransform, restXform]);
 
-  const getConstrainedXform = useCallback((t: Xform): Xform => {
-    if (!userZoomEnabledRef.current) return { ...IDENTITY };
-    const outer = outerRef.current;
-    if (!outer) return t;
-    return getViewportLimit(t, outer.clientWidth || 1, outer.clientHeight || 1);
-  }, []);
+  /**
+   * 可缩放手势：首帧 resting = translate3d(0,0,0) + scale(baseScale)，禁止 ref/DOM 双轨。
+   * ZOOM_RESET / 约束均以 `baseScale` 为语义地板。
+   */
+  useLayoutEffect(() => {
+    if (!userZoomEnabled) return;
+    cancelSpring();
+    const rest = restXform();
+    xformRef.current = rest;
+    pendingXform.current = null;
+    if (rafId.current) {
+      cancelAnimationFrame(rafId.current);
+      rafId.current = 0;
+    }
+    commitTransform(rest);
+    zoomedRef.current = false;
+    setIsZoomed(false);
+  }, [userZoomEnabled, baseScale, cancelSpring, commitTransform, restXform]);
+
+  const getConstrainedXform = useCallback(
+    (t: Xform): Xform => {
+      if (!userZoomEnabledRef.current) return restXform();
+      const outer = outerRef.current;
+      if (!outer) return t;
+      return getViewportLimit(
+        t,
+        outer.clientWidth || 1,
+        outer.clientHeight || 1,
+        viewportMinScale(baseScaleRef.current),
+      );
+    },
+    [restXform],
+  );
 
   const springTo = useCallback((target: Xform): void => {
     cancelSpring();
@@ -255,61 +338,33 @@ export function HandbookFsInteractionZone({
     }
   }, [getConstrainedXform, springTo]);
 
+  /**
+   * 物理主权坐标（StandardEye 4.0）：
+   *   物理层已保证左图 [0, 50%) 右图 [50%, 100%] 精确撞边，
+   *   因此 screenRelX = clientX / layoutVW 即为跨幅几何的绝对真值。
+   *   不再依赖 getBoundingClientRect；无 DOM 查询，无 bbox 误差。
+   */
   const buildPageCoord = useCallback((clientX: number, clientY: number): PageCoord | null => {
-    const shell = outerRef.current;
-    if (!shell) return null;
+    const { w: vw, h: vh } = getLayoutViewportCssSize();
+    if (vw <= 0 || vh <= 0) return null;
 
-    const spreadEl = shell.querySelector<HTMLElement>('.stf__parent');
-    if (!spreadEl) return null;
+    const screenRelX = Math.max(0, Math.min(1, clientX / vw));
+    const screenRelY = Math.max(0, Math.min(1, clientY / vh));
 
-    /*
-     * 单次布局读取：shell 与实际书槽各读取一次，后续全部用纯数学反投影。
-     * 严禁假设书槽在 shell 居中，.stf__parent 是动态基准层的唯一真值。
-     *
-     * StandardEye 4.0：全屏模式下 shell 铺满视口（fixed inset-0 子层 width/height 100%），
-     * `getBoundingClientRect()` 即视口绝对像素坐标系；userZoomEnabled=false 时 inner scale≡1，
-     * pct/rel 与 PDF 槽位严格对齐。
-     */
-    const shellRect = shell.getBoundingClientRect();
-    const bookRect = spreadEl.getBoundingClientRect();
-    const { x, y, scale } = xformRef.current;
-
-    if (scale <= 0) return null;
-
-    const invScale = 1 / scale;
-
-    // 1. 反向投影层：click -> innerRef 逻辑坐标系。
-    const logicX = (clientX - shellRect.left - x) * invScale;
-    const logicY = (clientY - shellRect.top - y) * invScale;
-
-    // 2. 动态基准层：实时捕获书槽 .stf__parent 在逻辑坐标系中的原点与尺寸。
-    const bookLeft = (bookRect.left - shellRect.left - x) * invScale;
-    const bookTop = (bookRect.top - shellRect.top - y) * invScale;
-    const bookW = bookRect.width * invScale;
-    const bookH = bookRect.height * invScale;
-
-    if (bookW <= 0 || bookH <= 0) return null;
-
-    // 3. 计算闭环：normalized = (logicPoint - bookOrigin) / bookSize。
-    const normalizedX = (logicX - bookLeft) / bookW;
-    const normalizedY = (logicY - bookTop) / bookH;
-
-    // 非书页区域立即丢弃，防止 rail / 背景误触收银。
-    if (normalizedX < 0 || normalizedX > 1 || normalizedY < 0 || normalizedY > 1) {
-      return null;
-    }
-
-    const side: 'left' | 'right' = normalizedX < 0.5 ? 'left' : 'right';
-    const relX = side === 'left' ? normalizedX * 2 : (normalizedX - 0.5) * 2;
-    const relY = normalizedY;
-    const { pageW: pw, pageH: ph } = pRef.current;
+    const side: 'left' | 'right' = screenRelX < 0.5 ? 'left' : 'right';
+    const relX = side === 'left' ? screenRelX * 2 : (screenRelX - 0.5) * 2;
+    const relY = screenRelY;
 
     return {
       side,
       relX,
       relY,
-      physX: relX * pw,
-      physY: relY * ph,
+      screenRelX,
+      screenRelY,
+      spreadRelX: screenRelX,
+      spreadRelY: screenRelY,
+      physX: relX,
+      physY: relY,
     };
   }, []);
 
@@ -320,6 +375,10 @@ export function HandbookFsInteractionZone({
       side: coord.side,
       relX: coord.relX,
       relY: coord.relY,
+      screenRelX: coord.screenRelX,
+      screenRelY: coord.screenRelY,
+      spreadRelX: coord.spreadRelX,
+      spreadRelY: coord.spreadRelY,
       physX: coord.physX,
       physY: coord.physY,
       brand: br,
@@ -336,40 +395,48 @@ export function HandbookFsInteractionZone({
     if (payload) dispatchHandbookAddToCart(payload);
   }, []);
 
+  /**
+   * 点击三区路由（StandardEye 4.0 · 中央交互事件路由器）：
+   *
+   *   ┌──────────┬───────────────────────────────────┬──────────┐
+   *   │  左 15%  │        中心 70%（指纹区）           │  右 15%  │
+   *   │  ← prev  │  dispatchCoord → 指纹 → 收银台    │  next →  │
+   *   └──────────┴───────────────────────────────────┴──────────┘
+   *
+   *   缩放态：单击回弹至静止态（不进入任何区域路由）。
+   *   双击放大已废弃（取消点击放大）。
+   */
   const handleTap = useCallback((clientX: number, clientY: number): void => {
     const coord = buildPageCoord(clientX, clientY);
     if (!coord) return;
 
-    const { cashierMode: cm, hotspots: hs, onSidebarToggle: toggle } = pRef.current;
-    const decision = router.routeTap({
-      coord,
-      hotspots: hs,
-      isZoomed: zoomedRef.current,
-      cashierMode: cm,
-    });
+    const { cashierMode: cm, hotspots: hs, onNavigate: nav } = pRef.current;
 
-    switch (decision.action) {
-      case 'CASHIER':
-        sendCashierHotspot(decision.hotspot);
-        dispatchCoord(decision.coord);
-        router.returnToIdle();
-        break;
-      case 'CASHIER_COORD':
-        dispatchCoord(decision.coord);
-        router.returnToIdle();
-        break;
-      case 'ZOOM_RESET':
-        springTo(IDENTITY);
-        router.returnToIdle();
-        break;
-      case 'SIDEBAR_TOGGLE':
-        toggle?.();
-        router.returnToIdle();
-        break;
-      default:
-        router.returnToIdle();
+    // 缩放态：回弹
+    if (zoomedRef.current) {
+      springTo(restXform());
+      router.returnToIdle();
+      return;
     }
-  }, [buildPageCoord, dispatchCoord, router, sendCashierHotspot, springTo]);
+
+    // 三区路由
+    if (coord.screenRelX < 0.15) {
+      // 左 15%：上一跨幅
+      nav?.(-2);
+    } else if (coord.screenRelX > 0.85) {
+      // 右 15%：下一跨幅
+      nav?.(2);
+    } else {
+      // 中心 70%：语义坐标 → 指纹引擎 → 收银台
+      dispatchCoord(coord);
+      if (cm && hs.length > 0) {
+        const hit = router.findHotspot(coord, hs);
+        if (hit) sendCashierHotspot(hit);
+      }
+    }
+
+    router.returnToIdle();
+  }, [buildPageCoord, dispatchCoord, restXform, router, sendCashierHotspot, springTo]);
 
   const handleLongPress = useCallback((clientX: number, clientY: number): void => {
     const coord = buildPageCoord(clientX, clientY);
@@ -465,9 +532,10 @@ export function HandbookFsInteractionZone({
         const prevMy = pinch.prevMid.y - rect.top;
 
         const current = xformRef.current;
+        const floorS = viewportMinScale(baseScaleRef.current);
         const nextScale = Math.min(
           MAX_SCALE,
-          Math.max(MIN_SCALE, current.scale * (nextDist / pinch.prevDist)),
+          Math.max(floorS, current.scale * (nextDist / pinch.prevDist)),
         );
         const factor = nextScale / current.scale;
 
@@ -552,31 +620,6 @@ export function HandbookFsInteractionZone({
     scheduleApply,
   ]);
 
-  const handleDblClick = useCallback((e: ReactMouseEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!userZoomEnabledRef.current) return;
-    cancelSpring();
-
-    const outer = outerRef.current;
-    if (!outer) return;
-
-    if (xformRef.current.scale > 1.01) {
-      springTo(IDENTITY);
-      return;
-    }
-
-    const rect = outer.getBoundingClientRect();
-    const localX = e.clientX - rect.left;
-    const localY = e.clientY - rect.top;
-
-    springTo({
-      x: localX * (1 - DOUBLE_TAP_SCALE),
-      y: localY * (1 - DOUBLE_TAP_SCALE),
-      scale: DOUBLE_TAP_SCALE,
-    });
-  }, [cancelSpring, springTo]);
-
   const mousePan = useRef({
     active: false,
     sx: 0,
@@ -617,6 +660,24 @@ export function HandbookFsInteractionZone({
     monitorAndSpringBack();
   }, [monitorAndSpringBack, router]);
 
+  /**
+   * 桌面鼠标单击（touch 已由 onEnd→handleTap 处理）。
+   * 三区路由与 handleTap 完全对称；缩放态由拖拽覆盖层独占。
+   */
+  const handleMouseClick = useCallback((e: ReactMouseEvent<HTMLDivElement>) => {
+    if (zoomedRef.current) return;
+    const coord = buildPageCoord(e.clientX, e.clientY);
+    if (!coord) return;
+
+    if (coord.screenRelX < 0.15) {
+      pRef.current.onNavigate?.(-2);
+    } else if (coord.screenRelX > 0.85) {
+      pRef.current.onNavigate?.(2);
+    } else {
+      dispatchCoord(coord);
+    }
+  }, [buildPageCoord, dispatchCoord]);
+
   return (
     <div
       ref={outerRef}
@@ -632,16 +693,22 @@ export function HandbookFsInteractionZone({
         overscrollBehavior: 'none',
         userSelect: 'none',
         WebkitUserSelect: 'none',
+        cursor: 'pointer',
         ...style,
       }}
       className={['handbook-fs-interaction-zone', className].filter(Boolean).join(' ')}
-      onDoubleClick={handleDblClick}
+      onClick={handleMouseClick}
     >
       <div
         ref={innerRef}
         style={{
+          ...(innerFill
+            ? {
+                position: 'absolute' as const,
+                inset: 0,
+              }
+            : {}),
           transformOrigin: '0 0',
-          transform: 'translate3d(0px, 0px, 0) scale(1)',
           willChange: 'transform',
         }}
       >

@@ -60,7 +60,17 @@ import { CartLineOperations } from '@/components/cashier/CartLineOperations';
 import '@/styles/Print.css';
 import { CASHIER_OPEN_CHECKOUT_DRAWER_EVENT } from '@/lib/cashierCheckoutEvents';
 // MATRIX_PROTOCOL_V1 · 手册 → 收银桥接（品牌无关，下次放入依视路只需扩 pageMap）
-import { onHandbookAddToCart, toCashierLensProduct } from '@/lib/catalog/handbookCashierBridge';
+import {
+  onHandbookAddToCart,
+  onHandbookPageClick,
+  toCashierLensProduct,
+} from '@/lib/catalog/handbookCashierBridge';
+import {
+  generateZeissHandbookFingerprint,
+  zeissRefractiveLabelToIndexStr,
+} from '@/lib/catalog/zeissHandbookFingerprint';
+import { getHandbookPageCount } from '@/data/zeissHandbookPageMap';
+import { getZeissHandbookMapActiveId } from '@/data/zeissHandbookQuickMap';
 import { disableAuthMode } from '@/core/auth';
 import { formatMatrixLensDisplayName, type LensPriceEntryMode } from '@/lib/priceListEngine';
 import { validateCartLineRxPowerEnvelope } from '@/lib/cashierRxPowerValidate';
@@ -1420,6 +1430,42 @@ export default function CashierPage() {
     });
     return off;
   }, [addToCart]);
+
+  /** 手册全屏点击 → 指纹引擎：rel 语义 + 快捷图 activeId → 价目表选购回填 */
+  useEffect(() => {
+    const off = onHandbookPageClick((coord) => {
+      if (coord.brand !== 'zeiss') return;
+      const total = getHandbookPageCount('zeiss');
+      const activeId = getZeissHandbookMapActiveId(coord.pageIndex0, total);
+      // 物理主权：物理层撞边后 screenRelX = clientX/vw 即为跨幅真值，直接输入指纹引擎
+      const parts = generateZeissHandbookFingerprint(coord.screenRelX, coord.screenRelY, activeId);
+      setLensPriceMode('catalog');
+      setLensCatalogBrand('ZEISS');
+      setZeissSubsetName('');
+      setZeissProductName(parts.seriesMatrixKey);
+      const idxStr = zeissRefractiveLabelToIndexStr(parts.refractive);
+      setZeissIndexStr(idxStr);
+      const idxNum = Number(idxStr);
+      const coats = listCoatingsForProductIndex(parts.seriesMatrixKey, idxNum);
+      const prefer =
+        coats.find((c) => c.includes('铂金')) ??
+        coats.find((c) => c.includes('铂')) ??
+        coats[0] ??
+        parts.coatingHint;
+      setZeissCoating(prefer);
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console -- 指纹与 screenRel 对账
+        console.info('[ZeissHandbookFingerprint]', parts.fingerprint, {
+          screenRelX: coord.screenRelX,
+          screenRelY: coord.screenRelY,
+          spreadRelX: coord.spreadRelX,
+          spreadRelY: coord.spreadRelY,
+          activeId,
+        });
+      }
+    });
+    return off;
+  }, []);
 
   const removeFromCart = useCallback((lineId: string) => {
     setCart((prev) => prev.filter((item) => item.lineId !== lineId));

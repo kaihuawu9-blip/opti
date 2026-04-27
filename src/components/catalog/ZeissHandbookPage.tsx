@@ -10,7 +10,7 @@ import { forwardRef, useCallback, useEffect, useMemo, useState, type ReactNode }
  *   越过标签后再回到内侧垂直红线 → 切掉标签下方「红线外」白条，凸标呈 **纸缘孤立块**，而非拖一条白边。
  * - 使用 `clip-path: polygon(...)`；无 `physicalTabHit` 时回退为 `inset(...)`。
  * - 根容器 `overflow-visible`；锚点页根背景透明，便于裁掉区域透出 3D 场景。
- * - 非锚点页：整图 `object-cover`，无 clip-path。
+ * - 非锚点页：整图 `object-fill`（与全屏 Layer1 一致，价目/附录同一物理策略，无 contain/cover 安全装入）。
  * - **豪雅 `isManualTrimmed`**：页内仅整图 `object-contain`；物理 rail 由父级以 **children** 传入
  *   {@link ZeissSeriesNavList}，且仅 **PageFlip 0-based 右页**（`pageIndex % 2 !== 0 || pageIndex === 0`）挂载，与页同翻。
  */
@@ -339,7 +339,7 @@ export const ZeissHandbookPage = forwardRef<HTMLDivElement, ZeissHandbookPagePro
                 onLoad={() => setReveal(true)}
                 onError={onDefaultRasterError}
                 className={[
-                  'pointer-events-none absolute inset-0 h-full w-full object-cover',
+                  'pointer-events-none absolute inset-0 h-full w-full min-h-full min-w-full object-fill',
                   'transition-opacity ease-out duration-300',
                   reveal ? 'opacity-100' : 'opacity-0',
                 ].join(' ')}

@@ -17,9 +17,19 @@ type Props = {
   /** 总页数；与引擎页数一致，供双页展平后区间判定 */
   pageCount: number;
   className?: string;
+  /**
+   * 若提供则优先调用（如全屏原图模式无 page-flip 实例）；
+   * 否则回退 `window.pageFlipInstance?.flip`。
+   */
+  onNavigateToPageIndex0?: (pageIndex0: number) => void;
 };
 
-export function ZeissHandbookShortcutRail({ currentPageIndex0, pageCount, className = '' }: Props) {
+export function ZeissHandbookShortcutRail({
+  currentPageIndex0,
+  pageCount,
+  className = '',
+  onNavigateToPageIndex0,
+}: Props) {
   const activeId = useMemo(
     () => getZeissHandbookMapActiveId(currentPageIndex0, pageCount),
     [currentPageIndex0, pageCount],
@@ -29,6 +39,10 @@ export function ZeissHandbookShortcutRail({ currentPageIndex0, pageCount, classN
     e.preventDefault();
     e.stopPropagation();
     const target0 = Math.max(0, pdfPage1 - 1);
+    if (onNavigateToPageIndex0) {
+      onNavigateToPageIndex0(target0);
+      return;
+    }
     if (typeof window === 'undefined') return;
     try {
       window.pageFlipInstance?.flip(target0, 'top');

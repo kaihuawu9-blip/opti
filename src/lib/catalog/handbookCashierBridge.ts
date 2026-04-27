@@ -173,7 +173,7 @@ export function onHandbookAddToCart(handler: HandbookAddToCartHandler): () => vo
 /* ─── 全屏感应层：页面点击坐标广播 ───────────────────────────────────────── */
 
 /**
- * 点击页面时广播的物理坐标（已还原为 1:1 PDF 像素 + 相对百分比）。
+ * 点击页面时广播的比例语义坐标（StandardEye 4.0）。
  * 供全屏「收银映射」等上层逻辑消费，与 {@link HandbookCartPayload} 解耦。
  */
 export interface HandbookPageClickCoord {
@@ -185,12 +185,17 @@ export interface HandbookPageClickCoord {
   relX: number;
   /** 单页内相对 Y（0.0–1.0，上 → 下） */
   relY: number;
-  /**
-   * 物理像素 X — 已 / scale 还原，等效于 PDF 页在 1:1 时的 px 横坐标（0 = 单页左缘）。
-   * 计算公式：`relX × pageW`（其中 pageW 为单页 CSS 像素宽，如 450）。
-   */
+  /** 相对 layout 视口宽（`document.documentElement.clientWidth`） */
+  screenRelX: number;
+  /** 相对 layout 视口高（`document.documentElement.clientHeight`） */
+  screenRelY: number;
+  /** 跨幅书槽 bbox 内横向比 */
+  spreadRelX: number;
+  /** 跨幅书槽 bbox 内纵向比 */
+  spreadRelY: number;
+  /** @deprecated 恒等于 relX；非 PDF 像素 */
   physX: number;
-  /** 物理像素 Y，同上 */
+  /** @deprecated 恒等于 relY */
   physY: number;
   brand: DigitalHandbookBrand;
   /** 1-based 左页 PDF 页码 */

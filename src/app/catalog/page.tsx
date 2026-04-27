@@ -64,7 +64,7 @@ export default function CatalogPage() {
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-white md:text-3xl">蔡司数字化手册</h1>
             <p className="mt-1 max-w-2xl text-sm text-slate-400">
-              双页 3D 翻页 · 右侧系列标签与页码自动对齐（文件名含「成长乐」即绑定成长乐标签）· 单页比例 3:4 等比 contained。
+              双页 3D 翻页 · 右侧系列标签与页码自动对齐（文件名含「成长乐」即绑定成长乐标签）· 预览 cover 填满壳体，全屏书幅顶至侧栏左缘。
               请将高清 <code className="rounded bg-white/10 px-1.5 py-0.5 text-[11px] text-slate-200">.jpg</code> /{' '}
               <code className="rounded bg-white/10 px-1.5 py-0.5 text-[11px] text-slate-200">.jpeg</code> 放入{' '}
               <code className="rounded bg-white/10 px-1.5 py-0.5 text-[11px] text-slate-200">public/catalog/zeiss-handbook/</code>

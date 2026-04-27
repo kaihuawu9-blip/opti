@@ -7,9 +7,9 @@
  *
  * 2. **状态机**：任何手势输入都要先经过状态机判断，确保互斥性（缩放中不会开启收银等）。
  *
- * 3. **输出端坐标**：路由器输出给收银系统的 `PageCoord` 始终是 1:1 物理还原坐标。
- *    无论用户将页面拉到何种倍率，`getBoundingClientRect()` 已含所有祖先 transform，
- *    归一化后 × pageW/pageH 即为 PDF 原始像素。
+ * 3. **输出端坐标（StandardEye 4.0）**：路由器输出 `PageCoord` 为 **比例语义** ——
+ *    视口归一化、跨幅归一化、单页 rel 均由 **实时 getBoundingClientRect 分母** 导出；
+ *    **禁止**用固定 CSS 像素常量（如 450）参与点击命中或指纹；热区仍仅用 relX/relY（0–1）。
  *
  * 4. **16ms 节流门**：高频手势（touchmove）调用 `canProcessGesture()` 过门，
  *    返回 false 则丢弃该帧输入（由 rAF 层缓存最新值），确保不阻塞渲染。
@@ -57,13 +57,12 @@ export type InteractionMode = 'IDLE' | 'ZOOMING' | 'PANNING' | 'CASHIER_PENDING'
 /* ─── 坐标类型 ──────────────────────────────────────────────────────────────── */
 
 /**
- * 归一化单页坐标。始终为 1:1 物理还原值。
+ * StandardEye 4.0 横纵比例语义坐标。
  *
- * 计算路径：
- *   client → stf__parent.getBoundingClientRect() → ratioX → physX = relX × pageW
- *
- * 该过程无论当前 fsScale / zoom 倍率为何，都能正确还原，因为
- * getBoundingClientRect() 已含所有祖先 transform（CSS scale / translate）。
+ * 计算路径（无固定 px 分母）：
+ *   client → layout 视口（`documentElement.client*`）得 screenRel*；
+ *   书槽 `spreadEl.getBoundingClientRect()`（已含祖先 transform）得 spreadRel*；
+ *   由 spreadRel* 拆 half → 单页 relX / relY。
  */
 export interface PageCoord {
   side:  'left' | 'right';
@@ -71,9 +70,20 @@ export interface PageCoord {
   relX:  number;
   /** 单页内相对 Y（0.0–1.0） */
   relY:  number;
-  /** 1:1 PDF 物理横坐标（px），单页左缘 = 0 */
+  /** 相对 layout 视口宽（`document.documentElement.clientWidth`，与全屏 cover 分母一致） */
+  screenRelX: number;
+  /** 相对 layout 视口高（`document.documentElement.clientHeight`） */
+  screenRelY: number;
+  /** 当前跨幅几何框（书槽 bbox）内横向比 [0,1] */
+  spreadRelX: number;
+  /** 当前跨幅几何框内纵向比 [0,1] */
+  spreadRelY: number;
+  /**
+   * @deprecated 仅兼容旧消费方；恒等于 relX（非 PDF px）。
+   * 新逻辑请用 relX / spreadRel* / screenRel*。
+   */
   physX: number;
-  /** 1:1 PDF 物理纵坐标（px），单页顶缘 = 0 */
+  /** @deprecated 恒等于 relY（非 PDF px）。 */
   physY: number;
 }
 

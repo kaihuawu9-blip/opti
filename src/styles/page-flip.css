@@ -41,6 +41,31 @@ html:has(.zeiss-digital-handbook) main {
   overflow: visible !important;
 }
 
+/* 桌面预览圆角壳：Cover 撞边后由壳裁切（暴力满幅，与外层 visible 不冲突） */
+[data-handbook-flip-shell='1'] [data-zeiss-preview-shell='1'] {
+  overflow: hidden !important;
+}
+
+/* 预览侧栏：叠在壳右缘，与 ScaledBlock 无 flex 并列、不占书体宽度 */
+[data-zeiss-preview-shell='1'] [data-zeiss-preview-rail='1'] {
+  position: absolute !important;
+  right: 0 !important;
+  top: 0 !important;
+  bottom: 0 !important;
+  z-index: 50 !important;
+  pointer-events: auto !important;
+}
+
+/* 全屏侧栏：fixed 视口右缘，压在书体与手势层之上 */
+[data-zeiss-fs-rail-fixed='1'] {
+  position: fixed !important;
+  right: 0 !important;
+  top: 0 !important;
+  height: 100vh !important;
+  z-index: 80 !important;
+  pointer-events: auto !important;
+}
+
 @media print {
   html:has(.zeiss-digital-handbook),
   html:has(.zeiss-digital-handbook) body,
@@ -329,17 +354,183 @@ html:has(.zeiss-digital-handbook) main {
   box-sizing: border-box;
 }
 
-/* ── 蔡司全屏沉浸：容器贴齐视口 + 页图 fill（消除黑边缝） ─────────────────── */
-[data-zeiss-fullscreen-overlay='1'] {
+/* ── 蔡司全屏沉浸：囚笼拆除 + 强制溢出（书体链；侧栏/关闭钮为 overlay 兄弟，不在此列） ── */
+/*
+ * 凡书体链上 max-* / flex-basis / container / contain / padding 一律 initial，
+ * 避免任意壳层把缩放与溢出「焊死」。overlay 根允许内容溢出视口（金准则：撑爆可见）。
+ */
+[data-zeiss-fs-portal-host],
+[data-zeiss-fullscreen-overlay='1'] [data-zeiss-fs-image-layer='1'],
+[data-zeiss-fullscreen-overlay='1'] .handbook-fs-interaction-zone,
+[data-zeiss-fullscreen-overlay='1'] .handbook-fs-interaction-zone > div,
+[data-zeiss-fullscreen-overlay='1'] [data-zeiss-fs-spread-stack='1'],
+[data-zeiss-fullscreen-overlay='1'] [data-handbook-fs-spread-anchor='1'],
+[data-zeiss-fullscreen-overlay='1'] [data-zeiss-fs-page-slot],
+[data-zeiss-fullscreen-overlay='1'] [data-zeiss-fs-page-slot] img,
+[data-zeiss-fullscreen-overlay='1'] [data-zeiss-fs-layer1-img='1'] {
+  max-width: initial !important;
+  max-height: initial !important;
+  min-width: initial !important;
+  min-height: initial !important;
+  flex-basis: initial !important;
+  container-type: initial !important;
+  contain: none !important;
+  padding: initial !important;
+}
+
+/*
+ * Portal 宿主主权：必须 100vw×100vh + max-width:none，杜绝 #root / flex 下的「局部 fixed」。
+ */
+[data-zeiss-fs-portal-host] {
+  position: fixed !important;
+  left: 0 !important;
+  top: 0 !important;
   width: 100vw !important;
   height: 100vh !important;
-  max-width: 100vw !important;
-  max-height: 100vh !important;
-  padding: 0 !important;
+  max-width: none !important;
+  max-height: none !important;
   margin: 0 !important;
+  border: none !important;
+  flex-basis: initial !important;
+  container-type: initial !important;
+  contain: none !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+  overflow: visible !important;
+}
+
+/*
+ * Layer 1 图像栈：视口锁定 + 100vh，不依赖父级 height:100% 解析（Hydration / 首帧 0 高陷阱）。
+ */
+[data-zeiss-fullscreen-overlay='1'] [data-zeiss-fs-image-layer='1'] {
+  position: fixed !important;
+  left: 0 !important;
+  top: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: none !important;
+  max-height: none !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+  overflow: visible !important;
+}
+
+[data-zeiss-fullscreen-overlay='1'] [data-zeiss-fs-image-layer='1'] [data-zeiss-fs-page-slot] {
+  width: 50% !important;
+  height: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  gap: 0 !important;
+  column-gap: 0 !important;
+  row-gap: 0 !important;
+}
+
+[data-zeiss-fullscreen-overlay='1'] {
+  position: fixed !important;
+  left: 0 !important;
+  top: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: none !important;
+  max-height: none !important;
+  flex-basis: initial !important;
+  container-type: initial !important;
+  contain: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
   border-radius: 0 !important;
   box-sizing: border-box !important;
+  overflow: visible !important;
 }
+
+/*
+ * 全屏书体栈：禁止 flex 居中；感应层与 transform 子层一律 block。
+ */
+[data-zeiss-fullscreen-overlay='1'] .handbook-fs-interaction-zone,
+[data-zeiss-fullscreen-overlay='1'] .handbook-fs-interaction-zone > div {
+  display: block !important;
+}
+
+/*
+ * CSS fill chain（StandardEye 4.0 物理主权）：
+ *   spread-stack / spread-anchor 均用 position:absolute;inset:0 填满 innerRef（已由
+ *   `innerFill` prop 设为 absolute;inset:0），消除「static block + JS scale」参照系分裂。
+ *   page-slot 仍用 50% 宽分割左右页。
+ */
+[data-zeiss-fullscreen-overlay='1'] [data-zeiss-fs-spread-stack='1'] {
+  position: absolute !important;
+  inset: 0 !important;
+  width: auto !important;
+  height: auto !important;
+  min-width: initial !important;
+  min-height: initial !important;
+  max-width: initial !important;
+  max-height: initial !important;
+  flex-basis: initial !important;
+  container-type: initial !important;
+  contain: none !important;
+  padding: initial !important;
+  overflow: visible !important;
+  box-sizing: border-box !important;
+}
+
+[data-zeiss-fullscreen-overlay='1'] .handbook-fs-interaction-zone [data-handbook-fs-spread-anchor='1'] {
+  position: absolute !important;
+  left: 0 !important;
+  top: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: none !important;
+  max-height: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  box-sizing: border-box !important;
+}
+
+[data-zeiss-fullscreen-overlay='1'] [data-zeiss-fs-page-slot] {
+  overflow: visible !important;
+}
+
+/* 可选诊断：ZeissDigitalHandbook 中 ZEISS_FS_FORCE_IMG_SCALE_TEST === true 时启用 */
+[data-zeiss-fullscreen-overlay='1'][data-zeiss-fs-img-scale-test='1'] [data-zeiss-fs-page-slot] img {
+  transform: scale(1.5) !important;
+  transform-origin: center center !important;
+}
+
+/*
+ * 「毁容级」拉伸：仅蔡司全屏单页槽内 img（槽为跨幅 50%，见 ZeissDigitalHandbook）；
+ * 勿扩大选择器（overlay 侧栏/按钮若含 img 会误伤）。
+ */
+/* 全屏槽内图 + Layer1 原图：比例粉碎，禁止 contain（白边撞屏；Rail 可压在画面上） */
+[data-zeiss-fullscreen-overlay='1'] [data-zeiss-fs-page-slot] img,
+[data-zeiss-fullscreen-overlay='1'] [data-zeiss-fs-layer1-img='1'] {
+  object-fit: fill !important;
+  object-position: center !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 100% !important;
+  min-height: 100% !important;
+  max-width: none !important;
+  max-height: none !important;
+  display: block !important;
+}
+
+/*
+ * 全屏原图模式：img 直接 position:absolute; inset:0 填满 portal 根。
+ * 以下两条无害保留：若将来部分场景回退到 page-flip，确保引擎层也贴满。
+ */
+[data-zeiss-fullscreen-overlay='1'] .stf__parent,
+[data-zeiss-fullscreen-overlay='1'] .stf__wrapper,
+[data-zeiss-fullscreen-overlay='1'] .sft__parent,
+[data-zeiss-fullscreen-overlay='1'] .sft__wrapper {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  max-height: none !important;
+  box-sizing: border-box !important;
+}
+
 /* 价目页主图（非豪雅精修）：槽内 fill，白底直抵槽缘；允许极细微拉伸 */
 [data-zeiss-fullscreen-overlay='1'] .stf__page-root img:not(.hoya-manual-trim-img) {
   width: 100% !important;
